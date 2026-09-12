@@ -1,0 +1,23 @@
+import type { Metadata } from "next";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "Altın Dal — Aphrodisias Estate Olive Oil",
+  description: "Ataeymir'deki aile zeytinliğimizden, Aphrodisias'ın zamansız coğrafyasına ait premium zeytinyağları.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="tr">
+      <body className="antialiased">{children}</body>
+    </html>
+  );
+}
