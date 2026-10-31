@@ -1,0 +1,7 @@
+import Link from "next/link";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { notFound } from "next/navigation";
+import { blogPosts, getPost } from "../../../lib/blog";
+import { BrandShell } from "../../components/site-shell";
+export function generateStaticParams(){return blogPosts.map(post=>({slug:post.slug}))}
+export default async function ArticlePage({params}:{params:Promise<{slug:string}>}){const{slug}=await params;const post=getPost(slug);if(!post)notFound();const index=blogPosts.findIndex(item=>item.slug===slug),prev=blogPosts[index-1],next=blogPosts[index+1];return <BrandShell className="journal-site"><article className="article-page"><header><p>{post.category}</p><h1>{post.title}</h1><div><span>{post.author}</span><span>{post.date}</span><span>{post.readMinutes} dk okuma</span></div></header><img className="article-hero-image" src={post.category==="Aphrodisias Tarihi"?"/hero-tetrapylon-grove.webp":"/altin-dal-bottle-collection.webp"} alt=""/><div className="article-body"><p className="article-lead">{post.excerpt}</p>{post.body.map((paragraph,i)=><p key={i}>{paragraph}</p>)}<blockquote>İyi bir yağ, yalnızca tadını değil; yetiştiği yeri ve üretildiği zamanı da taşır.</blockquote><Link href="/gunluk"><ArrowLeft size={16}/> Günlüğe dön</Link></div><nav className="article-pagination">{prev?<Link href={`/gunluk/${prev.slug}`}><small>ÖNCEKİ</small>{prev.title}</Link>:<span/>}{next?<Link href={`/gunluk/${next.slug}`}><small>SONRAKİ</small>{next.title}<ArrowRight size={16}/></Link>:<span/>}</nav></article></BrandShell>}

@@ -1,0 +1,76 @@
+export type Currency = "TRY" | "EUR" | "USD";
+export type Language = "TR" | "EN";
+
+export type ProductCategory =
+  | "glass"
+  | "luxury"
+  | "tin"
+  | "pantry"
+  | "subscription";
+
+export type Product = {
+  id: string;
+  name: string;
+  category: ProductCategory;
+  size: string;
+  note: string;
+  prices: Partial<Record<Currency, number>>;
+  stock: number;
+  lot?: string;
+  badge?: string;
+};
+
+export const currencies: Array<{ code: Currency; symbol: string; label: string }> = [
+  { code: "TRY", symbol: "₺", label: "TL" },
+  { code: "EUR", symbol: "€", label: "EUR" },
+  { code: "USD", symbol: "$", label: "USD" },
+];
+
+export const categoryLabels: Record<ProductCategory, string> = {
+  glass: "Erken Hasat Soğuk Sıkım",
+  luxury: "Özel Seri & Lüks Kutular",
+  tin: "Aile / Teneke Boyu",
+  pantry: "Yan Ürünler & Yan Lezzetler",
+  subscription: "Abonelik & Deneyim",
+};
+
+export const products: Product[] = [
+  { id: "glass-250", name: "250 ml Cam Şişe", category: "glass", size: "250 ml", note: "Tadım ve hediye boyu", prices: { TRY: 550, EUR: 25 }, stock: 84, lot: "AD-26-G250" },
+  { id: "glass-500", name: "500 ml Cam Şişe", category: "glass", size: "500 ml", note: "Lokomotif ürün", prices: { TRY: 890, EUR: 32 }, stock: 126, lot: "AD-26-G500", badge: "Lokomotif" },
+  { id: "glass-750", name: "750 ml Cam Şişe", category: "glass", size: "750 ml", note: "Sofra ve premium hediye için", prices: { TRY: 1250, EUR: 42 }, stock: 58, lot: "AD-26-G750" },
+  { id: "reserve-500", name: "Aphrodisias Special Reserve", category: "luxury", size: "500 ml", note: "Özel ahşap/mermer kutu + 500 ml", prices: { TRY: 1450, EUR: 48 }, stock: 24, lot: "AD-26-SR", badge: "Reserve" },
+  { id: "aromatic-set", name: "Tadım & Aromatik Set", category: "luxury", size: "3 x 100 ml", note: "Limon, biberiye ve acı biber çeşnili set", prices: { TRY: 780, EUR: 28 }, stock: 42, lot: "AD-26-AROMA" },
+  { id: "tin-3l", name: "3 Litre Mat Teneke", category: "tin", size: "3 L", note: "Aile kullanımı için ekonomik premium boy", prices: { TRY: 2100, EUR: 75 }, stock: 36, lot: "AD-26-T3" },
+  { id: "tin-5l", name: "5 Litre Mat Teneke", category: "tin", size: "5 L", note: "Yoğun tüketim ve mutfak stoğu için", prices: { TRY: 3200, EUR: 110 }, stock: 19, lot: "AD-26-T5", badge: "Stok dikkat" },
+  { id: "green-olive", name: "Ataeymir Kırma Yeşil Zeytin", category: "pantry", size: "500 g", note: "Köy usulü salamura", prices: { TRY: 240 }, stock: 75 },
+  { id: "black-olive", name: "Siyah Sele Zeytin", category: "pantry", size: "500 g", note: "Az tuzlu, doğal sele karakteri", prices: { TRY: 260 }, stock: 61 },
+  { id: "olive-paste", name: "Zeytin Ezmesi", category: "pantry", size: "200 g cam kavanoz", note: "Kahvaltı ve meze tabağı için", prices: { TRY: 180 }, stock: 88 },
+  { id: "soap-box", name: "El Yapımı Zeytinyağlı Sabun", category: "pantry", size: "2'li kutu", note: "Soğuk proses zeytinyağlı sabun", prices: { TRY: 290 }, stock: 52 },
+  { id: "olive-club", name: "Olive Club", category: "subscription", size: "2 x 500 ml / 2 ay", note: "%20 avantajlı iki ayda bir gönderim", prices: { TRY: 1450 }, stock: 999, badge: "Abonelik" },
+  { id: "adopt-tree", name: "Adopt an Olive Tree", category: "subscription", size: "Yıllık", note: "İsme özel sertifika, ağaçtan 3L yağ, özel etiket", prices: { TRY: 4500 }, stock: 40, badge: "Deneyim" },
+];
+
+const eurToUsd = 1.09;
+const tryToUsd = 0.031;
+
+export function priceFor(product: Product, currency: Currency) {
+  if (product.prices[currency]) return product.prices[currency]!;
+  if (currency === "USD" && product.prices.EUR) return Math.round(product.prices.EUR * eurToUsd);
+  if (currency === "USD" && product.prices.TRY) return Math.round(product.prices.TRY * tryToUsd);
+  if (currency === "EUR" && product.prices.TRY) return Math.round(product.prices.TRY / 35);
+  return product.prices.TRY ?? 0;
+}
+
+export function formatPrice(product: Product, currency: Currency) {
+  const value = priceFor(product, currency);
+  const symbol = currencies.find((item) => item.code === currency)?.symbol ?? "";
+  return currency === "TRY" ? `${symbol}${value.toLocaleString("tr-TR")}` : `${symbol}${value.toLocaleString("en-US")}`;
+}
+
+export function productsByCategory() {
+  return Object.entries(categoryLabels).map(([category, label]) => ({
+    category: category as ProductCategory,
+    label,
+    items: products.filter((product) => product.category === category),
+  }));
+}

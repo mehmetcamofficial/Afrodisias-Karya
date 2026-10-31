@@ -1,10 +1,21 @@
 import { env } from "cloudflare:workers";
 import { NextResponse } from "next/server";
+import { products as catalogue } from "../../../lib/products";
 import { getChatGPTUser } from "../../chatgpt-auth";
 
 export async function GET() {
   const rows = await env.DB.prepare("SELECT id,name,type,size,note,price_kurus AS priceKurus,stock,active FROM products WHERE active=1 ORDER BY name").all();
-  return NextResponse.json(rows.results);
+  if (rows.results.length) return NextResponse.json(rows.results);
+  return NextResponse.json(catalogue.map((product)=>({
+    id: product.id,
+    name: product.name,
+    type: product.category,
+    size: product.size,
+    note: product.note,
+    priceKurus: (product.prices.TRY ?? 0) * 100,
+    stock: product.stock,
+    active: true,
+  })));
 }
 
 export async function POST(request: Request) {

@@ -1,0 +1,8 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { notFound } from "next/navigation";
+import { products } from "../../../lib/products";
+import { BrandShell } from "../../components/site-shell";
+import { ProductDetailClient } from "../../components/product-detail-client";
+export function generateStaticParams(){return products.map(product=>({slug:product.id}))}
+export default async function ProductPage({params}:{params:Promise<{slug:string}>}){const{slug}=await params;const product=products.find(item=>item.id===slug);if(!product)notFound();return <BrandShell><section className="product-page"><div className="product-page-image"><img src={product.category==="luxury"?"/altin-dal-gift-box.webp":"/altin-dal-bottle-collection.webp"} alt={product.name}/></div><article><p>ALTIN DAL · HASAT 2026</p><h1>{product.name}</h1><span>{product.size} · Ataeymir, Karacasu</span><p>{product.note}. Tek-köken yaklaşımıyla üretilen, lot bilgisi görünür Altın Dal serisi.</p><ProductDetailClient product={product}/><dl><div><dt>Hasat yılı</dt><dd>2026</dd></div><div><dt>Köken</dt><dd>Ataeymir · Karacasu</dd></div><div><dt>Lot</dt><dd>{product.lot??"Şişelemede atanacak"}</dd></div><div><dt>Üretim</dt><dd>Sınırlı seri</dd></div></dl><Link href="/gunluk/soguk-sikim-polifenol-degeri">Üretim notlarını okuyun <ArrowRight size={16}/></Link></article></section><section className="tasting-section"><p>TADIM & ÜRETİM</p><h2>Canlı meyve.<br/>Temiz bitiş.</h2><p>Tadım profili hasat ve laboratuvar sonuçlarıyla birlikte lot sayfasında doğrulanır. Yağı serin, karanlık yerde ve kapağı kapalı saklayın.</p></section></BrandShell>}
