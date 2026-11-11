@@ -1,4 +1,3 @@
-import { env } from "cloudflare:workers";
 import { NextResponse } from "next/server";
 import { getChatGPTUser, requireChatGPTUser, type ChatGPTUser } from "./chatgpt-auth";
 import { isAdminEmail, parseAdminAllowlist } from "../lib/admin-access";
@@ -11,7 +10,7 @@ export type AdminCheck =
 export async function checkAdmin(): Promise<AdminCheck> {
   const user = await getChatGPTUser();
   if (!user) return { status: "anonymous" };
-  const allowlist = parseAdminAllowlist(env.ADMIN_EMAILS);
+  // Vercel uses server-side environment configuration; Cloudflare supplies its binding separately.\n  // Missing configuration must deny access, never grant it.\n  const allowlist = parseAdminAllowlist(process.env.ADMIN_EMAILS);
   if (isAdminEmail(user.email, allowlist)) return { status: "admin", user };
   return { status: "forbidden", user, configured: allowlist.size > 0 };
 }
