@@ -49,6 +49,10 @@ export async function setOrderStatus(db: SqlDriver, id: string, status: string):
   return result.rowCount > 0;
 }
 
+export class OrderIdempotencyConflictError extends Error {
+  constructor() { super('Idempotency key already used for a different order'); this.name = 'OrderIdempotencyConflictError'; }
+}
+
 export async function createPendingOrder(db: SqlDriver, order: NewOrder): Promise<number> {
   // Idempotency must return the original stored amount, never the retry payload.
   await db.query(
@@ -57,10 +61,15 @@ export async function createPendingOrder(db: SqlDriver, order: NewOrder): Promis
      ON CONFLICT(id) DO NOTHING`,
     [order.id, order.customerName, order.email, order.phone, order.address, order.itemsJson, order.totalKurus, order.createdAt]
   );
-  const stored = await db.query<{ totalKurus: number }>(
-    'SELECT total_kurus AS "totalKurus" FROM orders WHERE id=$1',
+  const stored = await db.query<{ totalKurus: number; customerName: string; email: string; phone: string; address: string; itemsJson: string }>(
+    'SELECT total_kurus AS "totalKurus",customer_name AS "customerName",email,phone,address,items_json AS "itemsJson" FROM orders WHERE id=$1',
     [order.id]
   );
   if (stored.rows.length !== 1) throw new Error('Order persistence failed');
-  return stored.rows[0].totalKurus;
+  const existing = stored.rows[0];
+  if (existing.customerName !== order.customerName || existing.email !== order.email ||
+      existing.phone !== order.phone || existing.address !== order.address ||
+      existing.itemsJson !== order.itemsJson || existing.totalKurus !== order.totalKurus)
+    throw new OrderIdempotencyConflictError();
+  return existing.totalKurus;
 }
