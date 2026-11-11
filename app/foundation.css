@@ -1,0 +1,251 @@
+/*
+ * Altın Dal design foundation — tokens and shared primitives.
+ *
+ * Loaded after globals.css (see app/layout.tsx) so these rules win the cascade
+ * without !important. New components should use the --ad-* tokens; legacy
+ * rules in globals.css are migrated incrementally.
+ *
+ * Contrast (WCAG 2.2): gold #B49A60 is 4.76:1 on deep olive and 5.68:1 on
+ * charcoal, but only 2.43:1 on ivory — use --ad-gold-ink (5.14:1) for gold
+ * text on light surfaces.
+ */
+:root {
+  /* Palette */
+  --ad-deep-olive: #273526;
+  --ad-olive-surface: #394733;
+  --ad-night: #07100b;
+  --ad-ivory: #f6f2e9;
+  --ad-travertine: #d8ccb8;
+  --ad-gold: #b49a60;
+  --ad-gold-soft: #e3cf9f;
+  --ad-gold-ink: #7a6331;
+  --ad-charcoal: #242521;
+  --ad-muted-ink: #5b6356;
+  --ad-danger: #9b2c1f;
+
+  /* Typography */
+  --ad-font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --ad-font-body: Georgia, "Times New Roman", serif;
+  --ad-font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --ad-text-xs: clamp(0.69rem, 0.66rem + 0.1vw, 0.75rem);
+  --ad-text-sm: clamp(0.82rem, 0.79rem + 0.15vw, 0.9rem);
+  --ad-text-base: clamp(1rem, 0.96rem + 0.2vw, 1.1rem);
+  --ad-text-lg: clamp(1.15rem, 1.05rem + 0.45vw, 1.4rem);
+  --ad-text-display: clamp(2.6rem, 1.6rem + 4.6vw, 6.8rem);
+
+  /* Space, shape, motion */
+  --ad-space-1: 0.25rem;
+  --ad-space-2: 0.5rem;
+  --ad-space-3: 0.75rem;
+  --ad-space-4: 1rem;
+  --ad-space-6: 1.5rem;
+  --ad-space-8: 2rem;
+  --ad-gutter: clamp(16px, 5vw, 80px);
+  --ad-radius: 2px;
+  --ad-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ad-focus: 0 0 0 2px var(--ad-night), 0 0 0 4px var(--ad-gold-soft);
+}
+
+/* ---------- Accessibility primitives ---------- */
+.skip-link {
+  position: fixed;
+  z-index: 200;
+  top: 8px;
+  left: 8px;
+  padding: 10px 16px;
+  background: var(--ad-ivory);
+  color: var(--ad-charcoal);
+  font: 600 var(--ad-text-sm) var(--ad-font-ui);
+  transform: translateY(-160%);
+  transition: transform 0.2s var(--ad-ease);
+}
+.skip-link:focus { transform: none; }
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--ad-focus);
+}
+
+/* ---------- Cinematic media (hero / section backgrounds) ---------- */
+.cinematic-media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--ad-night);
+}
+.cinematic-media img,
+.cinematic-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cinematic-media video { z-index: 1; }
+
+/* ---------- Calls to action ---------- */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid var(--ad-gold);
+  border-radius: var(--ad-radius);
+  font: 500 var(--ad-text-sm) / 1.2 var(--ad-font-ui);
+  letter-spacing: 0.02em;
+  transition: background-color 0.25s var(--ad-ease), color 0.25s var(--ad-ease), border-color 0.25s var(--ad-ease);
+}
+.cta svg { transition: transform 0.25s var(--ad-ease); }
+.cta:hover svg { transform: translateX(3px); }
+.cta-primary { background: var(--ad-gold); color: var(--ad-night); }
+.cta-primary:hover { background: var(--ad-gold-soft); border-color: var(--ad-gold-soft); }
+.cta-ghost { background: rgb(7 16 11 / 0.35); color: var(--ad-ivory); }
+.cta-ghost:hover { background: var(--ad-ivory); color: var(--ad-night); border-color: var(--ad-ivory); }
+.cta-text { border-color: transparent; padding-inline: 4px; color: var(--ad-ivory); text-decoration: underline; text-underline-offset: 6px; text-decoration-color: var(--ad-gold); }
+.cta-text:hover { color: var(--ad-gold-soft); }
+
+/* Hero: CTA row wraps instead of overflowing; stacks full-width on phones. */
+.landing-hero .hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  width: auto;
+  margin-top: 28px;
+}
+.landing-hero .hero-ctas a.cta { border-width: 1px; }
+.landing-hero .hero-ctas a.cta-primary { background: var(--ad-gold); color: var(--ad-night); }
+.landing-hero .hero-ctas a.cta-ghost { background: rgb(7 16 11 / 0.35); color: var(--ad-ivory); }
+.landing-hero .hero-ctas a.cta-text { background: none; border-color: transparent; color: var(--ad-ivory); }
+.landing-hero h1 { overflow-wrap: break-word; hyphens: manual; }
+@media (max-width: 560px) {
+  .landing-hero .hero-ctas { flex-direction: column; align-items: stretch; width: 100%; }
+  .landing-hero .hero-ctas a.cta { width: 100%; }
+}
+
+/* ---------- Product imagery ---------- */
+.product-visual-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 35%, rgb(180 154 96 / 0.18), transparent 60%),
+    var(--ad-deep-olive);
+  color: var(--ad-travertine);
+}
+.product-visual-placeholder b {
+  font: 400 clamp(1.5rem, 1.2rem + 1.2vw, 2.2rem) / 1 var(--ad-font-display);
+  color: var(--ad-ivory);
+}
+.product-visual-placeholder small {
+  font: var(--ad-text-xs) / 1.4 var(--ad-font-ui);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ad-gold-soft);
+}
+.product-page-image { position: relative; }
+.product-image-note {
+  margin-top: 10px;
+  font: var(--ad-text-xs) / 1.4 var(--ad-font-ui);
+  color: var(--ad-muted-ink);
+}
+
+/* ---------- Cart ---------- */
+.cart-currency-note {
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid var(--ad-gold);
+  background: rgb(180 154 96 / 0.1);
+  font: var(--ad-text-sm) / 1.45 var(--ad-font-ui);
+}
+.cart-currency-note b { white-space: nowrap; }
+.checkout-form .field-error {
+  color: var(--ad-danger);
+  font: var(--ad-text-xs) / 1.4 var(--ad-font-ui);
+}
+.checkout-form [aria-invalid="true"] { border-color: var(--ad-danger); }
+.order-result[role="alert"] { color: var(--ad-danger); }
+
+/* ---------- Admin: no-access state ---------- */
+.admin-forbidden {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: var(--ad-gutter);
+  background: var(--ad-night);
+  color: var(--ad-ivory);
+}
+.admin-forbidden section {
+  max-width: 560px;
+  display: grid;
+  gap: 14px;
+}
+.admin-forbidden svg { color: var(--ad-gold); width: 32px; height: 32px; }
+.admin-forbidden p { font: var(--ad-text-xs) var(--ad-font-ui); letter-spacing: 0.24em; color: var(--ad-gold-soft); margin: 0; }
+.admin-forbidden h1 { font: 400 clamp(2rem, 1.4rem + 2.4vw, 3.2rem) / 1.05 var(--ad-font-display); margin: 0; }
+.admin-forbidden span { font: var(--ad-text-base) / 1.6 var(--ad-font-ui); color: var(--ad-travertine); }
+.admin-forbidden nav { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 10px; }
+.admin-forbidden nav a { border-bottom: 1px solid var(--ad-gold); padding-bottom: 4px; }
+
+/* ---------- Footer utility link ---------- */
+.brand-footer .footer-utility { font-size: var(--ad-text-xs); opacity: 0.7; }
+.brand-footer .footer-utility:hover { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  .cinematic-media video { display: none; }
+}
+
+/* Fixed-height frames for `fill` product images (no layout shift). */
+.product-visual-frame { position: relative; width: 100%; overflow: hidden; }
+.product-page-image .product-visual-frame { height: clamp(420px, 55svh, 650px); background: #111a13; }
+.product-page-image .product-visual-frame img { object-fit: contain; }
+.collection-editorial .product-visual-frame { height: clamp(380px, 36vw, 520px); }
+.collection-editorial .product-visual-frame img { object-fit: cover; }
+
+/* globals.css has a bare `footer {}` rule (site footer) that leaked into
+   product-card footers as a dark padded block; reset it for cards. */
+.product-card footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+}
+.product-card footer button { white-space: nowrap; min-height: 44px; }
+.product-card footer button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Breadcrumbs (sit below the fixed header on light pages). */
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 112px var(--ad-gutter) 0;
+  max-width: 1440px;
+  margin-inline: auto;
+  font: var(--ad-text-xs) / 1.4 var(--ad-font-ui);
+  letter-spacing: 0.06em;
+  color: var(--ad-muted-ink);
+}
+.breadcrumbs a { color: var(--ad-gold-ink); }
+.breadcrumbs a:hover { text-decoration: underline; }
+.breadcrumbs + .product-page { padding-top: 24px; }
+
+/* WCAG AA contrast fixes for small text on light surfaces (Lighthouse,
+   pre-existing colours were 2.2–4.3:1). */
+.landing-products header > p, .landing-journal header > p,
+.store-hero > p, .category-hero > p, .journal-hero > p,
+.journal-card > div > p:first-child, .product-page > article > p:first-child { color: var(--ad-gold-ink); }
+.journal-card small, .product-page > article > span, .product-page dt,
+.store-group article small, .cart-head p, .cart-row-copy span, .empty-cart p { color: var(--ad-muted-ink); }
+.product-page-image .product-image-note { color: var(--ad-travertine); margin: 0; padding: 12px 16px; }

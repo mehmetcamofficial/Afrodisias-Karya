@@ -32,8 +32,37 @@ Referanslar yön ve yöntem içindir; üçüncü taraf görseller siteye kopyala
 
 ```bash
 pnpm install
-pnpm dev
+pnpm dev          # http://localhost:5173
 pnpm build
 ```
 
-Ödeme sistemi iyzico adaptörüne hazırlanmıştır. Canlı tahsilat için iyzico mağaza anahtarları ve callback doğrulaması ayrıca etkinleştirilmelidir.
+Kalite kontrolleri (CI'da da çalışır):
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test         # vitest birim testleri
+pnpm test:e2e     # Playwright: 375 / 768 / 1024 / 1440 px
+```
+
+### Yönetim paneli yetkisi
+
+`/admin` ve yönetim API'leri yalnızca `ADMIN_EMAILS` ortam değişkenindeki
+e-posta adreslerine açıktır (virgülle ayrılmış). Değişken tanımlı değilse panel
+**herkese kapalıdır** (fail-closed). Yerel geliştirme için `.dev.vars` dosyası:
+
+```
+ADMIN_EMAILS=seedy@sites.test
+```
+
+Yerel D1 tabloları için `drizzle/*.sql` göçlerini yerel veritabanına uygulayın.
+
+### Medya ve ürün görselleri
+
+- Videolar `lib/media.ts` içinde dil bazında kaydedilir; dosya yoksa yalnızca
+  poster görseli gösterilir.
+- Her ürünün görseli `lib/products.ts` içinde `image.kind` ile sınıflandırılır;
+  bir ambalaj başka bir ambalajın fotoğrafıyla gösterilmez.
+- Eksik görseller: `docs/ASSET-REQUIREMENTS.md`. Denetim raporu: `docs/AUDIT.md`.
+
+Ödeme sistemi iyzico adaptörüne hazırlanmıştır. Canlı tahsilat için iyzico mağaza anahtarları ve callback doğrulaması ayrıca etkinleştirilmelidir. Siparişler şu an yalnızca `payment_pending` olarak kaydedilir; tutar sunucuda katalogdan TL olarak hesaplanır.

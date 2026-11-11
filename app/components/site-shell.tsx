@@ -29,14 +29,13 @@ export function BrandHeader() {
 
   return (
     <header className="brand-header">
-      <Link className="brand-logo" href="/" aria-label="Altın Dal ana sayfa">
-        <span>AD</span><b>ALTIN DAL<small>APHRODISIAS ESTATE</small></b>
+      <Link className="brand-logo" href="/">
+        <span aria-hidden="true">AD</span><b>ALTIN DAL<small>APHRODISIAS ESTATE</small></b>
       </Link>
       <nav id="primary-navigation" className={open ? "open" : ""} aria-label="Ana navigasyon">
         {links.map(([label, href]) => (
           <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined} onClick={() => setOpen(false)}>{label}</Link>
         ))}
-        <Link href="/admin" aria-current={pathname.startsWith("/admin") ? "page" : undefined} onClick={() => setOpen(false)}>Admin</Link>
       </nav>
       <div className="brand-actions">
         <label className="header-currency">
@@ -59,13 +58,13 @@ export function BrandHeader() {
 export function BrandFooter() {
   return (
     <footer className="brand-footer">
-      <Link className="brand-logo" href="/"><span>AD</span><b>ALTIN DAL<small>APHRODISIAS ESTATE</small></b></Link>
+      <Link className="brand-logo" href="/"><span aria-hidden="true">AD</span><b>ALTIN DAL<small>APHRODISIAS ESTATE</small></b></Link>
       <nav aria-label="Alt navigasyon">{links.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}</nav>
-      <p>Karacasu · Ataeymir · Aydın<br/>© 2026 Altın Dal</p>
+      <p>Karacasu · Ataeymir · Aydın<br/>© 2026 Altın Dal · <Link className="footer-utility" href="/admin">Yönetim</Link></p>
     </footer>
   );
 }
 
 export function BrandShell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`brand-site ${className}`}><BrandHeader/><main>{children}</main><BrandFooter/></div>;
+  return <div className={`brand-site ${className}`}><BrandHeader/><main id="main">{children}</main><BrandFooter/></div>;
 }

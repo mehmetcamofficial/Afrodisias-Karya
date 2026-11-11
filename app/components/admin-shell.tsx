@@ -15,7 +15,7 @@ const links = [
 export function AdminShell({ children, title, kicker }: { children: React.ReactNode; title: string; kicker: string }) {
   const path = usePathname();
   return (
-    <main className="admin-page">
+    <main id="main" className="admin-page">
       <aside className="admin-sidebar">
         <Link className="admin-brand" href="/admin"><span>AD</span><div><b>ALTIN DAL</b><small>YÖNETİM MERKEZİ</small></div></Link>
         <nav aria-label="Yönetim navigasyonu">
@@ -29,7 +29,7 @@ export function AdminShell({ children, title, kicker }: { children: React.ReactN
           <div><Link href="/">Siteye dön <ExternalLink size={14}/></Link><Link href="/magaza">Mağazayı aç</Link></div>
           <button aria-label="Yönetim ayarları"><Settings size={18}/></button>
         </header>
-        <div className="admin-mobile-tabs">{links.map(([label, href]) => <Link key={href} href={href} className={path === href ? "active" : ""}>{label}</Link>)}</div>
+        <nav className="admin-mobile-tabs" aria-label="Yönetim navigasyonu (mobil)">{links.map(([label, href]) => <Link key={href} href={href} className={path === href ? "active" : ""} aria-current={path === href ? "page" : undefined}>{label}</Link>)}</nav>
         <div className="admin-title"><div><p>{kicker}</p><h1>{title}</h1></div><span className="admin-date">2026 Hasat Sezonu</span></div>
         <div className="admin-content">{children}</div>
       </section>
