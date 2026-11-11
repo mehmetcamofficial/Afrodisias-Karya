@@ -3,7 +3,7 @@ import { createPendingOrder, listProducts, setOrderStatus, upsertProduct, type S
 
 describe("PostgreSQL repository contract", () => {
   it("uses bound parameters for product writes", async () => {
-    const query = vi.fn(async () => ({ rows: [], rowCount: 1 }));
+    const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) => ({ rows: [], rowCount: 1 }));
     const driver = { query } as unknown as SqlDriver;
     await upsertProduct(driver, { id: "p1", name: "'); DROP TABLE orders;--", type: "oil", size: "5L", note: "", priceKurus: 100, stock: 1, active: true }, 123);
     expect(query).toHaveBeenCalledOnce();
@@ -12,7 +12,7 @@ describe("PostgreSQL repository contract", () => {
   });
 
   it("returns the stored total on an idempotent order retry", async () => {
-    const query = vi.fn(async (sql: string) => sql.startsWith("SELECT")
+    const query = vi.fn(async (sql: string, _params?: readonly unknown[]) => sql.startsWith("SELECT")
       ? { rows: [{ totalKurus: 9900 }], rowCount: 1 }
       : { rows: [], rowCount: 0 });
     const amount = await createPendingOrder({ query } as unknown as SqlDriver, {
@@ -24,12 +24,12 @@ describe("PostgreSQL repository contract", () => {
   });
 
   it("reports absent orders without inventing success", async () => {
-    const query = vi.fn(async () => ({ rows: [], rowCount: 0 }));
+    const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) => ({ rows: [], rowCount: 0 }));
     expect(await setOrderStatus({ query } as unknown as SqlDriver, "missing", "shipped")).toBe(false);
   });
 
   it("reads only active products", async () => {
-    const query = vi.fn(async () => ({ rows: [], rowCount: 0 }));
+    const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) => ({ rows: [], rowCount: 0 }));
     await listProducts({ query } as unknown as SqlDriver);
     expect(query.mock.calls[0][0]).toContain("WHERE active=true");
   });
