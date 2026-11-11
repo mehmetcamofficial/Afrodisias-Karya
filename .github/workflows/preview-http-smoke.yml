@@ -53,4 +53,26 @@ jobs:
           test_http "Products" 200 GET /api/products || failed=1
           test_http "Invalid order" 4xx POST /api/orders '{}' || failed=1
           test_http "Unauthorized orders" auth GET /api/orders || failed=1
+          # Concurrency smoke uses deliberately invalid bodies: no order can be persisted.
+          # This checks HTTP validation under concurrent load, not valid-order idempotency.
+          results_dir=$(mktemp -d)
+          pids=()
+          for i in $(seq 1 8); do
+            (
+              curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' \
+                -H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
+                -H "Content-Type: application/json" \
+                -X POST --data '{}' "${PREVIEW_URL}/api/orders" > "${results_dir}/${i}"
+            ) &
+            pids+=("$!")
+          done
+          for pid in "${pids[@]}"; do
+            wait "$pid" || failed=1
+          done
+          for i in $(seq 1 8); do
+            code=$(cat "${results_dir}/${i}")
+            echo "Concurrent invalid order #${i}: HTTP ${code}"
+            [[ "$code" == 422 ]] || failed=1
+          done
+          rm -rf "$results_dir"
           exit "$failed"
