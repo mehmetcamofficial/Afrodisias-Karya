@@ -86,3 +86,20 @@ jobs:
           result=$(psql -At -c "SELECT customer_name || ':' || total_kurus FROM orders WHERE id='concurrent-key'")
           [[ "$result" == "Test:100" ]] || { echo "::error::Duplicate overwrote stored order"; exit 1; }
           echo "PASS: conflicting duplicate did not overwrite original order"
+      - name: Verify atomic upsert retry and conflict on real PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          atomic_sql="INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,status,payment_provider,created_at) VALUES ('atomic-key','Test','test@example.com','','','[]',100,'payment_pending','iyzico',1) ON CONFLICT(id) DO UPDATE SET id=orders.id WHERE orders.customer_name IS NOT DISTINCT FROM excluded.customer_name AND orders.email IS NOT DISTINCT FROM excluded.email AND orders.phone IS NOT DISTINCT FROM excluded.phone AND orders.address IS NOT DISTINCT FROM excluded.address AND orders.items_json IS NOT DISTINCT FROM excluded.items_json AND orders.total_kurus IS NOT DISTINCT FROM excluded.total_kurus RETURNING total_kurus"
+          [[ "$(psql -At -c "$atomic_sql")" == "100" ]]
+          pids=()
+          for i in $(seq 1 12); do
+            ( [[ "$(psql -At -c "$atomic_sql")" == "100" ]] ) &
+            pids+=("$!")
+          done
+          for pid in "${pids[@]}"; do wait "$pid"; done
+          conflict_sql="${atomic_sql/\'Test\'/\'Attacker\'}"
+          [[ -z "$(psql -At -c "$conflict_sql")" ]] || { echo "::error::Conflicting retry returned success"; exit 1; }
+          [[ "$(psql -At -c "SELECT count(*) FROM orders WHERE id='atomic-key'")" == "1" ]]
+          [[ "$(psql -At -c "SELECT customer_name FROM orders WHERE id='atomic-key'")" == "Test" ]]
+          echo "PASS: atomic upsert concurrent replay and mismatched retry"
