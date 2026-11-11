@@ -1,4 +1,5 @@
-import { requireD1 } from "../../db";
+import { requirePostgres } from "../../db/postgres/driver";
+import { listProducts, listOrders } from "../../db/postgres/repository";
 import { requireAdminPage } from "../admin-auth";
 import { AdminForbidden } from "../components/admin-forbidden";
 import AdminClient from "./AdminClient";
@@ -9,11 +10,7 @@ export const dynamic="force-dynamic";
 export default async function Admin(){
  const access=await requireAdminPage('/admin');
  if(access.status!=="admin")return <AdminForbidden email={access.user.email} configured={access.configured}/>;
- const db=requireD1();
- const [productRows,orderRows]=await Promise.all([
-  db.prepare("SELECT id,name,type,size,note,price_kurus AS priceKurus,stock FROM products WHERE active=1 ORDER BY name").all(),
-  db.prepare("SELECT id,customer_name AS customerName,email,total_kurus AS totalKurus,status,created_at AS createdAt FROM orders ORDER BY created_at DESC LIMIT 100").all(),
- ]);
- const initialProducts=productRows.results.length?productRows.results:catalogue.map(product=>({id:product.id,name:product.name,type:product.category,size:product.size,note:product.note,priceKurus:(product.prices.TRY??0)*100,stock:product.stock}));
- return <AdminShell kicker="ALTIN DAL · YÖNETİM" title="Mağaza Yönetimi"><AdminClient initialProducts={initialProducts as AdminProduct[]} initialOrders={orderRows.results as AdminOrder[]}/></AdminShell>
+ const [productRows,orderRows]=await Promise.all([listProducts(requirePostgres()),listOrders(requirePostgres())]);
+ const initialProducts=productRows.length?productRows:catalogue.map(product=>({id:product.id,name:product.name,type:product.category,size:product.size,note:product.note,priceKurus:(product.prices.TRY??0)*100,stock:product.stock}));
+ return <AdminShell kicker="ALTIN DAL · YÖNETİM" title="Mağaza Yönetimi"><AdminClient initialProducts={initialProducts as AdminProduct[]} initialOrders={orderRows as AdminOrder[]}/></AdminShell>
 }
