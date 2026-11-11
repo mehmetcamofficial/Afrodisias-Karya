@@ -33,6 +33,37 @@ describe("PostgreSQL repository contract", () => {
     })).rejects.toBeInstanceOf(OrderIdempotencyConflictError);
   });
 
+  it("fails closed when order insertion fails", async () => {
+    const failure = new Error("database unavailable");
+    const query = vi.fn(async () => { throw failure; });
+    await expect(createPendingOrder({ query } as unknown as SqlDriver, {
+      id: "failure", customerName: "A", email: "a@example.com", phone: "", address: "",
+      itemsJson: "[]", totalKurus: 9900, createdAt: 123,
+    })).rejects.toBe(failure);
+    expect(query).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not invent an order when persistence cannot be verified", async () => {
+    const query = vi.fn(async (sql: string) => sql.startsWith("SELECT")
+      ? { rows: [], rowCount: 0 }
+      : { rows: [], rowCount: 1 });
+    await expect(createPendingOrder({ query } as unknown as SqlDriver, {
+      id: "missing", customerName: "A", email: "a@example.com", phone: "", address: "",
+      itemsJson: "[]", totalKurus: 9900, createdAt: 123,
+    })).rejects.toThrow("Order persistence failed");
+  });
+
+  it("propagates failures while reading back a persisted order", async () => {
+    const query = vi.fn(async (sql: string) => {
+      if (sql.startsWith("SELECT")) throw new Error("read-back failed");
+      return { rows: [], rowCount: 1 };
+    });
+    await expect(createPendingOrder({ query } as unknown as SqlDriver, {
+      id: "read-error", customerName: "A", email: "a@example.com", phone: "", address: "",
+      itemsJson: "[]", totalKurus: 9900, createdAt: 123,
+    })).rejects.toThrow("read-back failed");
+  });
+
   it("reports absent orders without inventing success", async () => {
     const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) => ({ rows: [], rowCount: 0 }));
     expect(await setOrderStatus({ query } as unknown as SqlDriver, "missing", "shipped")).toBe(false);
