@@ -29,8 +29,8 @@ export function BrandHeader() {
 
   return (
     <header className="brand-header">
-      <Link className="brand-logo" href="/" aria-label="Altın Dal ana sayfa">
-        <span>AD</span><b>ALTIN DAL<small>APHRODISIAS ESTATE</small></b>
+      <Link className="brand-logo" href="/">
+        <span aria-hidden="true">AD</span><b>ALTIN DAL<small>APHRODISIAS ESTATE</small></b>
       </Link>
       <nav id="primary-navigation" className={open ? "open" : ""} aria-label="Ana navigasyon">
         {links.map(([label, href]) => (
@@ -58,7 +58,7 @@ export function BrandHeader() {
 export function BrandFooter() {
   return (
     <footer className="brand-footer">
-      <Link className="brand-logo" href="/"><span>AD</span><b>ALTIN DAL<small>APHRODISIAS ESTATE</small></b></Link>
+      <Link className="brand-logo" href="/"><span aria-hidden="true">AD</span><b>ALTIN DAL<small>APHRODISIAS ESTATE</small></b></Link>
       <nav aria-label="Alt navigasyon">{links.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}</nav>
       <p>Karacasu · Ataeymir · Aydın<br/>© 2026 Altın Dal · <Link className="footer-utility" href="/admin">Yönetim</Link></p>
     </footer>

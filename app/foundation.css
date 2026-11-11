@@ -240,3 +240,12 @@
 .breadcrumbs a { color: var(--ad-gold-ink); }
 .breadcrumbs a:hover { text-decoration: underline; }
 .breadcrumbs + .product-page { padding-top: 24px; }
+
+/* WCAG AA contrast fixes for small text on light surfaces (Lighthouse,
+   pre-existing colours were 2.2–4.3:1). */
+.landing-products header > p, .landing-journal header > p,
+.store-hero > p, .category-hero > p, .journal-hero > p,
+.journal-card > div > p:first-child, .product-page > article > p:first-child { color: var(--ad-gold-ink); }
+.journal-card small, .product-page > article > span, .product-page dt,
+.store-group article small, .cart-head p, .cart-row-copy span, .empty-cart p { color: var(--ad-muted-ink); }
+.product-page-image .product-image-note { color: var(--ad-travertine); margin: 0; padding: 12px 16px; }

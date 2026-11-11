@@ -35,6 +35,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
+      <head>
+        {/* Loaded from <head> (not a CSS @import) so it downloads in parallel with the app CSS. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" />
+      </head>
       <body className="antialiased">
         <a className="skip-link" href="#main">İçeriğe geç</a>
         <CartProvider><PageTransition>{children}</PageTransition></CartProvider>

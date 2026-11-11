@@ -49,7 +49,7 @@ export function Storefront() {
         <section className="product-grid" aria-label="Ürünler">
           {visibleProducts.map((product) => (
             <article className="product-card" key={product.id}>
-              <Link className="product-card-media" href={`/urun/${product.id}`} aria-label={`${product.name} detaylarını gör`}>
+              <Link className="product-card-media" href={`/urun/${product.id}`} tabIndex={-1} aria-hidden="true">
                 <ProductVisual product={product} sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"/>
                 {product.badge && <span>{product.badge}</span>}
                 <i><ArrowUpRight size={17}/></i>
