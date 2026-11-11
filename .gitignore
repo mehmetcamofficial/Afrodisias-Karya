@@ -48,3 +48,7 @@ next-env.d.ts
 # Local Cloudflare secrets/vars (e.g. ADMIN_EMAILS for dev)
 .dev.vars*
 *.tsbuildinfo
+
+# Playwright
+/test-results/
+/playwright-report/

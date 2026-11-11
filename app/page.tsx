@@ -8,11 +8,15 @@ import { BrandFooter, BrandHeader } from "./components/site-shell";
 import { CinematicMedia } from "./components/cinematic-media";
 import { JournalCard } from "./components/journal-card";
 import { Reveal } from "./components/reveal";
+import { jsonLdScript, organizationJsonLd } from "../lib/structured-data";
+
+export const metadata = { alternates: { canonical: "/" } };
 
 export default function Home() {
   const featured = products.filter((product) => product.category === "glass").slice(0, 3);
   return (
     <div className="brand-site landing-site">
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(organizationJsonLd())} />
       <BrandHeader />
       <main id="main">
         <section className="landing-hero" aria-labelledby="hero-title">

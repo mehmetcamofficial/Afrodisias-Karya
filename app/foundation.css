@@ -224,3 +224,19 @@
 }
 .product-card footer button { white-space: nowrap; min-height: 44px; }
 .product-card footer button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Breadcrumbs (sit below the fixed header on light pages). */
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 112px var(--ad-gutter) 0;
+  max-width: 1440px;
+  margin-inline: auto;
+  font: var(--ad-text-xs) / 1.4 var(--ad-font-ui);
+  letter-spacing: 0.06em;
+  color: var(--ad-muted-ink);
+}
+.breadcrumbs a { color: var(--ad-gold-ink); }
+.breadcrumbs a:hover { text-decoration: underline; }
+.breadcrumbs + .product-page { padding-top: 24px; }
