@@ -94,7 +94,7 @@ jobs:
           [[ "$(psql -X -q -t -A -c "$atomic_sql")" == "100" ]] || { echo "::error::Atomic statement did not return stored amount"; exit 1; }
           pids=()
           for i in $(seq 1 12); do
-            ( [[ "$(psql -At -c "$atomic_sql")" == "100" ]] ) &
+            ( [[ "$(psql -X -q -t -A -c "$atomic_sql")" == "100" ]] ) &
             pids+=("$!")
           done
           for pid in "${pids[@]}"; do wait "$pid"; done
