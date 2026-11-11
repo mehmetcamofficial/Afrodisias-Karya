@@ -44,3 +44,7 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+
+# Local Cloudflare secrets/vars (e.g. ADMIN_EMAILS for dev)
+.dev.vars*
+*.tsbuildinfo
