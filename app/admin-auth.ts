@@ -10,7 +10,9 @@ export type AdminCheck =
 export async function checkAdmin(): Promise<AdminCheck> {
   const user = await getChatGPTUser();
   if (!user) return { status: "anonymous" };
-  // Vercel uses server-side environment configuration; Cloudflare supplies its binding separately.\n  // Missing configuration must deny access, never grant it.\n  const allowlist = parseAdminAllowlist(process.env.ADMIN_EMAILS);
+  // Vercel uses server-side environment configuration; Cloudflare supplies its binding separately.
+  // Missing configuration must deny access, never grant it.
+  const allowlist = parseAdminAllowlist(process.env.ADMIN_EMAILS);
   if (isAdminEmail(user.email, allowlist)) return { status: "admin", user };
   return { status: "forbidden", user, configured: allowlist.size > 0 };
 }
