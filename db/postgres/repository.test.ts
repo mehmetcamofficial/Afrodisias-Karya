@@ -12,7 +12,7 @@ describe("PostgreSQL repository contract", () => {
   });
 
   it("returns the original amount from a single atomic statement", async () => {
-    const query = vi.fn(async () => ({ rows: [{ totalKurus: 9900 }], rowCount: 1 }));
+    const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) => ({ rows: [{ totalKurus: 9900 }], rowCount: 1 }));
     const amount = await createPendingOrder({ query } as unknown as SqlDriver, {
       id: "same-key", customerName: "A", email: "a@example.com", phone: "", address: "",
       itemsJson: "[]", totalKurus: 9900, createdAt: 123,
