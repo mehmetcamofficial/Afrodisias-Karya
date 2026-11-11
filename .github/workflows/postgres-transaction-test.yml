@@ -67,3 +67,22 @@ jobs:
           count=$(psql -At -c "SELECT count(*) FROM orders WHERE id='invalid-status'")
           [[ "$count" == "0" ]]
           echo "PASS: invalid order status rejected"
+      - name: Verify concurrent idempotent inserts create one order
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 12); do
+            psql -v ON_ERROR_STOP=1 -c "INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,status,payment_provider,created_at) VALUES ('concurrent-key','Test','test@example.com','','','[]',100,'payment_pending','iyzico',1) ON CONFLICT(id) DO NOTHING" >/dev/null &
+          done
+          wait
+          count=$(psql -At -c "SELECT count(*) FROM orders WHERE id='concurrent-key'")
+          [[ "$count" == "1" ]] || { echo "::error::Expected exactly one persisted order, got $count"; exit 1; }
+          echo "PASS: concurrent idempotent inserts persisted one order"
+      - name: Verify conflicting duplicate does not overwrite stored order
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -c "INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,status,payment_provider,created_at) VALUES ('concurrent-key','Attacker','attacker@example.com','','','[]',99999,'payment_pending','iyzico',2) ON CONFLICT(id) DO NOTHING"
+          result=$(psql -At -c "SELECT customer_name || ':' || total_kurus FROM orders WHERE id='concurrent-key'")
+          [[ "$result" == "Test:100" ]] || { echo "::error::Duplicate overwrote stored order"; exit 1; }
+          echo "PASS: conflicting duplicate did not overwrite original order"
