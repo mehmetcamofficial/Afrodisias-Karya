@@ -1,0 +1,37 @@
+name: Migration diagnostics (non-release)
+
+on:
+  pull_request:
+    paths:
+      - "db/postgres/**"
+      - "app/api/orders/route.ts"
+      - "app/api/products/route.ts"
+      - "app/admin-auth.ts"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/migration-diagnostics.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      # Diagnostic only: the regular CI must retain --frozen-lockfile.
+      # This does not write the regenerated lockfile back to Git.
+      - name: Install dependencies for diagnosis
+        run: pnpm install --no-frozen-lockfile
+      - name: Verify TypeScript
+        run: pnpm typecheck
+      - name: Verify repository tests
+        run: pnpm test
+      - name: Build Next.js for Vercel
+        run: pnpm exec next build
