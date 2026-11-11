@@ -54,22 +54,22 @@ export class OrderIdempotencyConflictError extends Error {
 }
 
 export async function createPendingOrder(db: SqlDriver, order: NewOrder): Promise<number> {
-  // Idempotency must return the original stored amount, never the retry payload.
-  await db.query(
+  // One atomic statement: concurrent requests serialize on the unique order id.
+  // A mismatched retry never changes the stored order. The WHERE clause prevents
+  // a conflicting payload from returning a row, even under concurrent inserts.
+  const result = await db.query<{ totalKurus: number }>(
     `INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,status,payment_provider,created_at)
      VALUES($1,$2,$3,$4,$5,$6,$7,'payment_pending','iyzico',$8)
-     ON CONFLICT(id) DO NOTHING`,
+     ON CONFLICT(id) DO UPDATE SET id=orders.id
+     WHERE orders.customer_name IS NOT DISTINCT FROM excluded.customer_name
+       AND orders.email IS NOT DISTINCT FROM excluded.email
+       AND orders.phone IS NOT DISTINCT FROM excluded.phone
+       AND orders.address IS NOT DISTINCT FROM excluded.address
+       AND orders.items_json IS NOT DISTINCT FROM excluded.items_json
+       AND orders.total_kurus IS NOT DISTINCT FROM excluded.total_kurus
+     RETURNING total_kurus AS "totalKurus"`,
     [order.id, order.customerName, order.email, order.phone, order.address, order.itemsJson, order.totalKurus, order.createdAt]
   );
-  const stored = await db.query<{ totalKurus: number; customerName: string; email: string; phone: string; address: string; itemsJson: string }>(
-    'SELECT total_kurus AS "totalKurus",customer_name AS "customerName",email,phone,address,items_json AS "itemsJson" FROM orders WHERE id=$1',
-    [order.id]
-  );
-  if (stored.rows.length !== 1) throw new Error('Order persistence failed');
-  const existing = stored.rows[0];
-  if (existing.customerName !== order.customerName || existing.email !== order.email ||
-      existing.phone !== order.phone || existing.address !== order.address ||
-      existing.itemsJson !== order.itemsJson || existing.totalKurus !== order.totalKurus)
-    throw new OrderIdempotencyConflictError();
-  return existing.totalKurus;
+  if (result.rows.length !== 1) throw new OrderIdempotencyConflictError();
+  return result.rows[0].totalKurus;
 }
