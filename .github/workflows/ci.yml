@@ -27,6 +27,9 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    # Match @playwright/test 1.63.0; browser and Linux dependencies are preinstalled.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
     timeout-minutes: 30
     needs: checks
     steps:
@@ -37,7 +40,6 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
