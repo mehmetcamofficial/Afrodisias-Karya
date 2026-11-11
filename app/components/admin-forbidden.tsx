@@ -5,7 +5,7 @@ import { chatGPTSignOutPath } from "../chatgpt-auth";
 /** Shown to signed-in users who are not on the ADMIN_EMAILS allowlist. */
 export function AdminForbidden({ email, configured }: { email: string; configured: boolean }) {
   return (
-    <main className="admin-page admin-forbidden">
+    <main id="main" className="admin-page admin-forbidden">
       <section role="alert">
         <ShieldAlert aria-hidden="true" />
         <p>ALTIN DAL · YÖNETİM</p>

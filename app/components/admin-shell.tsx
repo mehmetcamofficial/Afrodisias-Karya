@@ -15,7 +15,7 @@ const links = [
 export function AdminShell({ children, title, kicker }: { children: React.ReactNode; title: string; kicker: string }) {
   const path = usePathname();
   return (
-    <main className="admin-page">
+    <main id="main" className="admin-page">
       <aside className="admin-sidebar">
         <Link className="admin-brand" href="/admin"><span>AD</span><div><b>ALTIN DAL</b><small>YÖNETİM MERKEZİ</small></div></Link>
         <nav aria-label="Yönetim navigasyonu">
