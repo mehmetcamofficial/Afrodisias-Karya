@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requirePostgres } from "../../../db/postgres/driver";
-import { createPendingOrder, listOrders, setOrderStatus } from "../../../db/postgres/repository";
+import { createPendingOrder, OrderIdempotencyConflictError, listOrders, setOrderStatus } from "../../../db/postgres/repository";
 import { orderIdFor, validateOrder } from "../../../lib/orders";
 import { adminApiGuard } from "../../admin-auth";
 
@@ -49,5 +49,5 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ ok: true, id, totalKurus, currency: "TRY", paymentStatus: "credentials_required",
       message: "Sipariş kaydedildi. Ödeme altyapısı henüz etkin değil." });
-  } catch (error) { console.error("orders POST database unavailable", error); return NextResponse.json({ error: "Sipariş kaydedilemedi" }, { status: 503 }); }
+  } catch (error) { if (error instanceof OrderIdempotencyConflictError) return NextResponse.json({ error: "Idempotency key farklı sipariş için kullanılmış" }, { status: 409 }); console.error("orders POST database unavailable", error); return NextResponse.json({ error: "Sipariş kaydedilemedi" }, { status: 503 }); }
 }
