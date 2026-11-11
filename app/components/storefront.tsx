@@ -1,19 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
-import { categoryLabels, currencies, formatPrice, priceFor, products, type Currency, type Product, type ProductCategory } from "../../lib/products";
+import { categoryLabels, currencies, formatPrice, priceFor, products, type Currency, type ProductCategory } from "../../lib/products";
 import { useCart } from "./cart-context";
+import { ProductVisual } from "./product-visual";
 
 type Sort = "featured" | "price-asc" | "price-desc";
-
-function productImage(product: Product) {
-  if (product.category === "luxury") return "/altin-dal-gift-box.webp";
-  if (product.category === "subscription") return "/hero-tetrapylon-grove.webp";
-  return "/altin-dal-bottle-collection.webp";
-}
 
 export function Storefront() {
   const { currency, setCurrency, add } = useCart();
@@ -56,7 +50,7 @@ export function Storefront() {
           {visibleProducts.map((product) => (
             <article className="product-card" key={product.id}>
               <Link className="product-card-media" href={`/urun/${product.id}`} aria-label={`${product.name} detaylarını gör`}>
-                <Image src={productImage(product)} alt={product.name} fill sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"/>
+                <ProductVisual product={product} sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"/>
                 {product.badge && <span>{product.badge}</span>}
                 <i><ArrowUpRight size={17}/></i>
               </Link>

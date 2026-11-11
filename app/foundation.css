@@ -202,3 +202,25 @@
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
   .cinematic-media video { display: none; }
 }
+
+/* Fixed-height frames for `fill` product images (no layout shift). */
+.product-visual-frame { position: relative; width: 100%; overflow: hidden; }
+.product-page-image .product-visual-frame { height: clamp(420px, 55svh, 650px); background: #111a13; }
+.product-page-image .product-visual-frame img { object-fit: contain; }
+.collection-editorial .product-visual-frame { height: clamp(380px, 36vw, 520px); }
+.collection-editorial .product-visual-frame img { object-fit: cover; }
+
+/* globals.css has a bare `footer {}` rule (site footer) that leaked into
+   product-card footers as a dark padded block; reset it for cards. */
+.product-card footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+}
+.product-card footer button { white-space: nowrap; min-height: 44px; }
+.product-card footer button:disabled { opacity: 0.5; cursor: not-allowed; }
