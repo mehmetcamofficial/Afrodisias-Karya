@@ -4,6 +4,7 @@ import "./foundation.css";
 import { CartProvider } from "./components/cart-context";
 import { PageTransition } from "./components/page-transition";
 import { SITE_URL } from "../lib/site";
+import { getLiveProducts } from "../lib/live-products";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -28,11 +29,12 @@ export const viewport: Viewport = {
   themeColor: "#07100b",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const inventory = await getLiveProducts().catch(() => []);
   return (
     <html lang="tr">
       <head>
@@ -43,7 +45,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <a className="skip-link" href="#main">İçeriğe geç</a>
-        <CartProvider><PageTransition>{children}</PageTransition></CartProvider>
+        <CartProvider initialProducts={inventory}><PageTransition>{children}</PageTransition></CartProvider>
       </body>
     </html>
   );
