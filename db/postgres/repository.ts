@@ -50,16 +50,26 @@ export async function upsertProduct(db: SqlDriver, product: ProductRow, updatedA
  */ 
 export async function publishReviewedProduct(
   db: SqlDriver,
-  input: { id: string; expectedPriceKurus: number; approvedStock: number },
+  input: { id: string; expectedPriceKurus: number; approvedStock: number; actorUserId: string; actorEmail: string },
   updatedAt: number,
 ): Promise<boolean> {
+  // A single PostgreSQL statement is atomic: any audit failure rolls back publication.
+  // Neither the audit nor product change may succeed independently.
   const result = await db.query<{ id: string }>(
-    `UPDATE products
-     SET active=true, stock=$3, updated_at=$4
-     WHERE id=$1 AND active=false AND price_kurus=$2
-       AND $2 > 0 AND $3 > 0
-     RETURNING id`,
-    [input.id, input.expectedPriceKurus, input.approvedStock, updatedAt],
+    `WITH published AS (
+       UPDATE products
+       SET active=true, stock=$3, updated_at=$4
+       WHERE id=$1 AND active=false AND price_kurus=$2
+         AND $2 > 0 AND $3 > 0
+       RETURNING id, price_kurus, stock
+     ), recorded AS (
+       INSERT INTO product_publish_audit
+         (product_id, actor_user_id, actor_email, action, price_kurus, approved_stock, occurred_at)
+       SELECT id, $5, $6, 'publish', price_kurus, stock, $4 FROM published
+       RETURNING product_id
+     )
+     SELECT product_id AS id FROM recorded`,
+    [input.id, input.expectedPriceKurus, input.approvedStock, updatedAt, input.actorUserId, input.actorEmail],
   );
   return result.rows.length === 1;
 }
