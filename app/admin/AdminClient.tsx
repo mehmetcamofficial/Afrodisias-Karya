@@ -3,11 +3,11 @@
 import { AlertTriangle, Boxes, CircleDollarSign, PackageCheck, RefreshCw, Save } from "lucide-react";
 import { useCallback, useState } from "react";
 
-export type AdminProduct = { id: string; name: string; type: string; size: string; note: string; priceKurus: number; stock: number };
+export type AdminProduct = { id: string; name: string; type: string; size: string; note: string; priceKurus: number; stock: number; active: boolean };
 export type AdminOrder = { id: string; customerName: string; email: string; totalKurus: number; status: string; createdAt: number };
 type Product = AdminProduct;
 type Order = AdminOrder;
-const empty: Product = { id: "", name: "", type: "Natürel Sızma", size: "500 ml", note: "", priceKurus: 0, stock: 0 };
+const empty: Product = { id: "", name: "", type: "Natürel Sızma", size: "500 ml", note: "", priceKurus: 0, stock: 0, active: false };
 
 export default function AdminClient({ initialProducts, initialOrders }: { initialProducts: Product[]; initialOrders: Order[] }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -19,7 +19,7 @@ export default function AdminClient({ initialProducts, initialOrders }: { initia
 
   const load = useCallback(async () => {
     try {
-      const [productResponse, orderResponse] = await Promise.all([fetch("/api/products"), fetch("/api/orders")]);
+      const [productResponse, orderResponse] = await Promise.all([fetch("/api/admin/products"), fetch("/api/orders")]);
       if (!productResponse.ok || !orderResponse.ok) throw new Error("Dashboard verileri alınamadı.");
       setProducts(await productResponse.json() as Product[]);
       setOrders(await orderResponse.json() as Order[]);
@@ -34,16 +34,16 @@ export default function AdminClient({ initialProducts, initialOrders }: { initia
     event.preventDefault();
     setMessage("");
     const response = await fetch("/api/products", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(form) });
-    setMessage(response.ok ? "Ürün kataloğu güncellendi." : "Kayıt başarısız.");
+    setMessage(response.ok ? "Ürün taslağı kaydedildi; satışa açılmadı." : "Kayıt başarısız.");
     if (response.ok) { setForm(empty); await load(); }
   };
 
   const revenue = orders.reduce((sum, order) => sum + order.totalKurus, 0);
-  const stockWarnings = products.filter((product) => product.stock < 25).length;
+  const stockWarnings = products.filter((product) => product.active && product.stock < 25).length;
   const metrics = [
     { label: "Toplam ciro", value: `${(revenue / 100).toLocaleString("tr-TR")} TL`, note: "Kaydedilen siparişler", Icon: CircleDollarSign },
     { label: "Siparişler", value: orders.length.toLocaleString("tr-TR"), note: "Toplam kayıt", Icon: PackageCheck },
-    { label: "Aktif katalog", value: products.length.toLocaleString("tr-TR"), note: "Satışa açık ürün", Icon: Boxes },
+    { label: "Aktif katalog", value: products.filter((product) => product.active).length.toLocaleString("tr-TR"), note: "Satışa açık ürün", Icon: Boxes },
     { label: "Stok uyarısı", value: stockWarnings.toLocaleString("tr-TR"), note: "25 adedin altında", Icon: AlertTriangle },
   ];
 
@@ -54,14 +54,14 @@ export default function AdminClient({ initialProducts, initialOrders }: { initia
       <div className="admin-grid">
         <section className="admin-card">
           <div className="admin-card-head"><div><small>KATALOG</small><h2>Ürün düzenleyici</h2></div><span>{products.length} kayıt</span></div>
-          {products.length === 0 ? <p className="admin-empty">Neon kataloğu henüz boş. Onaylanan ürünleri önce Preview ortamına aktarın.</p> : <div className="admin-list">{products.map((product) => <button key={product.id} onClick={() => setForm(product)}><span><b>{product.name}</b><small>{product.size}</small></span><strong>{(product.priceKurus / 100).toLocaleString("tr-TR")} TL</strong><i className={product.stock < 25 ? "warning" : ""}>{product.stock} stok</i></button>)}</div>}
+          {products.length === 0 ? <p className="admin-empty">Neon kataloğu henüz boş. Ürünleri satışa kapalı taslak olarak ekleyin.</p> : <div className="admin-list">{products.map((product) => <button key={product.id} onClick={() => setForm(product)}><span><b>{product.name}</b><small>{product.size} · {product.active ? "Aktif" : "Taslak · satışa kapalı"}</small></span><strong>{(product.priceKurus / 100).toLocaleString("tr-TR")} TL</strong><i className={product.stock < 25 ? "warning" : ""}>{product.stock} stok</i></button>)}</div>}
           <form className="admin-form" onSubmit={save}>
             <div className="admin-form-title"><h3>{form.id ? "Ürünü düzenle" : "Yeni ürün"}</h3><small>Fiyat, stok ve katalog bilgileri</small></div>
             <label>Ürün adı<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required/></label>
             <div className="admin-form-row"><label>Seri / tür<input value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value })}/></label><label>Hacim<input value={form.size} onChange={(event) => setForm({ ...form, size: event.target.value })}/></label></div>
             <label>Tadım notu<input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })}/></label>
             <div className="admin-form-row"><label>Fiyat (kuruş)<input type="number" min="1" value={form.priceKurus || ""} onChange={(event) => setForm({ ...form, priceKurus: Number(event.target.value) })} required/></label><label>Stok<input type="number" min="0" value={form.stock || ""} onChange={(event) => setForm({ ...form, stock: Number(event.target.value) })}/></label></div>
-            <button type="submit"><Save size={16}/> Ürünü kaydet</button>{message && <p className="admin-message">{message}</p>}
+            <button type="submit"><Save size={16}/> Taslak olarak kaydet</button>{message && <p className="admin-message">{message}</p>}
           </form>
         </section>
         <section className="admin-card">
