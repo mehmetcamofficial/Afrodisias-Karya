@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   try {
     await upsertProduct(requirePostgres(), {
       id, name, type: str(body.type, 60), size: str(body.size, 60),
-      note: str(body.note, 400), priceKurus, stock, active: true,
+      note: str(body.note, 400), priceKurus, stock: 0, active: false,
     }, Date.now());
     return NextResponse.json({ ok: true, id });
   } catch (error) { console.error("products POST database unavailable", error); return NextResponse.json({ error: "Ürün kaydedilemedi" }, { status: 503 }); }
