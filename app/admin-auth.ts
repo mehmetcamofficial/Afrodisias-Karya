@@ -1,6 +1,9 @@
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
-import { getChatGPTUser, requireChatGPTUser, type ChatGPTUser } from "./chatgpt-auth";
+import { chatGPTSignInPath, getChatGPTUser, type ChatGPTUser } from "./chatgpt-auth";
 import { isAdminEmail, parseAdminAllowlist } from "../lib/admin-access";
+import { clerkPreviewConfigured } from "../lib/clerk-preview";
 
 export type AdminCheck =
   | { status: "admin"; user: ChatGPTUser }
@@ -8,19 +11,39 @@ export type AdminCheck =
   | { status: "anonymous" };
 
 export async function checkAdmin(): Promise<AdminCheck> {
+  const allowlist = parseAdminAllowlist(process.env.ADMIN_EMAILS);
+  if (process.env.VERCEL_ENV === "preview") {
+    if (!clerkPreviewConfigured()) return { status: "anonymous" };
+    const { userId } = await auth({ acceptsToken: "session_token" });
+    if (!userId) return { status: "anonymous" };
+    const clerkUser = await currentUser();
+    const primary = clerkUser?.primaryEmailAddress;
+    const email = primary?.emailAddress ?? "";
+    const fullName = clerkUser?.fullName ?? null;
+    const user = { userId, email, fullName, displayName: fullName ?? email };
+    if (clerkUser?.id === userId && primary?.verification?.status === "verified" && isAdminEmail(email, allowlist)) {
+      return { status: "admin", user };
+    }
+    return { status: "forbidden", user, configured: allowlist.size > 0 };
+  }
+
   const user = await getChatGPTUser();
   if (!user) return { status: "anonymous" };
-  // Vercel uses server-side environment configuration; Cloudflare supplies its binding separately.
-  // Missing configuration must deny access, never grant it.
-  const allowlist = parseAdminAllowlist(process.env.ADMIN_EMAILS);
   if (isAdminEmail(user.email, allowlist)) return { status: "admin", user };
   return { status: "forbidden", user, configured: allowlist.size > 0 };
 }
 
 /** For admin pages: redirects anonymous users to sign-in; returns the check otherwise. */
 export async function requireAdminPage(returnTo: string): Promise<Exclude<AdminCheck, { status: "anonymous" }>> {
-  await requireChatGPTUser(returnTo); // redirects to sign-in when anonymous
-  return (await checkAdmin()) as Exclude<AdminCheck, { status: "anonymous" }>;
+  const check = await checkAdmin();
+  if (check.status === "anonymous") {
+    if (process.env.VERCEL_ENV === "preview") {
+      const target = /^\/admin(?:\/[a-z-]+)?$/.test(returnTo) ? returnTo : "/admin";
+      redirect(`/admin/giris?redirect_url=${encodeURIComponent(target)}`);
+    }
+    redirect(chatGPTSignInPath(returnTo));
+  }
+  return check;
 }
 
 /** For admin API routes: returns an error response, or null when the caller is an admin. */
