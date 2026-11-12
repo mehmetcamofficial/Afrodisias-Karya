@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requirePostgres } from "../../../db/postgres/driver";
 import { createPendingOrder, OrderIdempotencyConflictError, listOrders, setOrderStatus } from "../../../db/postgres/repository";
 import { orderIdFor, validateOrder } from "../../../lib/orders";
+import { getLiveProducts } from "../../../lib/live-products";
 import type { Product, ProductCategory } from "../../../lib/products";
 import { listProducts } from "../../../db/postgres/repository";
 import { adminApiGuard } from "../../admin-auth";
