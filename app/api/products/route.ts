@@ -1,23 +1,16 @@
 import { NextResponse } from "next/server";
 import { requirePostgres } from "../../../db/postgres/driver";
 import { listProducts, upsertProduct } from "../../../db/postgres/repository";
-import { products as catalogue } from "../../../lib/products";
 import { adminApiGuard } from "../../admin-auth";
 
 export const runtime = "nodejs";
-function catalogueRows() {
-  return catalogue.map(product => ({ id: product.id, name: product.name, type: product.category,
-    size: product.size, note: product.note, priceKurus: (product.prices.TRY ?? 0) * 100,
-    stock: product.stock, active: true }));
-}
 export async function GET() {
   try {
     const rows = await listProducts(requirePostgres());
-    return NextResponse.json(rows.length ? rows : catalogueRows());
+    return NextResponse.json(rows);
   } catch (error) {
     console.error("products GET database unavailable", error);
-    // A static catalogue may be displayed, but writes/orders never silently fall back.
-    return NextResponse.json(catalogueRows());
+    return NextResponse.json({ error: "Ürün kataloğu kullanılamıyor" }, { status: 503 });
   }
 }
 const str = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : "";
