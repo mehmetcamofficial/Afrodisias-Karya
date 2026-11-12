@@ -34,10 +34,11 @@ describe("PostgreSQL repository contract", () => {
     const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) =>
       ({ rows: [{ id: "glass-250" }], rowCount: 1 }));
     const result = await publishReviewedProduct({ query } as unknown as SqlDriver,
-      { id: "glass-250", expectedPriceKurus: 55000, approvedStock: 4 }, 1234);
+      { id: "glass-250", expectedPriceKurus: 55000, approvedStock: 4, actorUserId: "user_1", actorEmail: "a@example.test" }, 1234);
     expect(result).toBe(true);
     expect(query.mock.calls[0][0]).toContain("active=false AND price_kurus=$2");
-    expect(query.mock.calls[0][1]).toEqual(["glass-250", 55000, 4, 1234]);
+    expect(query.mock.calls[0][0]).toContain("INSERT INTO product_publish_audit");
+    expect(query.mock.calls[0][1]).toEqual(["glass-250", 55000, 4, 1234, "user_1", "a@example.test"]);
   });
 
   it("rejects publication when reviewed price or draft state no longer matches", async () => {
@@ -45,6 +46,15 @@ describe("PostgreSQL repository contract", () => {
       ({ rows: [], rowCount: 0 }));
     expect(await publishReviewedProduct({ query } as unknown as SqlDriver,
       { id: "glass-250", expectedPriceKurus: 55000, approvedStock: 4 }, 1234)).toBe(false);
+  });
+
+  it("propagates audit insertion failures so no publication is acknowledged", async () => {
+    const failure = new Error("audit relation missing");
+    const query = vi.fn(async () => { throw failure; });
+    await expect(publishReviewedProduct({ query } as unknown as SqlDriver,
+      { id: "glass-250", expectedPriceKurus: 55000, approvedStock: 4,
+        actorUserId: "user_1", actorEmail: "a@example.test" }, 1234)).rejects.toBe(failure);
+    expect(query).toHaveBeenCalledOnce();
   });
 
   it("returns the original amount from a single atomic statement", async () => {
