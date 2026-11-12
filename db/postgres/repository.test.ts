@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createPendingOrder, OrderIdempotencyConflictError, listAllProducts, listProducts, setOrderStatus, upsertProduct, type SqlDriver } from "./repository";
+import { createPendingOrder, OrderIdempotencyConflictError, listAllProducts, listProducts, publishReviewedProduct, setOrderStatus, upsertProduct, type SqlDriver } from "./repository";
 
 describe("PostgreSQL repository contract", () => {
   it("uses bound parameters for product writes", async () => {
@@ -28,6 +28,23 @@ describe("PostgreSQL repository contract", () => {
     expect(query.mock.calls[0][0]).not.toContain("WHERE active=true");
     await listProducts(driver);
     expect(query.mock.calls[1][0]).toContain("WHERE active=true");
+  });
+
+  it("publishes only a reviewed inactive product with the expected price", async () => {
+    const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) =>
+      ({ rows: [{ id: "glass-250" }], rowCount: 1 }));
+    const result = await publishReviewedProduct({ query } as unknown as SqlDriver,
+      { id: "glass-250", expectedPriceKurus: 55000, approvedStock: 4 }, 1234);
+    expect(result).toBe(true);
+    expect(query.mock.calls[0][0]).toContain("active=false AND price_kurus=$2");
+    expect(query.mock.calls[0][1]).toEqual(["glass-250", 55000, 4, 1234]);
+  });
+
+  it("rejects publication when reviewed price or draft state no longer matches", async () => {
+    const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) =>
+      ({ rows: [], rowCount: 0 }));
+    expect(await publishReviewedProduct({ query } as unknown as SqlDriver,
+      { id: "glass-250", expectedPriceKurus: 55000, approvedStock: 4 }, 1234)).toBe(false);
   });
 
   it("returns the original amount from a single atomic statement", async () => {
