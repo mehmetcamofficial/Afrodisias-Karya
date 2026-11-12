@@ -1,5 +1,5 @@
 import { requirePostgres } from "../../db/postgres/driver";
-import { listProducts, listOrders } from "../../db/postgres/repository";
+import { listAllProducts, listOrders } from "../../db/postgres/repository";
 import { requireAdminPage } from "../admin-auth";
 import { AdminForbidden } from "../components/admin-forbidden";
 import AdminClient from "./AdminClient";
@@ -9,7 +9,7 @@ export const dynamic="force-dynamic";
 export default async function Admin(){
  const access=await requireAdminPage('/admin');
  if(access.status!=="admin")return <AdminForbidden email={access.user.email} configured={access.configured}/>;
- const [productRows,orderRows]=await Promise.all([listProducts(requirePostgres()),listOrders(requirePostgres())]);
+ const [productRows,orderRows]=await Promise.all([listAllProducts(requirePostgres()),listOrders(requirePostgres())]);
  const initialProducts=productRows;
  return <AdminShell kicker="ALTIN DAL · YÖNETİM" title="Mağaza Yönetimi"><AdminClient initialProducts={initialProducts as AdminProduct[]} initialOrders={orderRows as AdminOrder[]}/></AdminShell>
 }
