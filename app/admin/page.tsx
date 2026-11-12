@@ -11,5 +11,5 @@ export default async function Admin(){
  if(access.status!=="admin")return <AdminForbidden email={access.user.email} configured={access.configured}/>;
  const [productRows,orderRows]=await Promise.all([listAllProducts(requirePostgres()),listOrders(requirePostgres())]);
  const initialProducts=productRows;
- return <AdminShell kicker="ALTIN DAL · YÖNETİM" title="Mağaza Yönetimi"><AdminClient initialProducts={initialProducts as AdminProduct[]} initialOrders={orderRows as AdminOrder[]}/></AdminShell>
+ return <AdminShell kicker="ALTIN DAL · YÖNETİM" title="Mağaza Yönetimi"><AdminClient initialProducts={initialProducts as AdminProduct[]} initialOrders={orderRows as AdminOrder[]} canPublish={process.env.VERCEL_ENV === "preview" && process.env.PREVIEW_CATALOG_PUBLISH_ENABLED === "true"}/></AdminShell>
 }
