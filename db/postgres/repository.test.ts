@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createPendingOrder, OrderIdempotencyConflictError, listProducts, setOrderStatus, upsertProduct, type SqlDriver } from "./repository";
+import { createPendingOrder, OrderIdempotencyConflictError, listAllProducts, listProducts, setOrderStatus, upsertProduct, type SqlDriver } from "./repository";
 
 describe("PostgreSQL repository contract", () => {
   it("uses bound parameters for product writes", async () => {
@@ -9,6 +9,25 @@ describe("PostgreSQL repository contract", () => {
     expect(query).toHaveBeenCalledOnce();
     expect(query.mock.calls[0][0]).not.toContain("DROP TABLE");
     expect(query.mock.calls[0][1]).toContain("'); DROP TABLE orders;--");
+  });
+
+  it("preserves inactive draft state on product upsert", async () => {
+    const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) => ({ rows: [], rowCount: 1 }));
+    await upsertProduct({ query } as unknown as SqlDriver, {
+      id: "draft-1", name: "Draft", type: "glass", size: "250 ml", note: "",
+      priceKurus: 12300, stock: 0, active: false,
+    }, 456);
+    expect(query.mock.calls[0][0]).toContain("active=excluded.active");
+    expect(query.mock.calls[0][1]).toContain(false);
+  });
+
+  it("allows admins to read drafts separately from the public inventory", async () => {
+    const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) => ({ rows: [], rowCount: 0 }));
+    const driver = { query } as unknown as SqlDriver;
+    await listAllProducts(driver);
+    expect(query.mock.calls[0][0]).not.toContain("WHERE active=true");
+    await listProducts(driver);
+    expect(query.mock.calls[1][0]).toContain("WHERE active=true");
   });
 
   it("returns the original amount from a single atomic statement", async () => {
