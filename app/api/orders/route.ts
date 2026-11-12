@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requirePostgres } from "../../../db/postgres/driver";
 import { createPendingOrder, OrderIdempotencyConflictError, listOrders, setOrderStatus } from "../../../db/postgres/repository";
 import { orderIdFor, validateOrder } from "../../../lib/orders";
+import type { Product, ProductCategory } from "../../../lib/products";
+import { listProducts } from "../../../db/postgres/repository";
 import { adminApiGuard } from "../../admin-auth";
 
 export const runtime = "nodejs";
@@ -37,7 +39,21 @@ export async function PATCH(request: Request) {
 export async function POST(request: Request) {
   const body = await readJson(request);
   if (body === undefined) return NextResponse.json({ error: "Geçersiz istek gövdesi" }, { status: 400 });
-  const validation = validateOrder(body);
+  // Order pricing and inventory must be resolved from the SAME database as admin edits.
+  // Never accept the static showcase catalogue as an order authority.
+  let inventory: Product[];
+  try {
+    const rows = await listProducts(requirePostgres());
+    inventory = rows.map(row => ({
+      id: row.id, name: row.name, category: row.type as ProductCategory,
+      size: row.size, note: row.note,
+      prices: { TRY: row.priceKurus / 100 }, stock: row.stock,
+    }));
+  } catch (error) {
+    console.error("orders POST catalogue unavailable", error);
+    return NextResponse.json({ error: "Ürün kataloğu kullanılamıyor" }, { status: 503 });
+  }
+  const validation = validateOrder(body, inventory);
   if (!validation.ok) return NextResponse.json({ error: "Sipariş bilgileri doğrulanamadı", errors: validation.errors }, { status: 422 });
   const { order } = validation;
   const id = orderIdFor(request.headers.get("idempotency-key"));
