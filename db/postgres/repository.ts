@@ -45,6 +45,25 @@ export async function upsertProduct(db: SqlDriver, product: ProductRow, updatedA
   );
 }
 
+/** Publish only the exact reviewed snapshot; prevents stale-price/stock approval.
+ * Stock must be a verified positive integer; no automatic stock allocation.
+ */ 
+export async function publishReviewedProduct(
+  db: SqlDriver,
+  input: { id: string; expectedPriceKurus: number; approvedStock: number },
+  updatedAt: number,
+): Promise<boolean> {
+  const result = await db.query<{ id: string }>(
+    `UPDATE products
+     SET active=true, stock=$3, updated_at=$4
+     WHERE id=$1 AND active=false AND price_kurus=$2
+       AND $2 > 0 AND $3 > 0
+     RETURNING id`,
+    [input.id, input.expectedPriceKurus, input.approvedStock, updatedAt],
+  );
+  return result.rows.length === 1;
+}
+
 export async function listOrders(db: SqlDriver): Promise<OrderRow[]> {
   const result = await db.query<OrderRow>(
     'SELECT id,customer_name AS "customerName",email,total_kurus AS "totalKurus",status,payment_provider AS provider,created_at AS "createdAt" FROM orders ORDER BY created_at DESC LIMIT 100'
