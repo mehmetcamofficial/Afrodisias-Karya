@@ -1,0 +1,67 @@
+import { NextResponse } from "next/server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { adminApiGuard } from "../../app/admin-auth";
+import { publishReviewedProduct } from "../../db/postgres/repository";
+import { POST } from "../../app/api/admin/products/publish/route";
+
+vi.mock("../../app/admin-auth", () => ({ adminApiGuard: vi.fn() }));
+vi.mock("../../db/postgres/driver", () => ({ requirePostgres: vi.fn(() => ({})) }));
+vi.mock("../../db/postgres/repository", () => ({ publishReviewedProduct: vi.fn() }));
+
+const request = (data: unknown) => new Request("https://preview.example.test/api/admin/products/publish", {
+  method: "POST", headers: { "content-type": "application/json" },
+  body: JSON.stringify(data),
+});
+
+const reviewed = {
+  id: "glass-250", expectedPriceKurus: 55000, approvedStock: 3,
+  confirmation: "YAYINLA:glass-250",
+};
+
+describe("Preview-only catalog publication API", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("PREVIEW_CATALOG_PUBLISH_ENABLED", "");
+    vi.mocked(adminApiGuard).mockResolvedValue(null);
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("rejects publishing by default without touching storage", async () => {
+    expect((await POST(request(reviewed))).status).toBe(403);
+    expect(publishReviewedProduct).not.toHaveBeenCalled();
+  });
+
+  it("rejects publishing outside Preview even if feature flag is enabled", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("PREVIEW_CATALOG_PUBLISH_ENABLED", "true");
+    expect((await POST(request(reviewed))).status).toBe(403);
+    expect(publishReviewedProduct).not.toHaveBeenCalled();
+  });
+
+  it("rejects anonymous requests before checking the publish gate", async () => {
+    vi.mocked(adminApiGuard).mockResolvedValue(NextResponse.json({ error: "Yetkisiz" }, { status: 401 }));
+    expect((await POST(request(reviewed))).status).toBe(401);
+  });
+
+  it("rejects an invalid explicit confirmation", async () => {
+    vi.stubEnv("PREVIEW_CATALOG_PUBLISH_ENABLED", "true");
+    expect((await POST(request({ ...reviewed, confirmation: "yes" }))).status).toBe(400);
+    expect(publishReviewedProduct).not.toHaveBeenCalled();
+  });
+
+  it("rejects stale reviewed product snapshots", async () => {
+    vi.stubEnv("PREVIEW_CATALOG_PUBLISH_ENABLED", "true");
+    vi.mocked(publishReviewedProduct).mockResolvedValue(false);
+    expect((await POST(request(reviewed))).status).toBe(409);
+  });
+
+  it("allows a verified, gated publish with exact price and positive reviewed stock", async () => {
+    vi.stubEnv("PREVIEW_CATALOG_PUBLISH_ENABLED", "true");
+    vi.mocked(publishReviewedProduct).mockResolvedValue(true);
+    expect((await POST(request(reviewed))).status).toBe(200);
+    expect(publishReviewedProduct).toHaveBeenCalledWith(expect.anything(), {
+      id: "glass-250", expectedPriceKurus: 55000, approvedStock: 3,
+    }, expect.any(Number));
+  });
+});
