@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hydrateProducts } from "../../lib/live-products";
+import { hydrateProducts } from "../../lib/catalog-hydration";
 import { validateOrder } from "../../lib/orders";
 import type { ProductRow } from "../../db/postgres/repository";
 
