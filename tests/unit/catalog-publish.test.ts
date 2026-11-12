@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { adminApiGuard } from "../../app/admin-auth";
+import { checkAdmin } from "../../app/admin-auth";
 import { publishReviewedProduct } from "../../db/postgres/repository";
 import { POST } from "../../app/api/admin/products/publish/route";
 
-vi.mock("../../app/admin-auth", () => ({ adminApiGuard: vi.fn() }));
+vi.mock("../../app/admin-auth", () => ({ checkAdmin: vi.fn() }));
 vi.mock("../../db/postgres/driver", () => ({ requirePostgres: vi.fn(() => ({})) }));
 vi.mock("../../db/postgres/repository", () => ({ publishReviewedProduct: vi.fn() }));
 
@@ -23,7 +22,9 @@ describe("Preview-only catalog publication API", () => {
     vi.resetAllMocks();
     vi.stubEnv("VERCEL_ENV", "preview");
     vi.stubEnv("PREVIEW_CATALOG_PUBLISH_ENABLED", "");
-    vi.mocked(adminApiGuard).mockResolvedValue(null);
+    vi.mocked(checkAdmin).mockResolvedValue({
+      status: "admin", user: { userId: "user_clerk_fixture", email: "admin@example.test", fullName: null, displayName: "Admin" },
+    });
   });
   afterEach(() => vi.unstubAllEnvs());
 
@@ -40,7 +41,7 @@ describe("Preview-only catalog publication API", () => {
   });
 
   it("rejects anonymous requests before checking the publish gate", async () => {
-    vi.mocked(adminApiGuard).mockResolvedValue(NextResponse.json({ error: "Yetkisiz" }, { status: 401 }));
+    vi.mocked(checkAdmin).mockResolvedValue({ status: "anonymous" });
     expect((await POST(request(reviewed))).status).toBe(401);
   });
 
@@ -62,6 +63,7 @@ describe("Preview-only catalog publication API", () => {
     expect((await POST(request(reviewed))).status).toBe(200);
     expect(publishReviewedProduct).toHaveBeenCalledWith(expect.anything(), {
       id: "glass-250", expectedPriceKurus: 55000, approvedStock: 3,
+      actorUserId: "user_clerk_fixture", actorEmail: "admin@example.test",
     }, expect.any(Number));
   });
 });
