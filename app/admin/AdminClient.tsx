@@ -106,7 +106,7 @@ export default function AdminClient({ initialProducts, initialOrders, canPublish
                   <input value={publishConfirmation} onChange={(event) => setPublishConfirmation(event.target.value)}/>
                 </label>
                 <button type="button" disabled={loading || approvedStock < 1 || publishConfirmation !== `YAYINLA:${form.id}`} onClick={() => void publish()}>
-                  <PackageCheck size={16}/> İncelenen ürünü Preview'da yayımla
+                  <PackageCheck size={16}/> İncelenen ürünü Preview ortamında yayımla
                 </button>
               </div>
             )}
