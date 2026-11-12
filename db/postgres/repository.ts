@@ -26,14 +26,22 @@ export async function listProducts(db: SqlDriver): Promise<ProductRow[]> {
   return result.rows;
 }
 
+/** Admin inventory includes inactive drafts; public listProducts never does. */
+export async function listAllProducts(db: SqlDriver): Promise<ProductRow[]> {
+  const result = await db.query<ProductRow>(
+    'SELECT id,name,type,size,note,price_kurus AS "priceKurus",stock,active FROM products ORDER BY name'
+  );
+  return result.rows;
+}
+
 export async function upsertProduct(db: SqlDriver, product: ProductRow, updatedAt: number): Promise<void> {
   await db.query(
     `INSERT INTO products(id,name,type,size,note,price_kurus,stock,active,updated_at)
-     VALUES($1,$2,$3,$4,$5,$6,$7,true,$8)
+     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
      ON CONFLICT(id) DO UPDATE SET name=excluded.name,type=excluded.type,
        size=excluded.size,note=excluded.note,price_kurus=excluded.price_kurus,
-       stock=excluded.stock,updated_at=excluded.updated_at`,
-    [product.id, product.name, product.type, product.size, product.note, product.priceKurus, product.stock, updatedAt]
+       stock=excluded.stock,active=excluded.active,updated_at=excluded.updated_at`,
+    [product.id, product.name, product.type, product.size, product.note, product.priceKurus, product.stock, product.active, updatedAt]
   );
 }
 
