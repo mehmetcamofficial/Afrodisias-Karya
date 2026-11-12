@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { ArrowUpRight, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
-import { categoryLabels, currencies, formatPrice, priceFor, products, type Currency, type ProductCategory } from "../../lib/products";
+import { categoryLabels, currencies, formatPrice, priceFor, type Product, type Currency, type ProductCategory } from "../../lib/products";
 import { useCart } from "./cart-context";
 import { ProductVisual } from "./product-visual";
 
 type Sort = "featured" | "price-asc" | "price-desc";
 
-export function Storefront() {
+export function Storefront({ products }: { products: Product[] }) {
   const { currency, setCurrency, add } = useCart();
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<ProductCategory | "all">("all");
@@ -59,7 +59,7 @@ export function Storefront() {
                 <h2><Link href={`/urun/${product.id}`}>{product.name}</Link></h2>
                 <p>{product.note}</p>
                 <div className="product-card-meta"><span className={product.stock < 25 ? "limited" : ""}>{product.stock < 25 ? "Sınırlı stok" : "Stokta"}</span><span>{product.lot ?? "Tek köken"}</span></div>
-                <footer><strong>{formatPrice(product, currency)}</strong><button onClick={() => add(product)}>Sepete ekle <Plus size={17}/></button></footer>
+                <footer><strong>{formatPrice(product, currency)}</strong><button disabled={product.stock < 1} onClick={() => add(product)}>{product.stock < 1 ? "Tükendi" : "Sepete ekle"} <Plus size={17}/></button></footer>
               </div>
             </article>
           ))}
