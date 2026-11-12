@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminApiGuard } from "../../../../admin-auth";
+import { checkAdmin } from "../../../../admin-auth";
 import { requirePostgres } from "../../../../../db/postgres/driver";
 import { publishReviewedProduct } from "../../../../../db/postgres/repository";
 
@@ -7,8 +7,13 @@ export const runtime = "nodejs";
 
 /** Explicit feature gate. Not configured in Preview or Production by default. */
 export async function POST(request: Request) {
-  const denied = await adminApiGuard();
-  if (denied) return denied;
+  const access = await checkAdmin();
+  if (access.status !== "admin") {
+    return NextResponse.json(
+      { error: access.status === "anonymous" ? "Yetkisiz" : "Yönetici yetkisi gerekli" },
+      { status: access.status === "anonymous" ? 401 : 403 },
+    );
+  }
   if (process.env.VERCEL_ENV !== "preview" || process.env.PREVIEW_CATALOG_PUBLISH_ENABLED !== "true") {
     return NextResponse.json({ error: "Ürün yayımlama kapalı" }, { status: 403 });
   }
@@ -26,6 +31,7 @@ export async function POST(request: Request) {
   try {
     const published = await publishReviewedProduct(requirePostgres(), {
       id: body.id, expectedPriceKurus: body.expectedPriceKurus, approvedStock: body.approvedStock,
+      actorUserId: access.user.userId, actorEmail: access.user.email,
     }, Date.now());
     if (!published) return NextResponse.json({ error: "Ürün değişti, aktif veya bulunamadı; incelemeyi yenileyin" }, { status: 409 });
     return NextResponse.json({ ok: true, id: body.id });
