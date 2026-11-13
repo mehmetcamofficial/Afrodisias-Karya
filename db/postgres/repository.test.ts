@@ -45,7 +45,7 @@ describe("PostgreSQL repository contract", () => {
     const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) =>
       ({ rows: [], rowCount: 0 }));
     expect(await publishReviewedProduct({ query } as unknown as SqlDriver,
-      { id: "glass-250", expectedPriceKurus: 55000, approvedStock: 4 }, 1234)).toBe(false);
+      { id: "glass-250", expectedPriceKurus: 55000, approvedStock: 4, actorUserId: "user_1", actorEmail: "a@example.test" }, 1234)).toBe(false);
   });
 
   it("propagates audit insertion failures so no publication is acknowledged", async () => {
