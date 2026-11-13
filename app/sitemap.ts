@@ -3,6 +3,10 @@ import { blogPosts } from "../lib/blog";
 import { getLiveProducts } from "../lib/live-products";
 import { SITE_URL } from "../lib/site";
 
+// Only request active Neon products at request time. Do not prerender in CI
+// without a database connection; never expose inactive draft product URLs.
+export const dynamic = "force-dynamic";
+
 const STATIC_ROUTES = ["", "/koleksiyon", "/magaza", "/hikayemiz", "/hasat", "/deneyim", "/gunluk", "/gunluk/zeytinyagi", "/gunluk/hasat", "/gunluk/tarifler", "/gunluk/aphrodisias", "/olive-club", "/corporate-gifts"];
 
 /** Canonical (non-redirecting) public URLs only. */
