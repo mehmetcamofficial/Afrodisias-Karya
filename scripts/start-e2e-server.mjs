@@ -11,7 +11,7 @@ const marker = resolve(dir, "e2e-catalog.fixture");
 if (existsSync(marker))
   throw new Error("Stale E2E fixture marker found; clean it before running E2E");
 writeFileSync(marker, "ephemeral\n", { flag: "wx", mode: 0o600 });
-console.info("[E2E-FIXTURE-LAUNCH]", JSON.stringify({ cwd: process.cwd(), markerPath: marker, markerReady: existsSync(marker) }));
+console.error("[E2E-FIXTURE-LAUNCH]", JSON.stringify({ cwd: process.cwd(), markerPath: marker, markerReady: existsSync(marker) }));
 const child = spawn("pnpm", ["dev"], { stdio: "inherit", env: process.env });
 const clean = () => { try { unlinkSync(marker); } catch { /* server interrupted */ } };
 child.once("exit", (code) => { clean(); process.exit(code ?? 1); });
