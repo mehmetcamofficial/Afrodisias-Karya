@@ -5,5 +5,5 @@ import { BlogManager } from "../BlogManager";
 
 export default async function AdminBlog(){
   const access=await requireAdminPage("/admin/blog");if(access.status!=="admin")return <AdminForbidden email={access.user.email} configured={access.configured}/>;
-  return <AdminShell kicker="BLOG & TARİF YÖNETİMİ" title="İçerik takvimi"><BlogManager/></AdminShell>
+  return <AdminShell kicker="GÜNLÜK · İÇERİK YÖNETİMİ" title="Yazılar ve taslaklar"><BlogManager/></AdminShell>
 }
