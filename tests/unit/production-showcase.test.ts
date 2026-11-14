@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { isProductionShowcase } from "../../lib/showcase-mode";
 import { POST as postOrder } from "../../app/api/orders/route";
+import { GET as publicProducts } from "../../app/api/products/route";
 import { requirePostgres } from "../../db/postgres/driver";
 import { checkAdmin } from "../../app/admin-auth";
 
@@ -23,6 +24,15 @@ describe("Production presentation-only release", () => {
     vi.mocked(requirePostgres).mockClear();
     const response = await postOrder(new Request("https://example.test/api/orders", { method: "POST" }));
     expect(response.status).toBe(403);
+    expect(requirePostgres).not.toHaveBeenCalled();
+  });
+
+  it("exposes no saleable public product inventory from Production DB", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.mocked(requirePostgres).mockClear();
+    const response = await publicProducts();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual([]);
     expect(requirePostgres).not.toHaveBeenCalled();
   });
 
