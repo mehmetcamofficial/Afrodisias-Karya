@@ -31,6 +31,8 @@ export type BlogPost = {
   /** ISO date for metadata / sorting. */
   isoDate: string;
   featured?: boolean;
+  /** Editorial photograph; never claim to document the exact product, lot, or harvest. */
+  cover?: { src: string; alt: string; credit?: string };
   seoTitle?: string;
   seoDescription?: string;
   body: string[];
@@ -349,6 +351,92 @@ export const blogPosts: BlogPost[] = [
     ],
   },
 ];
+
+// New evergreen editorial articles: no unverified product claims or field records.
+const additionalJournalPosts: BlogPost[] = [
+  {
+    slug: "ege-kahvaltisinda-zeytinyagi",
+    title: "Ege Kahvaltısında Zeytinyağı: Üç Sade Servis Fikri",
+    category: "Ege Mutfağından Tarifler",
+    excerpt: "Kekik, domates ve ekşi mayalı ekmekle zeytinyağını sofranın merkezine koyan üç fikir.",
+    author: "Altın Dal Mutfak", status: "published", date: "14 Kasım 2026", isoDate: "2026-11-14",
+    cover: { src: "/altin-dal-bottle-collection.webp", alt: "Koyu cam zeytinyağı şişeleriyle editoryal sofra fotoğrafı; tarifin birebir görüntüsü değildir." },
+    body: [
+      "İyi bir Ege kahvaltısının bütün malzemeleri gösterişli olmak zorunda değildir. Bir küçük kâse zeytinyağı, taze ekmek ve birkaç mevsim malzemesi yeterlidir.",
+      "## 1. Kekik ve limon",
+      "Bir kâse zeytinyağına bir tutam kuru kekik ve birkaç damla limon suyu ekleyin. Ekşi mayalı ekmeği hafifçe kızartıp yanında servis edin.",
+      "## 2. Domatesli tabak",
+      "Olgun domatesleri iri doğrayın. Tuz, taze fesleğen ve zeytinyağıyla karıştırın. Servisten önce birkaç dakika dinlendirin.",
+      "## 3. Zeytin ve ceviz",
+      "Çekirdeği çıkarılmış zeytinleri ceviz ve maydanozla birleştirin. Üzerine az miktarda zeytinyağı gezdirin. Zeytinlerin tuzunu göz önünde bulundurun.",
+      "## Servis notu",
+      "Yağın kokusunu tanımak için ilk lokmada sade ekmekle tadın; daha sonra otlarla eşleştirin."
+    ], relatedProductIds: ["glass-500", "green-olive"]
+  },
+  {
+    slug: "cam-sise-mi-teneke-mi",
+    title: "Cam Şişe mi Teneke mi? Mutfak İçin Doğru Format",
+    category: "Zeytinyağı Rehberi",
+    excerpt: "Günlük tüketim, ışık ve depolama koşullarına göre ambalaj seçme rehberi.",
+    author: "Altın Dal Editör", status: "published", date: "14 Kasım 2026", isoDate: "2026-11-14",
+    cover: { src: "/altin-dal-gift-box.webp", alt: "Ambalaj üzerine editoryal fotoğraf; teneke ürününün gerçek fotoğrafı değildir." },
+    body: [
+      "Zeytinyağı için ambalaj yalnızca estetik bir karar değildir. Işık, ısı ve havayla temas tazeliği etkiler; kullanım sıklığı da boyut seçiminde önem taşır.",
+      "## Koyu renkli cam",
+      "Koyu renkli cam, ışığa karşı şeffaf cama göre daha iyi koruma sağlar. Sofrada ve günlük küçük porsiyonlarda kullanımı pratiktir.",
+      "## Teneke",
+      "Işığı geçirmeyen teneke daha büyük kullanım hacimleri için uygun olabilir. Açıldıktan sonra kapağın iyi kapanması ve ürünün serin yerde tutulması önemlidir.",
+      "## Büyük boy ürün seçerken",
+      "Sık kullanılmayacak bir yağı çok büyük ambalajda almak her zaman avantajlı değildir. Tüketim hızınızı düşünün; günlük servis için küçük, temiz ve ışık geçirmeyen bir kaba aktarabilirsiniz.",
+      "## Kısa kontrol listesi",
+      "- Ambalajın ışık geçirmediğine bakın.",
+      "- Kapak ve sızdırmazlık yapısını kontrol edin.",
+      "- Saklama alanını ocak ve pencereden uzak seçin.",
+      "- Ürünün gerçek etiketinde verilen tarih ve saklama talimatını izleyin."
+    ], relatedProductIds: ["glass-500", "tin-3l", "tin-5l"]
+  },
+  {
+    slug: "ege-otlariyla-ilik-salata",
+    title: "Ege Otlarıyla Ilık Salata: Roka, Kabak ve Limon",
+    category: "Ege Mutfağından Tarifler",
+    excerpt: "Mevsim otlarını ve yumuşak kabak dilimlerini bir araya getiren hafif, pratik bir tabak.",
+    author: "Altın Dal Mutfak", status: "published", date: "14 Kasım 2026", isoDate: "2026-11-14",
+    cover: { src: "/hero-tetrapylon-grove.webp", alt: "Ege peyzajını anlatan editoryal görsel; tarif fotoğrafı değildir." },
+    body: [
+      "Bu tarifte amaç malzemeleri uzun süre pişirmek değil, mevsim otlarının tazeliğini korumaktır.",
+      "## Malzemeler",
+      "- 2 küçük kabak",
+      "- 1 avuç roka",
+      "- Yarım limonun suyu",
+      "- 2 yemek kaşığı zeytinyağı",
+      "- Bir tutam tuz, isteğe göre taze nane",
+      "## Hazırlık",
+      "Kabakları ince dilimleyin. Tavada az zeytinyağıyla kısa süre, diri kalacak kadar çevirin.",
+      "Roka ve naneyi servis tabağına alın; ılık kabakları üzerine yerleştirin. Limon suyu ve kalan zeytinyağını en son ekleyin.",
+      "## Alternatif",
+      "Roka yerine mevsiminde arapsaçı, turp otu ya da semizotu kullanabilirsiniz; her otun pişirme ihtiyacı farklıdır."
+    ], relatedProductIds: ["glass-250"]
+  },
+  {
+    slug: "zeytinyagiyla-mutfak-notlari",
+    title: "Zeytinyağıyla Mutfak Notları: Tadım, Koku ve Eşleştirme",
+    category: "Zeytinyağı Rehberi",
+    excerpt: "Bir yağı farklı tabaklarda deneyerek kendi mutfak tercihlerinizi oluşturmanın basit yolu.",
+    author: "Altın Dal Editör", status: "published", date: "14 Kasım 2026", isoDate: "2026-11-14",
+    cover: { src: "/altin-dal-bottle-collection.webp", alt: "Zeytinyağı şişelerinin editoryal fotoğrafı; belirli bir tadım sonucu göstermez." },
+    body: [
+      "Zeytinyağını seçerken tek bir genel puan yerine onu nerede kullanacağınızı düşünmek daha yararlı olabilir.",
+      "## Sade tadım",
+      "Küçük bir kâsede yağı koklayın. Meyvemsi, bitkisel ya da olgun notalar algılayabilirsiniz. Her yağın aroması aynı olmak zorunda değildir.",
+      "## Yemekle eşleştirme",
+      "Domates ve taze otlar daha belirgin aromalı yağlarla; daha sade sebze tabakları ise farklı yoğunluktaki yağlarla denenebilir. Tercihler kişiseldir.",
+      "## Not tutma",
+      "Koku, damakta bıraktığı his ve yemekteki etkisini üç kısa cümleyle kaydedin. Aynı tabağı farklı yağlarla karşılaştırmak farkları anlamayı kolaylaştırır.",
+      "Buradaki öneriler genel mutfak denemeleridir; Altın Dal'ın belirli bir lotuna ait laboratuvar veya duyusal analiz sonucu değildir."
+    ], relatedProductIds: ["glass-500", "aromatic-set"]
+  }
+];
+blogPosts.push(...additionalJournalPosts);
 
 const WORDS_PER_MINUTE = 200;
 
