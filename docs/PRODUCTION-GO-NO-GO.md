@@ -59,3 +59,10 @@ Status: **NO-GO**. Planning and review only. No merge, production deploy, produc
 - **Rollback**: if staging or Production smoke test fails, stop/preserve production traffic on the known-good deployment and restore the previous deployment via Vercel's promotion/rollback workflow after owner authorization; do not rewrite Production DB or destroy audit logs. Since this phase has no Production DB writes, schema rollback must be unnecessary.
 - Git dependencies remain PR #1 into `main`, PR #2 into PR #1; merging PR #1 by itself is not an authorized release.
 - Final decision remains **NO-GO** until E2E + Production smoke test and explicit owner approval.
+
+## 6. First public release — Vercel-specific verification (2026-11-14)
+- Vercel project inspection reports `live=false`, Preview deployments READY and **no known Production rollback candidate** among inspected recent deployments. This is a **first launch**, not a rollback to an existing known-good Production build. Before approval, record a safe fallback (a reviewed maintenance/holding page or removal of the new public domain assignment).
+- SSO Deployment Protection is enabled for `all_except_custom_domains`; confirm the intended public domain can actually be reached by anonymous visitors. Do not weaken Preview protection accidentally.
+- The current environment listing contains only four Preview-scoped keys (`CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `ADMIN_EMAILS`, `DATABASE_URL`) and reports zero Production keys. No key values were intentionally retrieved. The Phase 1 showcase must work without Production DB/Clerk keys.
+- Before any merge check whether Git integration automatically deploys `main` to Production. Require explicit owner sign-off on the full PR dependency chain; stage/test a reviewed release candidate before assigning a public domain.
+- Production smoke requirements: home/collection/store/product pages render; no currency selector, price, cart, checkout, false inquiry acknowledgements or live Offer JSON-LD; POST /api/orders returns 403 without creating a row; admin APIs require authentication and are unavailable in Production Phase 1.
