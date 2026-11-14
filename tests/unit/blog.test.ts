@@ -21,6 +21,14 @@ describe("journal publishing rules", () => {
     }
   });
 
+  it("provides a richer public journal without exposing unreviewed drafts", () => {
+    expect(publishedPosts.length).toBeGreaterThanOrEqual(8);
+    expect(new Set(publishedPosts.map((post) => post.slug)).size).toBe(publishedPosts.length);
+    expect(publishedPosts.some((post) => post.slug === "cam-sise-mi-teneke-mi")).toBe(true);
+    expect(publishedPosts.some((post) => post.slug === "ege-kahvaltisinda-zeytinyagi")).toBe(true);
+    expect(draftPosts.every((post) => !publishedPosts.includes(post))).toBe(true);
+  });
+
   it("covers recipes, guides, harvest, production and brand stories", () => {
     const categories = new Set(blogPosts.map((post) => post.category));
     for (const category of ["Ege Mutfağından Tarifler", "Zeytinyağı Rehberi", "Hasat Günlükleri", "Üretim", "Marka Hikâyeleri"] as const) expect(categories.has(category), category).toBe(true);
