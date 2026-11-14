@@ -10,13 +10,11 @@ import { isProductionShowcase } from "./showcase-mode";
 export async function getLiveProducts(): Promise<Product[]> {
   // Production showcase deliberately reads no database and advertises no stock or commercial prices.
   if (isProductionShowcase()) return fixtureCatalogue.map(item => ({ ...item, prices: {}, stock: 0 }));
-  // Only an ephemeral Playwright server can opt in. The marker is created
-  // by the E2E webServer command, is never committed, and never exists on Vercel.
-  // Unlike process.env.* this filesystem check cannot be constant-folded
-  // by the vinext RSC build pipeline.
-  if (!process.env.VERCEL && !process.env.VERCEL_ENV &&
-      !process.env.DATABASE_URL &&
-      existsSync(join(process.cwd(), ".sites-runtime", "e2e-catalog.fixture"))) {
+  // Only the ephemeral local Playwright launcher creates this ignored file.
+  // Vercel builds from Git and never receive it. The launcher itself refuses
+  // a hosted or DB-connected environment, keeping this fixture isolated.
+  // Avoid env guards here: vinext may set its own VERCEL/CI flags.
+  if (existsSync(join(process.cwd(), ".sites-runtime", "e2e-catalog.fixture"))) {
     return fixtureCatalogue;
   }
   return hydrateProducts(await listProducts(requirePostgres()));
