@@ -48,3 +48,14 @@ orders or the publication audit.
 | users, blog publish | ✓ | – | – |
 
 Production remains fail-closed for all admin APIs.
+
+## Yardım, WhatsApp ve ziyaretçi talepleri (Faz 7)
+
+- Her genel sayfada "Yardım" düğmesi (`app/components/help-widget.tsx`): SSS (`lib/faq.ts`), izinli iletişim formu, yapılandırılmışsa WhatsApp/e-posta bağlantısı. `/admin` altında gösterilmez.
+- İletişim kanalları **yalnızca** ortam değişkenlerinden okunur; boş/hatalıysa kanal gizlenir, hiçbir numara uydurulmaz:
+  - `NEXT_PUBLIC_WHATSAPP_NUMBER` — E.164 rakamları (`90…`, `+` ve boşluk yok)
+  - `NEXT_PUBLIC_CONTACT_EMAIL`
+  - `CONTACT_IP_SALT` — IP karması için tuz (IP'nin kendisi saklanmaz)
+- WhatsApp yalnızca ziyaretçi bağlantıya tıklayınca açılır; otomatik mesaj gönderilmez.
+- `POST /api/contact`: zod doğrulaması, zorunlu izin (DB'de de `CHECK consent = true`), honeypot, IP karması başına 10 dakikada 3 mesaj (tek SQL ifadesi). Eşzamanlı isteklerde sınır yumuşaktır (aynı anda gelen birkaç istek sınırı birkaç adet aşabilir). Veritabanı yoksa 503 döner ve mesajın kaydedilmediğini açıkça söyler.
+- `/admin/talepler`: `inquiry.manage` (owner/editor) durum günceller; her değişiklik `audit_logs`'a yazılır. Viewer yalnızca okur.

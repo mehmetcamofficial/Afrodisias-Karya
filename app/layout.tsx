@@ -6,6 +6,8 @@ import "./admin.css";
 import { CartProvider } from "./components/cart-context";
 import { PageTransition } from "./components/page-transition";
 import { SITE_URL } from "../lib/site";
+import { HelpWidget } from "./components/help-widget";
+import { contactConfig } from "../lib/contact-config";
 import { getLiveProducts } from "../lib/live-products";
 import { isProductionShowcase } from "../lib/showcase-mode";
 
@@ -49,6 +51,7 @@ export default async function RootLayout({
       <body className="antialiased">
         <a className="skip-link" href="#main">İçeriğe geç</a>
         <CartProvider initialProducts={inventory} showcase={isProductionShowcase()}><PageTransition>{children}</PageTransition></CartProvider>
+        <HelpWidget config={contactConfig()} />
       </body>
     </html>
   );

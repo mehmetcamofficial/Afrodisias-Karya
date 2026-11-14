@@ -222,3 +222,27 @@ export async function findAdminRole(db: SqlDriver, email: string): Promise<"owne
   );
   return result.rows[0]?.role ?? null;
 }
+
+export type InquiryRow = { id: string; name: string; email: string; topic: string; message: string; status: string; createdAt: number };
+export const INQUIRY_STATUSES = ["new", "in_progress", "answered", "spam", "closed"] as const;
+
+export async function listInquiries(db: SqlDriver, limit = 100): Promise<InquiryRow[]> {
+  const result = await db.query<InquiryRow>(
+    `SELECT id, name, email, topic, message, status, created_at::float8 AS "createdAt"
+       FROM contact_inquiries ORDER BY created_at DESC LIMIT $1`, [Math.min(Math.max(limit, 1), 500)],
+  );
+  return result.rows;
+}
+
+/** Status change + audit row in one statement. */
+export async function setInquiryStatus(db: SqlDriver, id: string, status: (typeof INQUIRY_STATUSES)[number], actor: string, now: number) {
+  const result = await db.query<{ id: string }>(
+    `WITH changed AS (UPDATE contact_inquiries SET status = $2 WHERE id = $1 RETURNING id, status),
+       aud AS (INSERT INTO audit_logs(actor_email, action, entity_type, entity_id, detail, created_at)
+               SELECT $3, 'inquiry.status', 'contact_inquiry', changed.id, jsonb_build_object('status', changed.status), $4 FROM changed RETURNING 1)
+     SELECT changed.id FROM changed`,
+    [id, status, actor, now],
+  );
+  if (!result.rows[0]) throw new CmsError("not_found", "Talep bulunamadı");
+  return result.rows[0];
+}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpenText, Boxes, ChevronRight, ExternalLink, LayoutDashboard, PackageCheck, QrCode } from "lucide-react";
+import { BookOpenText, Boxes, ChevronRight, ExternalLink, Inbox, LayoutDashboard, PackageCheck, QrCode } from "lucide-react";
 
 const links = [
   ["Genel Bakış", "/admin", LayoutDashboard],
@@ -10,6 +10,7 @@ const links = [
   ["Siparişler", "/admin/siparisler", PackageCheck],
   ["QR & Lot", "/admin/qr-lot", QrCode],
   ["Blog & Tarifler", "/admin/blog", BookOpenText],
+  ["Talepler", "/admin/talepler", Inbox],
 ] as const;
 
 export function AdminShell({ children, title, kicker }: { children: React.ReactNode; title: string; kicker: string }) {
