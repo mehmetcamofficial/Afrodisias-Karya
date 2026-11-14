@@ -24,7 +24,7 @@ export default function JournalPage() {
 
       {featured && (
         <section className="journal-featured" aria-labelledby="featured-title">
-          <Link href={`/gunluk/${featured.slug}`} tabIndex={-1} aria-hidden="true"><JournalCover category={featured.category} size="hero" /></Link>
+          <Link href={`/gunluk/${featured.slug}`} tabIndex={-1} aria-hidden="true"><JournalCover category={featured.category} post={featured} size="hero" /></Link>
           <div>
             <p className="eyebrow">Öne çıkan · {featured.category}</p>
             <h2 id="featured-title"><Link href={`/gunluk/${featured.slug}`}>{featured.title}</Link></h2>
