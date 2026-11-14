@@ -47,3 +47,15 @@ Status: **NO-GO**. Planning and review only. No merge, production deploy, produc
 - The subsequent fixture-gating correction at `b31912f` is under CI; **do not call PR #2 ready unless its latest HEAD E2E completes successfully**.
 - Rollback prerequisites before any release: identify last-good deployment ID, prove previous app version compatibility with proposed PostgreSQL schema, preserve immutable snapshot + tested isolated restore, retain `product_publish_audit` events, and document a stop-switch for the Preview publishing flag. Do not delete audit records during rollback.
 - For any failed E2E or schema verification, remain NO-GO and keep both PRs Draft. Production environment, data, keys, and deployments are unchanged by this review.
+
+## 5. Phase 1: public Production showcase, no commerce (2026-11-14)
+- Release scope: public editorial/home/collection/store/product-detail pages only; **no orders, payment, subscriptions, quote requests, or Production admin access**.
+- The server-owned `isProductionShowcase()` checks `VERCEL_ENV=production`. Product presentation comes from existing checked-in metadata with **zero stock and no displayed prices**; no Product/Offer commerce JSON-LD. Cart/checkout are hidden and `POST /api/orders` rejects requests **before any DB access**.
+- Production `checkAdmin()` fails closed. The first launch intentionally has **no Production admin sign-in**; Production Clerk authentication is deferred to a separately authorized second phase.
+- Subscription and gift inquiry confirmation controls are hidden in Production to avoid implying unrecorded requests have been received.
+- **No Production DATABASE_URL or Clerk secrets are needed for the public showcase**; do not copy Preview credentials to Production. Before enabling commerce, design the dedicated Production identity, data, audit, payment and stock lifecycle.
+- Read-only Vercel inspection: project `prj_T42EzAsVsWtmQsVLSLgerPXHk5OI`, team `team_MKHCuEJbKPjrDj7k4Q4k7xcH`, framework Next.js Node 22; project `live=false`, recent preview deployments READY, existing Production variable count zero (as reported by project env listing). Re-check immediately before release; never inspect secret values.
+- **Required pre-release gates**: latest HEAD CI checks PASS **and complete E2E PASS**, Production-mode order/admin negative tests PASS, manual storefront smoke test in isolated release candidate, domain/SSO access validation, stable rollback target, explicit approval for each merge and Production deploy.
+- **Rollback**: if staging or Production smoke test fails, stop/preserve production traffic on the known-good deployment and restore the previous deployment via Vercel's promotion/rollback workflow after owner authorization; do not rewrite Production DB or destroy audit logs. Since this phase has no Production DB writes, schema rollback must be unnecessary.
+- Git dependencies remain PR #1 into `main`, PR #2 into PR #1; merging PR #1 by itself is not an authorized release.
+- Final decision remains **NO-GO** until E2E + Production smoke test and explicit owner approval.
