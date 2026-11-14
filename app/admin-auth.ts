@@ -11,6 +11,9 @@ export type AdminCheck =
   | { status: "anonymous" };
 
 export async function checkAdmin(): Promise<AdminCheck> {
+  // The showcase release has no Production admin identity provider yet.
+  // Reject ALL Production admin operations rather than trusting legacy headers.
+  if (process.env.VERCEL_ENV === "production") return { status: "anonymous" };
   const allowlist = parseAdminAllowlist(process.env.ADMIN_EMAILS);
   if (process.env.VERCEL_ENV === "preview") {
     if (!clerkPreviewConfigured()) return { status: "anonymous" };
