@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { categorySlugs, readMinutes, type BlogCategory, type BlogPost } from "../../lib/blog";
 
@@ -17,11 +18,31 @@ const motifs: Record<BlogCategory, React.ReactNode> = {
   "Marka Hikâyeleri": <><path d="M60 98V28" /><path d="M60 46c-14-4-22-12-24-22 12 0 20 6 24 14M60 64c14-4 22-12 24-22-12 0-20 6-24 14M60 80c-12-3-19-10-21-18 10 0 17 5 21 11" /></>,
 };
 
-export function JournalCover({ category, size = "card" }: { category: BlogCategory; size?: "card" | "hero" }) {
+const editorialCoverByCategory: Partial<Record<BlogCategory, { src: string; alt: string }>> = {
+  "Zeytinyağı Rehberi": { src: "/altin-dal-bottle-collection.webp", alt: "Zeytinyağı şişeleriyle editoryal ürün sahnesi; belirli bir üretim kaydı değildir." },
+  "Ege Mutfağından Tarifler": { src: "/altin-dal-gift-box.webp", alt: "Akdeniz sofrası için editoryal ambalaj sahnesi; tarifin birebir fotoğrafı değildir." },
+  "Hasat Günlükleri": { src: "/hero-tetrapylon-grove.webp", alt: "Aphrodisias ve zeytinlik peyzajını anlatan editoryal görsel; ilgili hasat gününün belgesi değildir." },
+  "Aphrodisias Tarihi": { src: "/hero-tetrapylon-grove.webp", alt: "Aphrodisias çevresini konu alan editoryal peyzaj görseli." },
+  "Üretim": { src: "/altin-dal-bottle-collection.webp", alt: "Zeytinyağı ambalajını gösteren editoryal görsel; üretim tesisi fotoğrafı değildir." },
+  "Marka Hikâyeleri": { src: "/hero-tetrapylon-grove.webp", alt: "Bölgeyi anlatan editoryal peyzaj görseli." },
+};
+
+/** Editorial imagery is distinct from unverified actual product and harvest photography. */
+export function JournalCover({ category, size = "card", post }: { category: BlogCategory; size?: "card" | "hero"; post?: BlogPost }) {
+  const photo = post?.cover ?? editorialCoverByCategory[category];
   return (
-    <div className={`journal-cover journal-cover-${categorySlugs[category]} journal-cover-${size}`} aria-hidden="true">
-      <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">{motifs[category]}</svg>
-      <span>{category}</span>
+    <div className={`journal-cover journal-cover-${categorySlugs[category]} journal-cover-${size}`}>
+      {photo ? (
+        <>
+          <Image src={photo.src} alt={photo.alt} fill sizes={size === "hero" ? "(max-width: 900px) 100vw, 55vw" : "(max-width: 700px) 100vw, 33vw"} />
+          <span className="journal-photo-label">Editoryal görsel</span>
+        </>
+      ) : (
+        <div className="journal-cover-graphic" aria-hidden="true">
+          <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">{motifs[category]}</svg>
+          <span>{category}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -33,7 +54,7 @@ export function JournalMeta({ post }: { post: BlogPost }) {
 export function JournalCard({ post }: { post: BlogPost }) {
   return (
     <article className="journal-card">
-      <Link href={`/gunluk/${post.slug}`} tabIndex={-1} aria-hidden="true"><JournalCover category={post.category} /></Link>
+      <Link href={`/gunluk/${post.slug}`} tabIndex={-1} aria-hidden="true"><JournalCover category={post.category} post={post} /></Link>
       <div>
         <p>{post.category}</p>
         <JournalMeta post={post} />
