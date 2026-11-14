@@ -53,6 +53,11 @@ export default function JournalPage() {
         <p id="latest-title">SON YAZILAR</p>
         <div>{latest.map((post) => <JournalCard key={post.slug} post={post} />)}</div>
       </section>
+      <aside className="journal-credits" aria-label="Editoryal fotoğraf kaynakları">
+        <h2>Fotoğraf kaynakları</h2>
+        <p>Günlükteki dış kaynaklı fotoğraflar Altın Dal ürünlerini, Ataeymir hasadını veya tariflerimizin birebir sonucunu belgelememektedir. Görseller genel editoryal amaçla kullanılmaktadır.</p>
+        <p><a href="https://commons.wikimedia.org/wiki/File:Olive_Harvest.jpg" target="_blank" rel="noopener noreferrer">Zeytin hasadı — Aallen</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a> · <a href="https://commons.wikimedia.org/wiki/File:Bottle_of_olive_oil.jpg" target="_blank" rel="noopener noreferrer">Zeytinyağı şişesi — margenauer</a> · CC0 · <a href="https://commons.wikimedia.org/wiki/File:Insalata_greca.JPG" target="_blank" rel="noopener noreferrer">Akdeniz salatası — Wikimedia Commons</a> · CC0.</p>
+      </aside>
     </BrandShell>
   );
 }
