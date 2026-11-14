@@ -80,6 +80,36 @@ export function priceFor(product: Product, currency: Currency) {
   return product.prices.TRY ?? 0;
 }
 
+export const isCategory = (value: unknown): value is ProductCategory => typeof value === "string" && Object.hasOwn(categoryLabels, value);
+
+/**
+ * Packaging as stated by the catalogue. `undefined` means not yet verified —
+ * the UI then says so instead of guessing (e.g. olives: jar vs pouch).
+ */
+export const packagingLabels: Partial<Record<string, string>> = {
+  "glass-250": "Koyu renkli cam şişe",
+  "glass-500": "Koyu renkli cam şişe",
+  "glass-750": "Koyu renkli cam şişe",
+  "reserve-500": "Ahşap/mermer dokulu kutu + 500 ml şişe",
+  "aromatic-set": "3 × 100 ml şişe, set",
+  "tin-3l": "Mat teneke",
+  "tin-5l": "Mat teneke",
+  "olive-paste": "Cam kavanoz",
+  "soap-box": "2'li kutu",
+  "olive-club": "Üyelik gönderimi (2 × 500 ml)",
+  "adopt-tree": "Deneyim programı",
+};
+
+/** General, non-product-specific storage guidance by category. */
+export function storageGuidance(product: Product): string | null {
+  if (product.id === "green-olive" || product.id === "black-olive") return "Açıldıktan sonra kapağı kapalı olarak buzdolabında saklayın; zeytinleri temiz ve kuru bir kaşıkla alın.";
+  if (product.id === "olive-paste") return "Açıldıktan sonra buzdolabında saklayın ve her kullanımda temiz bir kaşık kullanın.";
+  if (product.id === "soap-box") return "Kullanımlar arasında kuru tutun; su birikmeyen bir sabunluk tercih edin.";
+  if (product.category === "tin") return "Serin ve karanlık bir yerde, kapağı kapalı saklayın. Günlük kullanım için küçük, koyu renkli bir şişeye aktarmak tenekedeki yağın havayla temasını azaltır.";
+  if (["glass", "luxury"].includes(product.category)) return "Serin ve karanlık bir yerde, kapağı kapalı saklayın; doğrudan güneş ışığından ve ısı kaynaklarından uzak tutun.";
+  return null;
+}
+
 export function formatAmount(value: number, currency: Currency) {
   const symbol = currencies.find((item) => item.code === currency)?.symbol ?? "";
   return currency === "TRY" ? `${symbol}${value.toLocaleString("tr-TR")}` : `${symbol}${value.toLocaleString("en-US")}`;

@@ -2,17 +2,29 @@
 
 import Link from "next/link";
 import { ArrowUpRight, Plus, Search, SlidersHorizontal } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { categoryLabels, currencies, formatPrice, priceFor, type Product, type Currency, type ProductCategory } from "../../lib/products";
 import { useCart } from "./cart-context";
 import { ProductVisual, productImageNote } from "./product-visual";
 
 type Sort = "featured" | "price-asc" | "price-desc";
 
-export function Storefront({ products, showcase = false }: { products: Product[]; showcase?: boolean }) {
+const CATEGORIES = Object.keys(categoryLabels) as ProductCategory[];
+
+export function Storefront({ products, showcase = false, initialCategory = "all" }: { products: Product[]; showcase?: boolean; initialCategory?: ProductCategory | "all" }) {
   const { currency, setCurrency, add } = useCart();
   const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<ProductCategory | "all">("all");
+  const [activeCategory, setActiveCategory] = useState<ProductCategory | "all">(initialCategory);
+  const availableCategories = CATEGORIES.filter((category) => products.some((product) => product.category === category));
+
+  // Keep the selected category in the URL so it can be shared and survives reloads.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (activeCategory === "all") url.searchParams.delete("kategori");
+    else url.searchParams.set("kategori", activeCategory);
+    window.history.replaceState(window.history.state, "", url);
+  }, [activeCategory]);
+
   const [sort, setSort] = useState<Sort>("featured");
 
   const visibleProducts = useMemo(() => {
@@ -27,6 +39,17 @@ export function Storefront({ products, showcase = false }: { products: Product[]
     return filtered;
   }, [activeCategory, currency, query, sort]);
 
+  if (products.length === 0) {
+    return (
+      <section className="shop-empty shop-catalog-empty" role="status">
+        <Search aria-hidden="true"/>
+        <h2>Mağaza hazırlanıyor</h2>
+        <p>Fiyatı ve stoku doğrulanmış ürünler yayımlandığında burada görünecek. Bu arada koleksiyonu ve hikâyemizi keşfedebilirsiniz.</p>
+        <Link href="/koleksiyon">Koleksiyonu keşfedin</Link>
+      </section>
+    );
+  }
+
   return (
     <>
       <section className="shop-toolbar" aria-label="Mağaza filtreleri">
@@ -37,9 +60,9 @@ export function Storefront({ products, showcase = false }: { products: Product[]
         </div>
       </section>
       <nav className="category-pills" aria-label="Ürün kategorileri">
-        <button className={activeCategory === "all" ? "active" : ""} onClick={() => setActiveCategory("all")}>Tümü <span>{products.length}</span></button>
-        {(Object.keys(categoryLabels) as ProductCategory[]).map((category) => (
-          <button key={category} className={activeCategory === category ? "active" : ""} onClick={() => setActiveCategory(category)}>{categoryLabels[category]} <span>{products.filter((product) => product.category === category).length}</span></button>
+        <button className={activeCategory === "all" ? "active" : ""} aria-pressed={activeCategory === "all"} onClick={() => setActiveCategory("all")}>Tümü <span>{products.length}</span></button>
+        {availableCategories.map((category) => (
+          <button key={category} className={activeCategory === category ? "active" : ""} aria-pressed={activeCategory === category} onClick={() => setActiveCategory(category)}>{categoryLabels[category]} <span>{products.filter((product) => product.category === category).length}</span></button>
         ))}
       </nav>
       <div className="shop-results-head" aria-live="polite"><p><b>{visibleProducts.length}</b> ürün gösteriliyor</p><span>{showcase ? "Ürün tanıtımı · Satış henüz açık değil" : "Seçili hasat · Sınırlı üretim"}</span></div>
