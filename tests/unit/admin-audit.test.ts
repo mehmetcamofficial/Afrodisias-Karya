@@ -3,7 +3,7 @@ import { listPublishAudit, type SqlDriver } from "../../db/postgres/repository";
 
 describe("publish audit read model", () => {
   it("is a bounded, parameterised, read-only query", async () => {
-    const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) => ({ rows: [], rowCount: 0 }));
+    const query = vi.fn<(sql: string, params?: readonly unknown[]) => Promise<{ rows: never[]; rowCount: number }>>(async () => ({ rows: [], rowCount: 0 }));
     const driver = { query } as unknown as SqlDriver;
     await listPublishAudit(driver, 5000);
     await listPublishAudit(driver, -3);
