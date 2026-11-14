@@ -6,7 +6,7 @@ import { media } from "../lib/media";
 import { groveZones } from "../lib/site-content";
 import { BrandFooter, BrandHeader } from "./components/site-shell";
 import { CinematicMedia } from "./components/cinematic-media";
-import { JournalCard } from "./components/journal-card";
+import { JournalCard, resolveJournalCover } from "./components/journal-card";
 import { Reveal } from "./components/reveal";
 import { jsonLdScript, organizationJsonLd } from "../lib/structured-data";
 
@@ -32,6 +32,15 @@ const process = [
 
 export default function Home() {
   const journal = publishedPosts.slice(0, 3);
+  // Photographs already used above on this page; a journal card whose cover
+  // would repeat one (or repeat another card) shows its typographic cover.
+  const usedPhotos = new Set(["/hero-tetrapylon-grove.webp", "/altin-dal-bottle-collection.webp", "/altin-dal-gift-box.webp"]);
+  const journalCards = journal.map((post) => {
+    const src = resolveJournalCover(post.category, post)?.src;
+    const graphic = !src || usedPhotos.has(src);
+    if (src) usedPhotos.add(src);
+    return { post, graphic };
+  });
   return (
     <div className="brand-site landing-site home-editorial">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(organizationJsonLd())} />
@@ -159,7 +168,7 @@ export default function Home() {
             <h2 id="journal-title">Bahçeden ve <em>Ege sofrasından.</em></h2>
             <Link className="text-link" href="/gunluk">Tüm yazılar <ArrowRight size={16} aria-hidden="true" /></Link>
           </header>
-          <div className="home-journal-grid">{journal.map((post) => <JournalCard key={post.slug} post={post} />)}</div>
+          <div className="home-journal-grid">{journalCards.map(({ post, graphic }) => <JournalCard key={post.slug} post={post} graphic={graphic} />)}</div>
         </section>
 
         <section className="home-closing" aria-labelledby="closing-title">

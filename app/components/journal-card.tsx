@@ -43,10 +43,16 @@ const editorialCoverByCategory: Partial<Record<BlogCategory, { src: string; alt:
   "Marka Hikâyeleri": { src: "/hero-tetrapylon-grove.webp", alt: "Marka coğrafyasını çağrıştıran editoryal peyzaj kompozisyonu." },
 };
 
-/** Editorial imagery is distinct from unverified actual product and harvest photography. */
-export function JournalCover({ category, size = "card", post }: { category: BlogCategory; size?: "card" | "hero"; post?: BlogPost }) {
+/** The photograph a card would show (shared so pages can avoid repeating one). */
+export function resolveJournalCover(category: BlogCategory, post?: BlogPost) {
   const localCover = post?.cover;
-  const photo = localCover && !localCover.src.startsWith("/altin-dal-") && !localCover.src.startsWith("/hero-") ? localCover : editorialCoverByCategory[category] ?? localCover;
+  return localCover && !localCover.src.startsWith("/altin-dal-") && !localCover.src.startsWith("/hero-") ? localCover : editorialCoverByCategory[category] ?? localCover;
+}
+
+/** Editorial imagery is distinct from unverified actual product and harvest photography. */
+export function JournalCover({ category, size = "card", post, graphic = false }: { category: BlogCategory; size?: "card" | "hero"; post?: BlogPost; graphic?: boolean }) {
+  // `graphic` lets a page that already shows this photograph fall back to the typographic cover.
+  const photo = graphic ? undefined : resolveJournalCover(category, post);
   return (
     <div className={`journal-cover journal-cover-${categorySlugs[category]} journal-cover-${size}`}>
       {photo ? (
@@ -68,10 +74,10 @@ export function JournalMeta({ post }: { post: BlogPost }) {
   return <small className="journal-meta">{post.date} · {readMinutes(post)} dk okuma</small>;
 }
 
-export function JournalCard({ post }: { post: BlogPost }) {
+export function JournalCard({ post, graphic = false }: { post: BlogPost; graphic?: boolean }) {
   return (
     <article className="journal-card">
-      <Link href={`/gunluk/${post.slug}`} tabIndex={-1} aria-hidden="true"><JournalCover category={post.category} post={post} /></Link>
+      <Link href={`/gunluk/${post.slug}`} tabIndex={-1} aria-hidden="true"><JournalCover category={post.category} post={post} graphic={graphic} /></Link>
       <div>
         <p>{post.category}</p>
         <JournalMeta post={post} />
