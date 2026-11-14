@@ -24,5 +24,5 @@ export default defineConfig({
     })),
   ],
   // Reuses a running dev server; starts one otherwise (skipped for remote targets).
-  webServer: process.env.E2E_BASE_URL ? undefined : { command: "node scripts/start-e2e-server.mjs", url: baseURL, reuseExistingServer: !process.env.CI, timeout: 180_000 },
+  webServer: process.env.E2E_BASE_URL ? undefined : { command: "pnpm dev", url: baseURL, reuseExistingServer: !process.env.CI, timeout: 180_000, env: { E2E_CATALOG_FIXTURE: "1" } },
 });
