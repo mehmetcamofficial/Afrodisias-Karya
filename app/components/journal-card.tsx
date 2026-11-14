@@ -18,21 +18,21 @@ const motifs: Record<BlogCategory, React.ReactNode> = {
   "Marka Hikâyeleri": <><path d="M60 98V28" /><path d="M60 46c-14-4-22-12-24-22 12 0 20 6 24 14M60 64c14-4 22-12 24-22-12 0-20 6-24 14M60 80c-12-3-19-10-21-18 10 0 17 5 21 11" /></>,
 };
 
-const editorialCoverByCategory: Partial<Record<BlogCategory, { src: string; alt: string; credit?: string }>> = {
+const editorialCoverByCategory: Partial<Record<BlogCategory, { src: string; alt: string; credit?: string; creditUrl?: string }>> = {
   "Zeytinyağı Rehberi": {
     src: "https://commons.wikimedia.org/wiki/Special:FilePath/Bottle_of_olive_oil.jpg?width=1100",
     alt: "Gerçek cam şişede zeytinyağı fotoğrafı; Altın Dal ürün fotoğrafı değildir.",
-    credit: "Fotoğraf: margenauer / Pixabay · CC0 · Wikimedia Commons"
+    credit: "margenauer / Pixabay · CC0", creditUrl: "https://commons.wikimedia.org/wiki/File:Bottle_of_olive_oil.jpg"
   },
   "Ege Mutfağından Tarifler": {
     src: "https://commons.wikimedia.org/wiki/Special:FilePath/Insalata_greca.JPG?width=1100",
     alt: "Gerçek bir Akdeniz salatası fotoğrafı; yazıdaki tarifin birebir fotoğrafı değildir.",
-    credit: "Fotoğraf: Wikimedia Commons · CC0"
+    credit: "Wikimedia Commons · CC0", creditUrl: "https://commons.wikimedia.org/wiki/File:Insalata_greca.JPG"
   },
   "Hasat Günlükleri": {
     src: "https://commons.wikimedia.org/wiki/Special:FilePath/Olive_Harvest.jpg?width=1100",
     alt: "Gerçek zeytin hasadı fotoğrafı; Ataeymir'de veya Altın Dal bahçesinde çekilmemiştir.",
-    credit: "Fotoğraf: Aallen · CC BY-SA 3.0 · Wikimedia Commons"
+    credit: "Aallen · CC BY-SA 3.0", creditUrl: "https://commons.wikimedia.org/wiki/File:Olive_Harvest.jpg"
   },
   "Aphrodisias Tarihi": { src: "/hero-tetrapylon-grove.webp", alt: "Aphrodisias peyzajına dair editoryal kompozisyon." },
   "Üretim": {
@@ -52,7 +52,7 @@ export function JournalCover({ category, size = "card", post }: { category: Blog
       {photo ? (
         <>
           <Image src={photo.src} alt={photo.alt} fill unoptimized={photo.src.startsWith("https://")} sizes={size === "hero" ? "(max-width: 900px) 100vw, 55vw" : "(max-width: 700px) 100vw, 33vw"} />
-          <span className="journal-photo-label">Editoryal fotoğraf · {photo.credit ?? "temsili kompozisyon"}</span>
+          <span className="journal-photo-label">{photo.credit ? `Fotoğraf: ${photo.credit} · Wikimedia Commons` : "Editoryal kompozisyon"}</span>
         </>
       ) : (
         <div className="journal-cover-graphic" aria-hidden="true">
