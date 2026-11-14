@@ -5,7 +5,7 @@ import { ArrowUpRight, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
 import { categoryLabels, currencies, formatPrice, priceFor, type Product, type Currency, type ProductCategory } from "../../lib/products";
 import { useCart } from "./cart-context";
-import { ProductVisual } from "./product-visual";
+import { ProductVisual, productImageNote } from "./product-visual";
 
 type Sort = "featured" | "price-asc" | "price-desc";
 
@@ -42,7 +42,7 @@ export function Storefront({ products, showcase = false }: { products: Product[]
           <button key={category} className={activeCategory === category ? "active" : ""} onClick={() => setActiveCategory(category)}>{categoryLabels[category]} <span>{products.filter((product) => product.category === category).length}</span></button>
         ))}
       </nav>
-      <div className="shop-results-head"><p><b>{visibleProducts.length}</b> ürün gösteriliyor</p><span>{showcase ? "Ürün tanıtımı · Satış henüz açık değil" : "Seçili hasat · Sınırlı üretim"}</span></div>
+      <div className="shop-results-head" aria-live="polite"><p><b>{visibleProducts.length}</b> ürün gösteriliyor</p><span>{showcase ? "Ürün tanıtımı · Satış henüz açık değil" : "Seçili hasat · Sınırlı üretim"}</span></div>
       {visibleProducts.length === 0 ? (
         <section className="shop-empty"><Search/><h2>Aradığınız ürün bulunamadı</h2><p>Arama terimini veya kategori filtresini değiştirmeyi deneyin.</p><button onClick={() => { setQuery(""); setActiveCategory("all"); }}>Filtreleri temizle</button></section>
       ) : (
@@ -51,13 +51,14 @@ export function Storefront({ products, showcase = false }: { products: Product[]
             <article className="product-card" key={product.id}>
               <Link className="product-card-media" href={`/urun/${product.id}`} tabIndex={-1} aria-hidden="true">
                 <ProductVisual product={product} sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"/>
-                {product.badge && <span>{product.badge}</span>}
+                {product.badge && !showcase && <span>{product.badge}</span>}
                 <i><ArrowUpRight size={17}/></i>
               </Link>
               <div className="product-card-body">
                 <small>{categoryLabels[product.category]} · {product.size}</small>
                 <h2><Link href={`/urun/${product.id}`}>{product.name}</Link></h2>
                 <p>{product.note}</p>
+                {productImageNote(product) && <p className="product-card-image-disclosure">{productImageNote(product)}</p>}
                 <div className="product-card-meta">{!showcase && <span className={product.stock < 25 ? "limited" : ""}>{product.stock < 25 ? "Sınırlı stok" : "Stokta"}</span>}<span>{product.lot ?? "Tek köken"}</span></div>
                 <footer>{showcase ? <strong>Yakında</strong> : <><strong>{formatPrice(product, currency)}</strong><button disabled={product.stock < 1} onClick={() => add(product)}>{product.stock < 1 ? "Tükendi" : "Sepete ekle"} <Plus size={17}/></button></>}</footer>
               </div>
