@@ -17,12 +17,14 @@ Status: **NO-GO**. Planning and review only. No merge, production deploy, produc
 - Acceptance: anonymous 401, authenticated non-admin 403, allowlisted verified admin success, forged-header rejection, logout invalidation, and production-domain session test.
 
 ## 2. Data inventory and backup/restore — BLOCKED
-- Decide explicitly whether legacy Cloudflare D1 products/orders must migrate, or whether Production starts with an empty Neon catalog/order database.
-- Read-only inventory needed: table/schema/migration versions, counts by entity, order IDs and statuses, product SKU/price/stock, referential integrity, row-level sample reconciliation, timezone/currency semantics, and PII retention.
-- Identify D1 export ownership and cutover source of truth; no automatic D1 -> Neon migration.
+- **Corrected source-of-truth decision:** Altın Dal was created using ChatGPT Sites; the owner confirms **no Cloudflare D1 was ever used for this site and no real customer orders were placed**. Do not plan D1 migration or invent historical orders.
+- Neon Preview currently contains **13 draft products, zero published products, zero orders and zero publication-audit events**; demo prices and stock are not business-approved.
+- Preview has the versioned `0002_publish_audit.sql` table. Product publication is atomic with audit write; publish feature flag defaults off and only works in Preview.
+- Production catalog/order data is a **clean start**, subject to a separate read-only inventory and release authorization. No demo product may be published without verified price/stock and media identity.
+- Read-only Production inventory still needed: table/schema/migration versions, counts, PK/ACL audit, and environment/branch identity. Do not read secrets or PII unnecessarily.
 - Before any production writes: take a timestamped backup/export with checksum, encrypted offsite copy and documented retention; prove restore to a **separate disposable** PostgreSQL 17 branch/database, validate counts, schema, permissions, and app queries. Never test restore against Production.
 - Current Neon Production branch is unprotected: review/enable branch protection only with explicit authorization. Record recovery-window limitations and confirm PITR/restore features actually available on the subscription.
-- Migration plan must include read-only or maintenance window, freeze/cutover, ID mapping, deterministic import, reconciliation, go/no-go owner approval, and a reversible strategy.
+- Release plan must include a controlled empty-catalog start, versioned migrations, audit-verification, go/no-go owner approval, and a reversible strategy.
 
 ## 3. PR and deployment controls — BLOCKED
 - PR #1 must remain Draft until its security review and PR #2 dependency are resolved.
@@ -35,7 +37,13 @@ Status: **NO-GO**. Planning and review only. No merge, production deploy, produc
 
 ## Evidence needed to flip to GO
 1. Production Clerk identity verified and all RBAC security tests pass.
-2. Data migration/clean-start decision signed off, isolated restore and reconciliation PASS.
+2. Confirmed clean-start strategy implemented without historical D1 migration; isolated restore and data reconciliation PASS.
 3. Backup, recovery time, and rollback rehearsed and documented.
 4. PR checks, deployment environment separation, and latest SHA verified.
 5. Owner explicitly approves the precise release scope.
+
+## 4. PR #2 E2E and rollback checkpoint (2026-11-14)
+- The complete Playwright run at `f2144d2` **FAILED**: 52 passed, 56 failed, 4 skipped. Evidence: https://github.com/mehmetcamofficial/Afrodisias-Karya/actions/runs/43459235257 . Multiple page 500s report missing DATABASE_URL; merely passing unit checks is insufficient.
+- The subsequent fixture-gating correction at `b31912f` is under CI; **do not call PR #2 ready unless its latest HEAD E2E completes successfully**.
+- Rollback prerequisites before any release: identify last-good deployment ID, prove previous app version compatibility with proposed PostgreSQL schema, preserve immutable snapshot + tested isolated restore, retain `product_publish_audit` events, and document a stop-switch for the Preview publishing flag. Do not delete audit records during rollback.
+- For any failed E2E or schema verification, remain NO-GO and keep both PRs Draft. Production environment, data, keys, and deployments are unchanged by this review.
