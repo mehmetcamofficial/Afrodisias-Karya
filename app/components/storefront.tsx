@@ -9,7 +9,7 @@ import { ProductVisual } from "./product-visual";
 
 type Sort = "featured" | "price-asc" | "price-desc";
 
-export function Storefront({ products }: { products: Product[] }) {
+export function Storefront({ products, showcase = false }: { products: Product[]; showcase?: boolean }) {
   const { currency, setCurrency, add } = useCart();
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<ProductCategory | "all">("all");
@@ -32,8 +32,8 @@ export function Storefront({ products }: { products: Product[] }) {
       <section className="shop-toolbar" aria-label="Mağaza filtreleri">
         <div className="shop-search"><Search size={18}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ürün, boy veya seri ara" aria-label="Ürün ara"/></div>
         <div className="shop-selects">
-          <label><SlidersHorizontal size={16}/><span className="sr-only">Sıralama</span><select value={sort} onChange={(event) => setSort(event.target.value as Sort)}><option value="featured">Öne çıkanlar</option><option value="price-asc">Fiyat: artan</option><option value="price-desc">Fiyat: azalan</option></select></label>
-          <label><span className="sr-only">Para birimi</span><select value={currency} onChange={(event) => setCurrency(event.target.value as Currency)}>{currencies.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}</select></label>
+          <label><SlidersHorizontal size={16}/><span className="sr-only">Sıralama</span><select value={sort} onChange={(event) => setSort(event.target.value as Sort)}><option value="featured">Öne çıkanlar</option>{!showcase && <option value="price-asc">Fiyat: artan</option>}{!showcase && <option value="price-desc">Fiyat: azalan</option>}</select></label>
+          {!showcase && <label><span className="sr-only">Para birimi</span><select value={currency} onChange={(event) => setCurrency(event.target.value as Currency)}>{currencies.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}</select></label>}
         </div>
       </section>
       <nav className="category-pills" aria-label="Ürün kategorileri">
@@ -42,7 +42,7 @@ export function Storefront({ products }: { products: Product[] }) {
           <button key={category} className={activeCategory === category ? "active" : ""} onClick={() => setActiveCategory(category)}>{categoryLabels[category]} <span>{products.filter((product) => product.category === category).length}</span></button>
         ))}
       </nav>
-      <div className="shop-results-head"><p><b>{visibleProducts.length}</b> ürün gösteriliyor</p><span>Seçili hasat · Sınırlı üretim</span></div>
+      <div className="shop-results-head"><p><b>{visibleProducts.length}</b> ürün gösteriliyor</p><span>{showcase ? "Ürün tanıtımı · Satış henüz açık değil" : "Seçili hasat · Sınırlı üretim"}</span></div>
       {visibleProducts.length === 0 ? (
         <section className="shop-empty"><Search/><h2>Aradığınız ürün bulunamadı</h2><p>Arama terimini veya kategori filtresini değiştirmeyi deneyin.</p><button onClick={() => { setQuery(""); setActiveCategory("all"); }}>Filtreleri temizle</button></section>
       ) : (
@@ -58,8 +58,8 @@ export function Storefront({ products }: { products: Product[] }) {
                 <small>{categoryLabels[product.category]} · {product.size}</small>
                 <h2><Link href={`/urun/${product.id}`}>{product.name}</Link></h2>
                 <p>{product.note}</p>
-                <div className="product-card-meta"><span className={product.stock < 25 ? "limited" : ""}>{product.stock < 25 ? "Sınırlı stok" : "Stokta"}</span><span>{product.lot ?? "Tek köken"}</span></div>
-                <footer><strong>{formatPrice(product, currency)}</strong><button disabled={product.stock < 1} onClick={() => add(product)}>{product.stock < 1 ? "Tükendi" : "Sepete ekle"} <Plus size={17}/></button></footer>
+                <div className="product-card-meta">{!showcase && <span className={product.stock < 25 ? "limited" : ""}>{product.stock < 25 ? "Sınırlı stok" : "Stokta"}</span>}<span>{product.lot ?? "Tek köken"}</span></div>
+                <footer>{showcase ? <strong>Yakında</strong> : <><strong>{formatPrice(product, currency)}</strong><button disabled={product.stock < 1} onClick={() => add(product)}>{product.stock < 1 ? "Tükendi" : "Sepete ekle"} <Plus size={17}/></button></>}</footer>
               </div>
             </article>
           ))}
