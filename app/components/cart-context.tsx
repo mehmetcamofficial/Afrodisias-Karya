@@ -7,6 +7,7 @@ import { MAX_QTY_PER_LINE } from "../../lib/orders";
 
 type CartLine = { product: Product; quantity: number };
 type CartValue = {
+  showcase: boolean;
   itemCount: number;
   currency: Currency;
   setCurrency: (value: Currency) => void;
@@ -55,7 +56,7 @@ function loadLines(products: Product[]): CartLine[] {
   }
 }
 
-export function CartProvider({ children, initialProducts }: { children: React.ReactNode; initialProducts: Product[] }) {
+export function CartProvider({ children, initialProducts, showcase = false }: { children: React.ReactNode; initialProducts: Product[]; showcase?: boolean }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [currency, setCurrency] = useState<Currency>("TRY");
@@ -112,6 +113,7 @@ export function CartProvider({ children, initialProducts }: { children: React.Re
   }, [open, closeCart]);
 
   const add = (product: Product, quantity = 1) => {
+    if (showcase) return;
     setLines((current) => {
       const existing = current.find((line) => line.product.id === product.id);
       const next = Math.min((existing?.quantity ?? 0) + quantity, maxQuantity(product));
@@ -132,7 +134,7 @@ export function CartProvider({ children, initialProducts }: { children: React.Re
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (ordering) return;
+    if (ordering || showcase) return;
     const form = event.currentTarget;
     setOrdering(true);
     setResult(null);
@@ -183,9 +185,9 @@ export function CartProvider({ children, initialProducts }: { children: React.Re
   const errorFor = (name: string) => fieldErrors[name] && <span className="field-error" id={`${name}-error`}>{fieldErrors[name]}</span>;
 
   return (
-    <CartContext.Provider value={{ itemCount, currency, setCurrency, add, openCart }}>
+    <CartContext.Provider value={{ showcase, itemCount: showcase ? 0 : itemCount, currency, setCurrency, add, openCart }}>
       {children}
-      {open && (
+      {!showcase && open && (
         <div className="cart-backdrop" onClick={closeCart}>
           <aside ref={panelRef} className="cart-panel" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cart-title">
             <div className="cart-head">
