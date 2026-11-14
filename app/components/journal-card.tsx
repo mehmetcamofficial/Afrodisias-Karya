@@ -18,24 +18,41 @@ const motifs: Record<BlogCategory, React.ReactNode> = {
   "Marka Hikâyeleri": <><path d="M60 98V28" /><path d="M60 46c-14-4-22-12-24-22 12 0 20 6 24 14M60 64c14-4 22-12 24-22-12 0-20 6-24 14M60 80c-12-3-19-10-21-18 10 0 17 5 21 11" /></>,
 };
 
-const editorialCoverByCategory: Partial<Record<BlogCategory, { src: string; alt: string }>> = {
-  "Zeytinyağı Rehberi": { src: "/altin-dal-bottle-collection.webp", alt: "Zeytinyağı şişeleriyle editoryal ürün sahnesi; belirli bir üretim kaydı değildir." },
-  "Ege Mutfağından Tarifler": { src: "/altin-dal-gift-box.webp", alt: "Akdeniz sofrası için editoryal ambalaj sahnesi; tarifin birebir fotoğrafı değildir." },
-  "Hasat Günlükleri": { src: "/hero-tetrapylon-grove.webp", alt: "Aphrodisias ve zeytinlik peyzajını anlatan editoryal görsel; ilgili hasat gününün belgesi değildir." },
-  "Aphrodisias Tarihi": { src: "/hero-tetrapylon-grove.webp", alt: "Aphrodisias çevresini konu alan editoryal peyzaj görseli." },
-  "Üretim": { src: "/altin-dal-bottle-collection.webp", alt: "Zeytinyağı ambalajını gösteren editoryal görsel; üretim tesisi fotoğrafı değildir." },
-  "Marka Hikâyeleri": { src: "/hero-tetrapylon-grove.webp", alt: "Bölgeyi anlatan editoryal peyzaj görseli." },
+const editorialCoverByCategory: Partial<Record<BlogCategory, { src: string; alt: string; credit?: string }>> = {
+  "Zeytinyağı Rehberi": {
+    src: "https://commons.wikimedia.org/wiki/Special:FilePath/Bottle_of_olive_oil.jpg?width=1100",
+    alt: "Gerçek cam şişede zeytinyağı fotoğrafı; Altın Dal ürün fotoğrafı değildir.",
+    credit: "Fotoğraf: margenauer / Pixabay · CC0 · Wikimedia Commons"
+  },
+  "Ege Mutfağından Tarifler": {
+    src: "https://commons.wikimedia.org/wiki/Special:FilePath/Insalata_greca.JPG?width=1100",
+    alt: "Gerçek bir Akdeniz salatası fotoğrafı; yazıdaki tarifin birebir fotoğrafı değildir.",
+    credit: "Fotoğraf: Wikimedia Commons · CC0"
+  },
+  "Hasat Günlükleri": {
+    src: "https://commons.wikimedia.org/wiki/Special:FilePath/Olive_Harvest.jpg?width=1100",
+    alt: "Gerçek zeytin hasadı fotoğrafı; Ataeymir'de veya Altın Dal bahçesinde çekilmemiştir.",
+    credit: "Fotoğraf: Aallen · CC BY-SA 3.0 · Wikimedia Commons"
+  },
+  "Aphrodisias Tarihi": { src: "/hero-tetrapylon-grove.webp", alt: "Aphrodisias peyzajına dair editoryal kompozisyon." },
+  "Üretim": {
+    src: "https://commons.wikimedia.org/wiki/Special:FilePath/Bottle_of_olive_oil.jpg?width=1100",
+    alt: "Zeytinyağı şişesi gerçek fotoğrafı; Altın Dal üretim tesisi değildir.",
+    credit: "Fotoğraf: margenauer · CC0 · Wikimedia Commons"
+  },
+  "Marka Hikâyeleri": { src: "/hero-tetrapylon-grove.webp", alt: "Marka coğrafyasını çağrıştıran editoryal peyzaj kompozisyonu." },
 };
 
 /** Editorial imagery is distinct from unverified actual product and harvest photography. */
 export function JournalCover({ category, size = "card", post }: { category: BlogCategory; size?: "card" | "hero"; post?: BlogPost }) {
-  const photo = post?.cover ?? editorialCoverByCategory[category];
+  const localCover = post?.cover;
+  const photo = localCover && !localCover.src.startsWith("/altin-dal-") && !localCover.src.startsWith("/hero-") ? localCover : editorialCoverByCategory[category] ?? localCover;
   return (
     <div className={`journal-cover journal-cover-${categorySlugs[category]} journal-cover-${size}`}>
       {photo ? (
         <>
-          <Image src={photo.src} alt={photo.alt} fill sizes={size === "hero" ? "(max-width: 900px) 100vw, 55vw" : "(max-width: 700px) 100vw, 33vw"} />
-          <span className="journal-photo-label">Editoryal görsel</span>
+          <Image src={photo.src} alt={photo.alt} fill unoptimized={photo.src.startsWith("https://")} sizes={size === "hero" ? "(max-width: 900px) 100vw, 55vw" : "(max-width: 700px) 100vw, 33vw"} />
+          <span className="journal-photo-label">Editoryal fotoğraf · {photo.credit ?? "temsili kompozisyon"}</span>
         </>
       ) : (
         <div className="journal-cover-graphic" aria-hidden="true">
