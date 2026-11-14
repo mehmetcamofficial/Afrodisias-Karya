@@ -36,10 +36,10 @@ const prefix = slots[slot];
 const videoPath = `/video/${prefix}.mp4`;
 const posterPath = `/video/${prefix}-poster.webp`;
 let block = manifest.slice(start, next + 5);
-if (!/poster: "[^"]+"/.test(block) || !/video: \{[\s\S]*?\}/.test(block))
+if (!/poster: "[^"]+"/.test(block) || !/video: \{[\s\S]*?\n    \},/.test(block))
   throw new Error("Media manifest format changed; review before installing");
 block = block.replace(/poster: "[^"]+"/, `poster: "${posterPath}"`);
-block = block.replace(/video: \{[\s\S]*?\}/, `video: { default: { mp4: "${videoPath}" } }`);
+block = block.replace(/video: \{[\s\S]*?\n    \},/, `video: { default: { mp4: "${videoPath}" } },`);
 const destDir = join(root, "public", "video");
 mkdirSync(destDir, { recursive: true });
 // Finish all validations before the first copy/write.
