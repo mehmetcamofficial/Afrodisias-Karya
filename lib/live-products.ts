@@ -16,7 +16,7 @@ export async function getLiveProducts(): Promise<Product[]> {
   // Avoid env guards here: vinext may set its own VERCEL/CI flags.
   const markerPath = join(process.cwd(), ".sites-runtime", "e2e-catalog.fixture");
   const fixtureReady = existsSync(markerPath);
-  if (!process.env.DATABASE_URL) console.info("[E2E-FIXTURE-DIAG]", JSON.stringify({ cwd: process.cwd(), markerReady: fixtureReady, markerPath, vercel: Boolean(process.env.VERCEL), vercelEnvPresent: Boolean(process.env.VERCEL_ENV) }));
+  if (!process.env.DATABASE_URL) console.error("[E2E-FIXTURE-DIAG]", JSON.stringify({ cwd: process.cwd(), markerReady: fixtureReady, markerPath, vercel: Boolean(process.env.VERCEL), vercelEnvPresent: Boolean(process.env.VERCEL_ENV) }));
   if (fixtureReady) {
     return fixtureCatalogue;
   }
