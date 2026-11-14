@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./foundation.css";
 import "./editorial.css";
+import "./admin.css";
 import { CartProvider } from "./components/cart-context";
 import { PageTransition } from "./components/page-transition";
 import { SITE_URL } from "../lib/site";

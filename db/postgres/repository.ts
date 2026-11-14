@@ -110,3 +110,20 @@ export async function createPendingOrder(db: SqlDriver, order: NewOrder): Promis
   if (result.rows.length !== 1) throw new OrderIdempotencyConflictError();
   return result.rows[0].totalKurus;
 }
+
+export type PublishAuditRow = {
+  eventId: number; productId: string; actorEmail: string; action: string;
+  priceKurus: number; approvedStock: number; occurredAt: number;
+};
+
+/** Read-only view of the append-only publication audit (newest first). */
+export async function listPublishAudit(db: SqlDriver, limit = 20): Promise<PublishAuditRow[]> {
+  const safeLimit = Math.min(Math.max(Math.trunc(limit) || 1, 1), 100);
+  const result = await db.query<PublishAuditRow>(
+    `SELECT event_id AS "eventId", product_id AS "productId", actor_email AS "actorEmail", action,
+            price_kurus AS "priceKurus", approved_stock AS "approvedStock", occurred_at AS "occurredAt"
+       FROM product_publish_audit ORDER BY occurred_at DESC LIMIT $1`,
+    [safeLimit],
+  );
+  return result.rows;
+}

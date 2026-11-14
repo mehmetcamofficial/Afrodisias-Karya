@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Boxes, CircleDollarSign, PackageCheck, RefreshCw, Save } from "lucide-react";
+import { AlertTriangle, Boxes, FileClock, PackageCheck, RefreshCw, Save } from "lucide-react";
 import { useCallback, useState } from "react";
 
 export type AdminProduct = { id: string; name: string; type: string; size: string; note: string; priceKurus: number; stock: number; active: boolean };
@@ -73,13 +73,14 @@ export default function AdminClient({ initialProducts, initialOrders, canPublish
     }
   };
 
-  const revenue = orders.reduce((sum, order) => sum + order.totalKurus, 0);
+  // No revenue figure: payment is not active, so recorded orders are unpaid.
   const stockWarnings = products.filter((product) => product.active && product.stock < 25).length;
+  const pending = orders.filter((order) => order.status === "payment_pending").length;
   const metrics = [
-    { label: "Toplam ciro", value: `${(revenue / 100).toLocaleString("tr-TR")} TL`, note: "Kaydedilen siparişler", Icon: CircleDollarSign },
-    { label: "Siparişler", value: orders.length.toLocaleString("tr-TR"), note: "Toplam kayıt", Icon: PackageCheck },
-    { label: "Aktif katalog", value: products.filter((product) => product.active).length.toLocaleString("tr-TR"), note: "Satışa açık ürün", Icon: Boxes },
-    { label: "Stok uyarısı", value: stockWarnings.toLocaleString("tr-TR"), note: "25 adedin altında", Icon: AlertTriangle },
+    { label: "Yayında ürün", value: products.filter((product) => product.active).length.toLocaleString("tr-TR"), note: "Fiyatı ve stoku onaylı", Icon: Boxes },
+    { label: "Taslak ürün", value: products.filter((product) => !product.active).length.toLocaleString("tr-TR"), note: "Satışa kapalı", Icon: FileClock },
+    { label: "Sipariş kaydı", value: orders.length.toLocaleString("tr-TR"), note: `${pending} ödeme bekliyor · tahsilat yok`, Icon: PackageCheck },
+    { label: "Stok uyarısı", value: stockWarnings.toLocaleString("tr-TR"), note: "Yayındaki ürünlerde 25 altı", Icon: AlertTriangle },
   ];
 
   return (
