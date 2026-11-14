@@ -5,6 +5,7 @@ import { CartProvider } from "./components/cart-context";
 import { PageTransition } from "./components/page-transition";
 import { SITE_URL } from "../lib/site";
 import { getLiveProducts } from "../lib/live-products";
+import { isProductionShowcase } from "../lib/showcase-mode";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -45,7 +46,7 @@ export default async function RootLayout({
       </head>
       <body className="antialiased">
         <a className="skip-link" href="#main">İçeriğe geç</a>
-        <CartProvider initialProducts={inventory}><PageTransition>{children}</PageTransition></CartProvider>
+        <CartProvider initialProducts={inventory} showcase={isProductionShowcase()}><PageTransition>{children}</PageTransition></CartProvider>
       </body>
     </html>
   );
