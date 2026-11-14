@@ -19,7 +19,7 @@ const links = [
 export function BrandHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const { itemCount, openCart, currency, setCurrency } = useCart();
+  const { showcase, itemCount, openCart, currency, setCurrency } = useCart();
 
   useEffect(() => {
     const close = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
@@ -38,15 +38,15 @@ export function BrandHeader() {
         ))}
       </nav>
       <div className="brand-actions">
-        <label className="header-currency">
+        {!showcase && <label className="header-currency">
           <span className="sr-only">Para birimi</span>
           <select value={currency} onChange={(event) => setCurrency(event.target.value as Currency)} aria-label="Para birimi seçin">
             {currencies.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}
           </select>
-        </label>
-        <button className="brand-bag" onClick={openCart} aria-label={`Sepeti aç, ${itemCount} ürün`}>
+        </label>}
+        {!showcase && <button className="brand-bag" onClick={openCart} aria-label={`Sepeti aç, ${itemCount} ürün`}>
           <ShoppingBag size={18}/>{itemCount > 0 && <i>{itemCount}</i>}
-        </button>
+        </button>}
         <button className="brand-menu" onClick={() => setOpen((value) => !value)} aria-label="Menüyü aç veya kapat" aria-expanded={open} aria-controls="primary-navigation">
           {open ? <X/> : <Menu/>}
         </button>
