@@ -14,7 +14,10 @@ export async function getLiveProducts(): Promise<Product[]> {
   // Vercel builds from Git and never receive it. The launcher itself refuses
   // a hosted or DB-connected environment, keeping this fixture isolated.
   // Avoid env guards here: vinext may set its own VERCEL/CI flags.
-  if (existsSync(join(process.cwd(), ".sites-runtime", "e2e-catalog.fixture"))) {
+  const markerPath = join(process.cwd(), ".sites-runtime", "e2e-catalog.fixture");
+  const fixtureReady = existsSync(markerPath);
+  if (!process.env.DATABASE_URL) console.info("[E2E-FIXTURE-DIAG]", JSON.stringify({ cwd: process.cwd(), markerReady: fixtureReady, markerPath, vercel: Boolean(process.env.VERCEL), vercelEnvPresent: Boolean(process.env.VERCEL_ENV) }));
+  if (fixtureReady) {
     return fixtureCatalogue;
   }
   return hydrateProducts(await listProducts(requirePostgres()));
