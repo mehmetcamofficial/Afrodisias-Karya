@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpenText, Boxes, ChevronRight, ExternalLink, LayoutDashboard, PackageCheck, QrCode, Settings } from "lucide-react";
+import { BookOpenText, Boxes, ChevronRight, ExternalLink, Inbox, LayoutDashboard, PackageCheck, QrCode } from "lucide-react";
 
 const links = [
   ["Genel Bakış", "/admin", LayoutDashboard],
@@ -10,6 +10,7 @@ const links = [
   ["Siparişler", "/admin/siparisler", PackageCheck],
   ["QR & Lot", "/admin/qr-lot", QrCode],
   ["Blog & Tarifler", "/admin/blog", BookOpenText],
+  ["Talepler", "/admin/talepler", Inbox],
 ] as const;
 
 export function AdminShell({ children, title, kicker }: { children: React.ReactNode; title: string; kicker: string }) {
@@ -22,12 +23,11 @@ export function AdminShell({ children, title, kicker }: { children: React.ReactN
           <small>OPERASYON</small>
           {links.map(([label, href, Icon]) => <Link key={href} href={href} className={path === href ? "active" : ""} aria-current={path === href ? "page" : undefined}><Icon size={18}/><span>{label}</span><ChevronRight size={14}/></Link>)}
         </nav>
-        <div className="admin-sidebar-foot"><span><i/> Sistem aktif</span><small>Son kontrol: şimdi</small></div>
+        <div className="admin-sidebar-foot"><span>Ödeme kapalı</span><small>Durum ayrıntıları Genel Bakış ekranında</small></div>
       </aside>
       <section className="admin-workspace">
         <header className="admin-topbar">
           <div><Link href="/">Siteye dön <ExternalLink size={14}/></Link><Link href="/magaza">Mağazayı aç</Link></div>
-          <button aria-label="Yönetim ayarları"><Settings size={18}/></button>
         </header>
         <nav className="admin-mobile-tabs" aria-label="Yönetim navigasyonu (mobil)">{links.map(([label, href]) => <Link key={href} href={href} className={path === href ? "active" : ""} aria-current={path === href ? "page" : undefined}>{label}</Link>)}</nav>
         <div className="admin-title"><div><p>{kicker}</p><h1>{title}</h1></div><span className="admin-date">2026 Hasat Sezonu</span></div>

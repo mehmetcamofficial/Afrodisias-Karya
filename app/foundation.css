@@ -249,3 +249,73 @@
 .journal-card small, .product-page > article > span, .product-page dt,
 .store-group article small, .cart-head p, .cart-row-copy span, .empty-cart p { color: var(--ad-muted-ink); }
 .product-page-image .product-image-note { color: var(--ad-travertine); margin: 0; padding: 12px 16px; }
+
+/* Owner-supplied AI packaging concepts (4:5, light studio backdrop). Cards
+   crop gently; the product page shows the whole design. */
+.product-img-concept { object-fit: cover; object-position: center 45%; }
+.product-visual-frame:has(.product-img-concept) { background: #ece6dc; }
+.product-page-image .product-visual-frame .product-img-concept { object-fit: contain; }
+
+/* ---------- Product detail: zoom, details, related, sticky bar ---------- */
+.product-visual-frame .zoom-trigger {
+  position: absolute; right: 12px; top: 12px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 12px;
+  border: 1px solid rgb(246 242 233 / 0.6); background: rgb(36 37 33 / 0.78); color: var(--ad-ivory);
+  font: 500 var(--ad-text-xs) var(--ad-font-ui); cursor: zoom-in;
+}
+.zoom-dialog { width: min(1100px, 96vw); max-height: 94vh; padding: 0; border: 0; background: var(--ad-ivory); color: var(--ad-charcoal); }
+.zoom-dialog::backdrop { background: rgb(7 16 11 / 0.82); }
+.zoom-dialog .zoom-image { display: block; width: 100%; height: auto; max-height: 86vh; object-fit: contain; }
+.zoom-dialog p { margin: 0; padding: 10px 16px 14px; font: var(--ad-text-sm) var(--ad-font-ui); color: var(--ad-muted-ink); }
+.zoom-close { position: absolute; top: 10px; right: 10px; z-index: 1; width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: var(--ad-charcoal); color: var(--ad-ivory); cursor: pointer; }
+
+.product-purchase.is-showcase { display: block; }
+.product-purchase.is-showcase p { margin: 8px 0 0; color: var(--ad-muted-ink); font: var(--ad-text-sm) / 1.5 var(--ad-font-ui); }
+.product-details { margin-top: 28px; border-top: 1px solid rgb(36 37 33 / 0.14); }
+.product-details details { border-bottom: 1px solid rgb(36 37 33 / 0.14); }
+.product-details summary { display: flex; justify-content: space-between; align-items: center; min-height: 52px; cursor: pointer; font: 500 var(--ad-text-base) var(--ad-font-ui); list-style: none; }
+.product-details summary::-webkit-details-marker { display: none; }
+.product-details summary::after { content: "+"; font-size: 1.3rem; color: var(--ad-gold-ink); }
+.product-details details[open] summary::after { content: "−"; }
+.product-details details > p { margin: 0 0 18px; font: var(--ad-text-base) / 1.65 var(--ad-font-body); color: #3e463c; }
+.product-details details > .text-link { margin-bottom: 18px; }
+.product-details dl { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; margin: 0 0 18px; }
+.product-details dl div { padding: 10px 0; border-top: 1px solid rgb(36 37 33 / 0.08); }
+.product-details dt { font: 600 var(--ad-text-xs) var(--ad-font-ui); letter-spacing: 0.08em; color: var(--ad-muted-ink); }
+.product-details dd { margin: 4px 0 0; font: var(--ad-text-base) var(--ad-font-ui); }
+
+.product-recipes, .product-related { max-width: 1280px; margin: 0 auto; padding: clamp(48px, 7vw, 96px) var(--ad-gutter) 0; }
+.product-recipes h2, .product-related h2 { margin: 0 0 24px; font: 400 clamp(2rem, 1.6rem + 1.6vw, 2.8rem) / 1 var(--ad-font-display); }
+.product-recipes ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgb(36 37 33 / 0.14); }
+.product-recipes li a { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; border-bottom: 1px solid rgb(36 37 33 / 0.14); font: 400 1.4rem / 1.2 var(--ad-font-display); }
+.product-recipes small { display: block; font: 600 var(--ad-text-xs) var(--ad-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ad-gold-ink); margin-bottom: 4px; }
+.product-related { padding-bottom: clamp(72px, 10vw, 120px); }
+.product-related ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 14px; }
+@media (min-width: 900px) { .product-related ul { grid-template-columns: repeat(3, 1fr); gap: 28px; } }
+.product-related a { display: grid; gap: 6px; }
+.product-related-media { position: relative; display: block; aspect-ratio: 1; overflow: hidden; background: #e2d8c6; margin-bottom: 8px; }
+.product-related-media img { object-fit: cover; }
+.product-related small { font: 600 var(--ad-text-xs) var(--ad-font-ui); letter-spacing: 0.1em; color: var(--ad-gold-ink); }
+.product-related b { font: 400 1.4rem / 1.1 var(--ad-font-display); }
+
+.sticky-purchase { display: none; }
+@media (max-width: 899px) {
+  .sticky-purchase {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: var(--ad-ivory); border-top: 1px solid rgb(36 37 33 / 0.16); box-shadow: 0 -10px 30px rgb(0 0 0 / 0.08);
+    transform: translateY(110%); transition: transform 0.3s var(--ad-ease);
+  }
+  .sticky-purchase.is-visible { transform: none; }
+  .sticky-purchase div { display: grid; min-width: 0; }
+  .sticky-purchase b { font: 500 var(--ad-text-sm) var(--ad-font-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sticky-purchase span { font: 400 1.2rem var(--ad-font-display); }
+  .sticky-purchase button { min-height: 48px; padding: 0 20px; border: 0; background: var(--ad-charcoal); color: var(--ad-ivory); font: 500 var(--ad-text-sm) var(--ad-font-ui); }
+  .sticky-purchase button:disabled { opacity: 0.5; }
+}
+.shop-catalog-empty a { display: inline-flex; margin-top: 12px; padding: 12px 18px; background: var(--ad-charcoal); color: var(--ad-ivory); }
+
+/* The legacy dark image panel left a dark strip under light product images. */
+.product-page .product-page-image { background: none; min-height: 0; }
+.product-page .product-page-image .product-image-note { color: var(--ad-muted-ink); padding: 10px 0 0; font: var(--ad-text-xs) / 1.5 var(--ad-font-ui); }

@@ -1,19 +1,14 @@
-import { env } from "cloudflare:workers";
-import { drizzle } from "drizzle-orm/d1";
-import * as schema from "./schema";
-
-export function getDb() {
-  if (!env.DB) {
-    throw new Error(
-      "Cloudflare D1 binding `DB` is unavailable. Set the `d1` field in .openai/hosting.json to `DB` or let your control plane inject the real binding values before using the database."
-    );
-  }
-
-  return drizzle(env.DB, { schema });
+/**
+ * Legacy D1 access is deliberately unavailable in the Vercel/Neon runtime.
+ * Importing this module must never import the Cloudflare-only 'cloudflare:workers'
+ * module, which crashes Next.js page-data collection at build time.
+ *
+ * Callers must migrate to db/postgres/driver and db/postgres/repository.
+ */
+export function getDb(): never {
+  throw new Error("Legacy D1 adapter disabled; use PostgreSQL repository");
 }
 
-/** Raw D1 binding for prepared statements; throws a clear error when unbound. */
-export function requireD1(): D1Database {
-  if (!env.DB) throw new Error("Cloudflare D1 binding `DB` is unavailable.");
-  return env.DB;
+export function requireD1(): never {
+  throw new Error("Legacy D1 adapter disabled; use PostgreSQL repository");
 }

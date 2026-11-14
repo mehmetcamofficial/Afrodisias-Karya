@@ -1,0 +1,105 @@
+name: Isolated PostgreSQL transaction regression
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - db/postgres/**
+      - .github/workflows/postgres-transaction-test.yml
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-transaction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test_admin
+          POSTGRES_PASSWORD: test_only_local
+          POSTGRES_DB: altindal_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test_admin -d altindal_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: test_admin
+      PGPASSWORD: test_only_local
+      PGDATABASE: altindal_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply isolated schema
+        run: psql -v ON_ERROR_STOP=1 -f db/postgres/0001_initial.sql
+      - name: Verify failed transaction rolls back all writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if psql -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN;
+          INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,status,payment_provider,created_at)
+          VALUES ('rollback-check','Test','test@example.com','','','[]',100,'payment_pending','iyzico',1);
+          INSERT INTO products(id,name,type,size,note,price_kurus,stock,active,updated_at)
+          VALUES ('invalid-product','Bad','','','',-1,0,true,1);
+          COMMIT;
+          SQL
+          then
+            echo "::error::Expected constraint failure did not occur"
+            exit 1
+          fi
+          count=$(psql -At -c "SELECT count(*) FROM orders WHERE id='rollback-check'")
+          [[ "$count" == "0" ]] || { echo "::error::Transaction was not rolled back"; exit 1; }
+          echo "PASS: failed transaction left zero orders"
+      - name: Verify status constraint rejects invalid values
+        run: |
+          set -euo pipefail
+          if psql -v ON_ERROR_STOP=1 -c "INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,status,payment_provider,created_at) VALUES ('invalid-status','Test','test@example.com','','','[]',100,'not_a_status','iyzico',1)"; then
+            echo "::error::Invalid status was accepted"
+            exit 1
+          fi
+          count=$(psql -At -c "SELECT count(*) FROM orders WHERE id='invalid-status'")
+          [[ "$count" == "0" ]]
+          echo "PASS: invalid order status rejected"
+      - name: Verify concurrent idempotent inserts create one order
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 12); do
+            psql -v ON_ERROR_STOP=1 -c "INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,status,payment_provider,created_at) VALUES ('concurrent-key','Test','test@example.com','','','[]',100,'payment_pending','iyzico',1) ON CONFLICT(id) DO NOTHING" >/dev/null &
+          done
+          wait
+          count=$(psql -At -c "SELECT count(*) FROM orders WHERE id='concurrent-key'")
+          [[ "$count" == "1" ]] || { echo "::error::Expected exactly one persisted order, got $count"; exit 1; }
+          echo "PASS: concurrent idempotent inserts persisted one order"
+      - name: Verify conflicting duplicate does not overwrite stored order
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -c "INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,status,payment_provider,created_at) VALUES ('concurrent-key','Attacker','attacker@example.com','','','[]',99999,'payment_pending','iyzico',2) ON CONFLICT(id) DO NOTHING"
+          result=$(psql -At -c "SELECT customer_name || ':' || total_kurus FROM orders WHERE id='concurrent-key'")
+          [[ "$result" == "Test:100" ]] || { echo "::error::Duplicate overwrote stored order"; exit 1; }
+          echo "PASS: conflicting duplicate did not overwrite original order"
+      - name: Verify atomic upsert retry and conflict on real PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          atomic_sql="INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,status,payment_provider,created_at) VALUES ('atomic-key','Test','test@example.com','','','[]',100,'payment_pending','iyzico',1) ON CONFLICT(id) DO UPDATE SET id=orders.id WHERE orders.customer_name IS NOT DISTINCT FROM excluded.customer_name AND orders.email IS NOT DISTINCT FROM excluded.email AND orders.phone IS NOT DISTINCT FROM excluded.phone AND orders.address IS NOT DISTINCT FROM excluded.address AND orders.items_json IS NOT DISTINCT FROM excluded.items_json AND orders.total_kurus IS NOT DISTINCT FROM excluded.total_kurus RETURNING total_kurus"
+          [[ "$(psql -X -q -t -A -c "$atomic_sql")" == "100" ]] || { echo "::error::Atomic statement did not return stored amount"; exit 1; }
+          pids=()
+          for i in $(seq 1 12); do
+            ( [[ "$(psql -X -q -t -A -c "$atomic_sql")" == "100" ]] ) &
+            pids+=("$!")
+          done
+          for pid in "${pids[@]}"; do wait "$pid"; done
+          conflict_sql="${atomic_sql/\'Test\'/\'Attacker\'}"
+          [[ -z "$(psql -X -q -t -A -c "$conflict_sql")" ]] || { echo "::error::Conflicting retry returned success"; exit 1; }
+          [[ "$(psql -X -q -t -A -c "SELECT count(*) FROM orders WHERE id='atomic-key'")" == "1" ]]
+          [[ "$(psql -X -q -t -A -c "SELECT customer_name FROM orders WHERE id='atomic-key'")" == "Test" ]]
+          echo "PASS: atomic upsert concurrent replay and mismatched retry"
