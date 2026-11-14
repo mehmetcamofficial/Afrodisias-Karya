@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import { requirePostgres } from "../../../db/postgres/driver";
 import { listProducts, upsertProduct } from "../../../db/postgres/repository";
 import { adminApiGuard } from "../../admin-auth";
+import { isProductionShowcase } from "../../../lib/showcase-mode";
 
 export const runtime = "nodejs";
 export async function GET() {
+  // No public saleable inventory in the initial Production showcase.
+  if (isProductionShowcase()) return NextResponse.json([]);
   try {
     const rows = await listProducts(requirePostgres());
     return NextResponse.json(rows);
