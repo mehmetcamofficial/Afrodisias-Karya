@@ -4,11 +4,12 @@ import { useState } from "react";
 import { formatPrice, type Product } from "../../lib/products";
 import { maxQuantity, useCart } from "./cart-context";
 
-export function ProductDetailClient({ product }: { product: Product }) {
+export function ProductDetailClient({ product, showcase = false }: { product: Product; showcase?: boolean }) {
   const [quantity, setQuantity] = useState(1);
   const { currency, add } = useCart();
   const max = maxQuantity(product);
   const available = max > 0;
+  if (showcase) return <div className="product-purchase"><strong>Yakında</strong><p>Bu ürün tanıtım amaçlıdır. Satış ve sipariş henüz açık değildir.</p></div>;
   return (
     <div className="product-purchase">
       <strong>{formatPrice(product, currency)}</strong>
