@@ -47,7 +47,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           <h1>{post.title}</h1>
           <div><span>{post.author}</span><span><time dateTime={post.isoDate}>{post.date}</time></span><span>{readMinutes(post)} dk okuma</span></div>
         </header>
-        <div className="article-hero-cover"><JournalCover category={post.category} size="hero" /></div>
+        <div className="article-hero-cover"><JournalCover category={post.category} post={post} size="hero" /></div>
         <div className="article-body">
           <p className="article-lead">{post.excerpt}</p>
           <ArticleBody blocks={post.body} />
