@@ -10,6 +10,16 @@ test("5 L tin never shows a bottle photo; glass sizes disclose the range photo",
   await expect(page.locator(".product-image-note")).toContainText("serisini");
 });
 
+test("unverified packaging images are clearly disclosed on product cards", async ({ page }) => {
+  await page.goto("/magaza");
+  const tin = page.locator(".product-card", { hasText: "5 Litre Mat Teneke" });
+  await expect(tin.locator("img")).toHaveCount(0);
+  await expect(tin.locator('[role="img"]')).toHaveAccessibleName(/temsili ambalaj çizimi, gerçek ürün fotoğrafı değil/);
+  await expect(tin.locator(".product-card-image-disclosure")).toContainText("Temsili ambalaj");
+  const glass = page.locator(".product-card", { hasText: "500 ml Cam Şişe" });
+  await expect(glass.locator(".product-card-image-disclosure")).toContainText("ürün serisini");
+});
+
 test("cart totals, quantity updates, Escape and persistence", async ({ page }) => {
   await page.goto("/urun/glass-500", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Adedi artır" }).click();
