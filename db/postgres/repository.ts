@@ -36,11 +36,13 @@ export async function listAllProducts(db: SqlDriver): Promise<ProductRow[]> {
 
 export async function upsertProduct(db: SqlDriver, product: ProductRow, updatedAt: number): Promise<void> {
   await db.query(
-    `INSERT INTO products(id,name,type,size,note,price_kurus,stock,active,updated_at)
-     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
+    // 0003: `status` must mirror `active` (products_active_matches_status).
+    `INSERT INTO products(id,name,type,size,note,price_kurus,stock,active,updated_at,status)
+     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,CASE WHEN $8 THEN 'published' ELSE 'draft' END)
      ON CONFLICT(id) DO UPDATE SET name=excluded.name,type=excluded.type,
        size=excluded.size,note=excluded.note,price_kurus=excluded.price_kurus,
-       stock=excluded.stock,active=excluded.active,updated_at=excluded.updated_at`,
+       stock=excluded.stock,active=excluded.active,updated_at=excluded.updated_at,
+       status=excluded.status,version=products.version+1`,
     [product.id, product.name, product.type, product.size, product.note, product.priceKurus, product.stock, product.active, updatedAt]
   );
 }
@@ -58,8 +60,8 @@ export async function publishReviewedProduct(
   const result = await db.query<{ id: string }>(
     `WITH published AS (
        UPDATE products
-       SET active=true, stock=$3, updated_at=$4
-       WHERE id=$1 AND active=false AND price_kurus=$2
+       SET active=true, status='published', version=version+1, stock=$3, updated_at=$4
+       WHERE id=$1 AND active=false AND status IN ('draft','approved') AND price_kurus=$2
          AND $2 > 0 AND $3 > 0
        RETURNING id, price_kurus, stock
      ), recorded AS (

@@ -78,3 +78,35 @@
    page sideways on phones; constrain them so .admin-table-scroll scrolls. */
 .admin-workspace, .admin-content, .admin-card, .admin-grid > * { min-width: 0; }
 .admin-mobile-tabs { max-width: 100%; overflow-x: auto; }
+
+/* ---------- Product CMS ---------- */
+.cms { display: grid; gap: 22px; }
+.cms-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cms-toolbar select { min-height: 40px; padding: 6px 10px; border: 1px solid rgb(20 37 29 / 0.25); background: #fff; }
+.cms-check { display: inline-flex; gap: 6px; align-items: center; font: var(--ad-text-sm) var(--ad-font-ui); }
+.admin-data-table tr.is-selected td { background: #f6efdf; }
+.cms-notice { margin: 0; padding: 12px 14px; font: var(--ad-text-sm) / 1.5 var(--ad-font-ui); border-left: 3px solid; }
+.cms-notice.is-ok { background: #e1efe2; border-color: #2f6b3a; color: #1f5a2b; }
+.cms-notice.is-error { background: #fbeee6; border-color: #b04a2a; color: #6d2c14; }
+.cms-form { display: grid; gap: 18px; }
+.cms-form fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 16px; margin: 0; padding: 16px; border: 1px solid rgb(20 37 29 / 0.14); }
+.cms-form legend { padding: 0 6px; font: 600 var(--ad-text-xs) var(--ad-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ad-gold-ink); }
+.cms-form label, .cms-workflow label { display: grid; gap: 5px; font: 500 var(--ad-text-xs) var(--ad-font-ui); color: var(--ad-muted-ink); }
+.cms-form label small { font-weight: 400; }
+.cms-form input, .cms-form select, .cms-form textarea, .cms-workflow input { min-height: 42px; padding: 9px 11px; border: 1px solid rgb(20 37 29 / 0.25); background: #fff; font: var(--ad-text-sm) var(--ad-font-ui); color: var(--ad-charcoal); }
+.cms-form textarea { grid-column: 1 / -1; resize: vertical; }
+.cms-form label:has(textarea) { grid-column: 1 / -1; }
+.cms-form :disabled { background: #f3f0ea; color: #6b6b62; }
+.cms-primary, .cms-actions button, .cms-inline button, .cms-danger button {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 10px 16px; border: 0;
+  background: var(--ad-charcoal); color: var(--ad-ivory); font: 500 var(--ad-text-sm) var(--ad-font-ui); cursor: pointer; justify-self: start;
+}
+.cms-primary:disabled, .cms-actions button:disabled, .cms-inline button:disabled, .cms-danger button:disabled { opacity: 0.45; cursor: not-allowed; }
+.cms-hint { color: var(--ad-muted-ink); font: var(--ad-text-xs) var(--ad-font-ui); }
+.cms-workflow, .cms-history { margin-top: 26px; padding-top: 20px; border-top: 1px solid rgb(20 37 29 / 0.14); display: grid; gap: 14px; }
+.cms-workflow h3, .cms-history h3 { display: flex; align-items: center; gap: 8px; margin: 0; font: 600 var(--ad-text-base) var(--ad-font-ui); }
+.cms-actions, .cms-inline { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.cms-danger { display: grid; gap: 10px; padding: 14px; border: 1px solid #e4c3ad; background: #fdf6f1; }
+.cms-danger p { margin: 0; font: var(--ad-text-sm) / 1.5 var(--ad-font-ui); }
+.cms-danger button { background: #8a2f17; }
+.cms-history ol { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font: var(--ad-text-sm) / 1.4 var(--ad-font-ui); }

@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 /** Explicit feature gate. Not configured in Preview or Production by default. */
 export async function POST(request: Request) {
   const access = await checkAdmin();
-  if (access.status !== "admin") {
+  if (access.status !== "admin" || access.role !== "owner") {
     return NextResponse.json(
       { error: access.status === "anonymous" ? "Yetkisiz" : "Yönetici yetkisi gerekli" },
       { status: access.status === "anonymous" ? 401 : 403 },

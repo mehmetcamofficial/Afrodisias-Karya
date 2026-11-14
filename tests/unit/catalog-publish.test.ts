@@ -23,7 +23,7 @@ describe("Preview-only catalog publication API", () => {
     vi.stubEnv("VERCEL_ENV", "preview");
     vi.stubEnv("PREVIEW_CATALOG_PUBLISH_ENABLED", "");
     vi.mocked(checkAdmin).mockResolvedValue({
-      status: "admin", user: { userId: "user_clerk_fixture", email: "admin@example.test", fullName: null, displayName: "Admin" },
+      status: "admin", role: "owner", user: { userId: "user_clerk_fixture", email: "admin@example.test", fullName: null, displayName: "Admin" },
     });
   });
   afterEach(() => vi.unstubAllEnvs());
@@ -65,5 +65,18 @@ describe("Preview-only catalog publication API", () => {
       id: "glass-250", expectedPriceKurus: 55000, approvedStock: 3,
       actorUserId: "user_clerk_fixture", actorEmail: "admin@example.test",
     }, expect.any(Number));
+  });
+});
+
+describe("legacy publish is owner-only", () => {
+  it("rejects an editor even with every other condition met", async () => {
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("PREVIEW_CATALOG_PUBLISH_ENABLED", "true");
+    vi.mocked(checkAdmin).mockResolvedValue({
+      status: "admin", role: "editor", user: { userId: "user_editor", email: "editor@example.test", fullName: null, displayName: "Editor" },
+    });
+    const response = await POST(new Request("http://localhost/api/admin/products/publish", { method: "POST", body: "{}" }));
+    expect(response.status).toBe(403);
+    vi.unstubAllEnvs();
   });
 });

@@ -6,6 +6,11 @@ import { categoryLabels, packagingLabels, products, type ProductImage } from "..
 import { requireAdminPage } from "../../admin-auth";
 import { AdminForbidden } from "../../components/admin-forbidden";
 import { AdminShell } from "../../components/admin-shell";
+import { ProductCms } from "../ProductCms";
+import { AdminUnavailable } from "../AdminPanels";
+import { requirePostgres } from "../../../db/postgres/driver";
+import { listCmsProducts, type CmsProduct } from "../../../db/postgres/cms-repository";
+import { adminEnvironment } from "../../../lib/admin-environment";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +30,16 @@ export default async function Page() {
   const access = await requireAdminPage("/admin/urunler");
   if (access.status !== "admin") return <AdminForbidden email={access.user.email} configured={access.configured} />;
   const snapshot = await loadAdminSnapshot();
+  let cmsProducts: CmsProduct[] | null = null;
+  try { cmsProducts = await listCmsProducts(requirePostgres()); } catch { cmsProducts = null; }
+  const images = Object.fromEntries(products.filter((p) => p.image).map((p) => [p.id, { src: p.image!.src, kind: p.image!.kind }]));
   const rows = new Map((snapshot.products ?? []).map((row) => [row.id, row]));
   const missingPhotos = products.filter((product) => product.image?.kind !== "variant").length;
   return (
-    <AdminShell kicker="ÜRÜN & MEDYA" title="Katalog ve görsel denetimi">
+    <AdminShell kicker="ÜRÜN CMS & MEDYA" title="Ürün yönetimi">
+      {cmsProducts
+        ? <ProductCms initialProducts={cmsProducts} role={access.role} publishingEnabled={adminEnvironment().publishing} images={images} />
+        : <AdminUnavailable what="Ürün CMS (veritabanı veya 0003_cms migration'ı)" />}
       <div className="admin-notice" role="note">
         <b>{missingPhotos} / {products.length}</b> üründe gerçek ürün fotoğrafı yok; bunlar sitede “temsili” veya “seri” notuyla gösterilir.
         Fiyat ve stok yalnızca Neon kaydından okunur. Fiyat/stok düzenleme ve onaylı yayımlama <Link href="/admin">Genel bakış</Link> ekranındadır.
