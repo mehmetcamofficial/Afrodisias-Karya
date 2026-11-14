@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { requirePostgres } from "../../../db/postgres/driver";
 import { createPendingOrder, OrderIdempotencyConflictError, listOrders, setOrderStatus } from "../../../db/postgres/repository";
 import { orderIdFor, validateOrder } from "../../../lib/orders";
-import { getLiveProducts } from "../../../lib/live-products";
 import type { Product, ProductCategory } from "../../../lib/products";
 import { listProducts } from "../../../db/postgres/repository";
 import { adminApiGuard } from "../../admin-auth";
+import { isProductionShowcase } from "../../../lib/showcase-mode";
 
 export const runtime = "nodejs";
 const ORDER_STATUSES = ["payment_pending", "preparing", "shipped", "completed", "cancelled"] as const;
@@ -38,6 +38,8 @@ export async function PATCH(request: Request) {
 
 /** Payment is NOT activated. Order prices are resolved on the server. */
 export async function POST(request: Request) {
+  // The first Production release is a pure showcase: no order records and no payments.
+  if (isProductionShowcase()) return NextResponse.json({ error: "Siparişler henüz açılmadı" }, { status: 403 });
   const body = await readJson(request);
   if (body === undefined) return NextResponse.json({ error: "Geçersiz istek gövdesi" }, { status: 400 });
   // Order pricing and inventory must be resolved from the SAME database as admin edits.
