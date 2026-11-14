@@ -30,7 +30,8 @@ export function ProductVisual({ product, sizes, priority = false }: { product: P
 
 /** Disclosure always accompanies illustrative, editorial and range visuals. */
 export function productImageNote(product: Product): string | null {
-  if (!product.image || product.image.kind === "illustration") return "Temsili ambalaj çizimi; gerçek ürün fotoğrafı henüz eklenmedi.";
+  if (!product.image) return "Ürün görseli henüz eklenmedi.";
+  if (product.image.kind === "concept") return ["Yapay zekâyla hazırlanmış temsili ambalaj tasarımı; gerçek ürün fotoğrafı değildir.", product.image.note].filter(Boolean).join(" ");
   if (product.image.kind === "range") return "Görsel ürün serisini gösterir; bu boyun kendi fotoğrafı hazırlanıyor.";
   if (product.image.kind === "editorial") return "Atmosfer görseli; ürün ambalajını göstermez.";
   return null;

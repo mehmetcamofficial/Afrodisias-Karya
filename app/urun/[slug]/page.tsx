@@ -79,7 +79,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <div><dt>Hacim / miktar</dt><dd>{product.size}</dd></div>
                 <div><dt>Ambalaj</dt><dd>{packaging ?? "Ambalaj bilgisi doğrulanıyor"}</dd></div>
                 <div><dt>Lot</dt><dd>{product.lot ?? "Şişelemede atanacak"}</dd></div>
-                <div><dt>Görsel</dt><dd>{product.image?.kind === "variant" ? "Ürün fotoğrafı" : product.image?.kind === "range" ? "Seri fotoğrafı" : product.image?.kind === "editorial" ? "Atmosfer görseli" : "Temsili çizim"}</dd></div>
+                <div><dt>Görsel</dt><dd>{product.image?.kind === "variant" ? "Ürün fotoğrafı" : product.image?.kind === "range" ? "Seri fotoğrafı" : product.image?.kind === "editorial" ? "Atmosfer görseli" : product.image?.kind === "concept" ? "AI ile oluşturulmuş konsept tasarım" : "Görsel yok"}</dd></div>
               </dl>
             </details>
             {storage && (

@@ -17,8 +17,8 @@ describe("Neon catalogue is authoritative", () => {
     expect(p.prices.TRY).toBe(4900);
     expect(p.stock).toBe(0);
     expect(p.category).toBe("tin");
-    // A tin must show its own tin illustration, never a glass bottle photo.
-    expect(p.image).toMatchObject({ src: "/products/illustrations/tin-5l.webp", kind: "illustration" });
+    // A tin must show its own tin concept, never a glass bottle photo.
+    expect(p.image).toMatchObject({ src: "/products/concepts/tin-5l.webp", kind: "concept" });
   });
   it("does not allow an order when the stock has not been approved", () => {
     const inventory = hydrateProducts([row]);

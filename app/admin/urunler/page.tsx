@@ -13,7 +13,7 @@ const imageKind: Record<ProductImage["kind"], { label: string; tone: string }> =
   variant: { label: "Ürün fotoğrafı", tone: "ok" },
   range: { label: "Seri fotoğrafı", tone: "warn" },
   editorial: { label: "Atmosfer görseli", tone: "warn" },
-  illustration: { label: "Temsili çizim", tone: "warn" },
+  concept: { label: "AI konsept tasarım", tone: "warn" },
 };
 
 /**
@@ -47,7 +47,7 @@ export default async function Page() {
                 return (
                   <tr key={product.id}>
                     <td>
-                      <span className={`admin-thumb${product.image?.kind === "illustration" ? " is-illustration" : ""}`}>
+                      <span className={`admin-thumb${product.image?.kind === "concept" ? " is-concept" : ""}`}>
                         {product.image ? <Image src={product.image.src} alt="" width={96} height={96} sizes="96px" /> : null}
                       </span>
                     </td>

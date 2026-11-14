@@ -19,8 +19,8 @@ export const metadata = { alternates: { canonical: "/" } };
 const collections = [
   { href: "/magaza?kategori=glass", kicker: "01 · Cam seri", title: "Erken Hasat", copy: "250, 500 ve 750 ml koyu cam şişeler.", image: { src: "/altin-dal-bottle-collection.webp", alt: "Altın Dal koyu cam şişe serisi mermer kaide üzerinde", w: 1448, h: 1086 } },
   { href: "/magaza?kategori=luxury", kicker: "02 · Özel seri", title: "Hediye & Reserve", copy: "Kutulu Special Reserve ve tadım seti.", image: { src: "/altin-dal-gift-box.webp", alt: "Açık Altın Dal hediye kutusunda şişe ve tadım fincanı", w: 1448, h: 1086 } },
-  { href: "/magaza?kategori=tin", kicker: "03 · Aile boyu", title: "Mat Teneke", copy: "3 ve 5 litrelik mutfak boyları.", image: { src: "/products/illustrations/tin-5l.webp", alt: "5 litrelik mat zeytin yeşili teneke — temsili çizim", w: 1200, h: 1200 }, illustration: true },
-  { href: "/magaza?kategori=pantry", kicker: "04 · Kiler", title: "Ataeymir Lezzetleri", copy: "Zeytin, zeytin ezmesi ve zeytinyağlı sabun.", image: { src: "/products/illustrations/green-olive.webp", alt: "Cam kavanozda kırma yeşil zeytin — temsili çizim", w: 1200, h: 1200 }, illustration: true },
+  { href: "/magaza?kategori=tin", kicker: "03 · Aile boyu", title: "Mat Teneke", copy: "3 ve 5 litrelik mutfak boyları.", image: { src: "/products/concepts/tin-5l.webp", alt: "5 litrelik mat zeytin yeşili teneke — yapay zekâyla oluşturulmuş temsili ambalaj tasarımı", w: 1122, h: 1402 }, illustration: true },
+  { href: "/magaza?kategori=pantry", kicker: "04 · Kiler", title: "Ataeymir Lezzetleri", copy: "Zeytin, zeytin ezmesi ve zeytinyağlı sabun.", image: { src: "/products/concepts/green-olive.webp", alt: "Cam kavanozda kırma yeşil zeytin — yapay zekâyla oluşturulmuş temsili ambalaj tasarımı", w: 1122, h: 1402 }, illustration: true },
 ];
 
 const process = [
@@ -99,7 +99,7 @@ export default function Home() {
               <Link key={item.href} href={item.href} className={`collection-tile${item.illustration ? " is-illustration" : ""}`}>
                 <span className="collection-tile-media">
                   <Image src={item.image.src} alt={item.image.alt} width={item.image.w} height={item.image.h} sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 25vw" />
-                  {item.illustration && <i className="illustration-badge">Temsili çizim</i>}
+                  {item.illustration && <i className="illustration-badge">AI konsept tasarım</i>}
                 </span>
                 <small>{item.kicker}</small>
                 <b>{item.title}</b>
@@ -149,8 +149,8 @@ export default function Home() {
         {/* 6 · Olive Club */}
         <section className="home-club" aria-labelledby="club-title">
           <div className="home-club-media">
-            <Image src="/products/illustrations/olive-club.webp" alt="İki adet 500 ml şişe içeren Olive Club üyelik kutusu — temsili çizim" width={1200} height={1200} sizes="(max-width: 900px) 100vw, 45vw" />
-            <i className="illustration-badge">Temsili çizim</i>
+            <Image src="/products/concepts/olive-club.webp" alt="İki adet 500 ml teneke içeren Olive Club üyelik kutusu tasarımı — yapay zekâyla oluşturulmuş temsili ambalaj tasarımı" width={1122} height={1402} sizes="(max-width: 900px) 100vw, 45vw" />
+            <i className="illustration-badge">AI konsept tasarım</i>
           </div>
           <div className="home-club-copy">
             <p className="eyebrow">Olive Club</p>

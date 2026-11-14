@@ -250,15 +250,11 @@
 .store-group article small, .cart-head p, .cart-row-copy span, .empty-cart p { color: var(--ad-muted-ink); }
 .product-page-image .product-image-note { color: var(--ad-travertine); margin: 0; padding: 12px 16px; }
 
-/* Representative package illustrations: light studio backdrop, never cropped
-   so the embedded "TEMSİLİ ÇİZİM" notice stays visible. */
-.product-img-illustration { object-fit: contain !important; }
-.product-card-media:has(.product-img-illustration),
-.product-visual-frame:has(.product-img-illustration) {
-  /* matches the illustration backdrop: studio wall → travertine plinth */
-  background: linear-gradient(#f4efe5 0%, #ebe3d5 70%, #ddd1bd 77.5%, #cdbfa6 100%);
-}
-.product-card-media .product-img-illustration { transform: none !important; }
+/* Owner-supplied AI packaging concepts (4:5, light studio backdrop). Cards
+   crop gently; the product page shows the whole design. */
+.product-img-concept { object-fit: cover; object-position: center 45%; }
+.product-visual-frame:has(.product-img-concept) { background: #ece6dc; }
+.product-page-image .product-visual-frame .product-img-concept { object-fit: contain; }
 
 /* ---------- Product detail: zoom, details, related, sticky bar ---------- */
 .product-visual-frame .zoom-trigger {
@@ -299,7 +295,6 @@
 .product-related a { display: grid; gap: 6px; }
 .product-related-media { position: relative; display: block; aspect-ratio: 1; overflow: hidden; background: #e2d8c6; margin-bottom: 8px; }
 .product-related-media img { object-fit: cover; }
-.product-related-media:has(.product-img-illustration) { background: linear-gradient(#f4efe5 0%, #ebe3d5 70%, #ddd1bd 77.5%, #cdbfa6 100%); }
 .product-related small { font: 600 var(--ad-text-xs) var(--ad-font-ui); letter-spacing: 0.1em; color: var(--ad-gold-ink); }
 .product-related b { font: 400 1.4rem / 1.1 var(--ad-font-display); }
 
@@ -321,6 +316,6 @@
 }
 .shop-catalog-empty a { display: inline-flex; margin-top: 12px; padding: 12px 18px; background: var(--ad-charcoal); color: var(--ad-ivory); }
 
-/* The legacy dark image panel left a dark strip under light illustrations. */
+/* The legacy dark image panel left a dark strip under light product images. */
 .product-page .product-page-image { background: none; min-height: 0; }
 .product-page .product-page-image .product-image-note { color: var(--ad-muted-ink); padding: 10px 0 0; font: var(--ad-text-xs) / 1.5 var(--ad-font-ui); }

@@ -6,7 +6,7 @@ test("homepage uses each photograph only once and labels drawings", async ({ pag
   const sources = await page.locator("main img").evaluateAll((images) =>
     images.map((image) => decodeURIComponent((image as HTMLImageElement).currentSrc || (image as HTMLImageElement).src)).map((src) => src.match(/\/[\w/-]+\.webp/)?.[0] ?? src),
   );
-  const photos = sources.filter((src) => !src.includes("/products/illustrations/"));
+  const photos = sources.filter((src) => !src.includes("/products/concepts/"));
   expect(photos.length).toBeGreaterThan(0);
   expect(new Set(photos).size, `duplicate photos: ${photos.join(", ")}`).toBe(photos.length);
   for (const section of ["Marka hikâyesi", "Koleksiyonlar", "Zeytinlik", "Üretim", "Olive Club", "Altın Dal Günlüğü"]) {
@@ -41,7 +41,7 @@ test("product page zoom dialog is keyboard accessible", async ({ page }) => {
 test("product page shows packaging, unverified packaging and distinct related items", async ({ page }) => {
   await page.goto("/urun/tin-5l", { waitUntil: "networkidle" });
   await expect(page.locator(".product-details")).toContainText("Mat teneke");
-  await expect(page.locator(".product-details")).toContainText("Temsili çizim");
+  await expect(page.locator(".product-details")).toContainText("AI ile oluşturulmuş konsept tasarım");
   const related = await page.locator(".product-related img").evaluateAll((images) => images.map((image) => decodeURIComponent((image as HTMLImageElement).src).match(/\/[\w/-]+\.webp/)?.[0]));
   expect(related.every(Boolean)).toBe(true);
   expect(new Set(related).size).toBe(related.length);
@@ -62,4 +62,23 @@ test("journal lists published posts only; drafts are 404 and absent from the sit
   await page.goto("/gunluk/soguk-sikim-polifenol-degeri", { waitUntil: "networkidle" });
   await expect(page.locator(".article-page header")).toContainText("dk okuma");
   await expect(page.locator(".article-related .journal-card").first()).toBeVisible();
+});
+
+const CONCEPT_IDS = ["aromatic-set", "tin-3l", "tin-5l", "green-olive", "black-olive", "olive-paste", "soap-box", "olive-club"];
+
+test("all eight owner-supplied concept images actually load in the browser", async ({ page, health }) => {
+  void health; // also fails on any 4xx/5xx image request
+  await page.goto("/magaza", { waitUntil: "networkidle" });
+  for (const id of CONCEPT_IDS) {
+    const image = page.locator(`.product-card img[src*="concepts%2F${id}.webp"], .product-card img[src*="concepts/${id}.webp"]`).first();
+    await image.scrollIntoViewIfNeeded();
+    await expect.poll(() => image.evaluate((img) => (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth), { message: id }).toBeGreaterThan(0);
+  }
+  for (const id of CONCEPT_IDS) {
+    await page.goto(`/urun/${id}`, { waitUntil: "networkidle" });
+    const image = page.locator(".product-page-image img").first();
+    await expect.poll(() => image.evaluate((img) => (img as HTMLImageElement).naturalWidth), { message: id }).toBeGreaterThan(0);
+    await expect(page.locator(".product-image-note")).toContainText("gerçek ürün fotoğrafı değildir");
+  }
+  await expect(page.locator(".product-image-note")).toContainText("onaylanmadı"); // last id = olive-club mismatch note
 });

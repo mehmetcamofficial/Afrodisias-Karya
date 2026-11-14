@@ -2,13 +2,13 @@ import { clearCart, expect, test } from "./fixtures";
 
 test.beforeEach(async ({ page }) => { await clearCart(page); });
 
-test("5 L tin shows its own tin illustration, never a bottle photo; glass sizes disclose the range photo", async ({ page }) => {
+test("5 L tin shows its own tin concept, never a bottle photo; glass sizes disclose the range photo", async ({ page }) => {
   await page.goto("/urun/tin-5l");
   const image = page.locator(".product-page-image img");
   await expect(image).toHaveCount(1);
-  await expect(image).toHaveAttribute("src", /tin-5l\.webp/);
-  await expect(image).toHaveAttribute("alt", /5 litrelik .*temsili çizim/);
-  await expect(page.locator(".product-image-note")).toContainText("Temsili ambalaj çizimi");
+  await expect(image).toHaveAttribute("src", /concepts%2Ftin-5l\.webp|concepts\/tin-5l\.webp/);
+  await expect(image).toHaveAttribute("alt", /5 litrelik .*yapay zekâyla oluşturulmuş temsili ambalaj tasarımı/);
+  await expect(page.locator(".product-image-note")).toContainText("Yapay zekâyla hazırlanmış temsili ambalaj tasarımı");
   await page.goto("/urun/glass-500");
   await expect(page.locator(".product-image-note")).toContainText("serisini");
 });
@@ -17,7 +17,7 @@ test("unverified packaging images are clearly disclosed on product cards", async
   await page.goto("/magaza");
   const tin = page.locator(".product-card", { hasText: "5 Litre Mat Teneke" });
   await expect(tin.locator("img")).toHaveAttribute("src", /tin-5l\.webp/);
-  await expect(tin.locator(".product-card-image-disclosure")).toContainText("Temsili ambalaj");
+  await expect(tin.locator(".product-card-image-disclosure")).toContainText("temsili ambalaj tasarımı");
   const tin3 = page.locator(".product-card", { hasText: "3 Litre Mat Teneke" });
   await expect(tin3.locator("img")).toHaveAttribute("src", /tin-3l\.webp/);
   const glass = page.locator(".product-card", { hasText: "500 ml Cam Şişe" });

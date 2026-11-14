@@ -101,8 +101,6 @@
   margin-bottom: 10px;
 }
 .collection-tile-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.9s var(--ad-ease); }
-.collection-tile.is-illustration .collection-tile-media { background: linear-gradient(#f4efe5 0%, #ebe3d5 70%, #ddd1bd 77.5%, #cdbfa6 100%); }
-.collection-tile.is-illustration .collection-tile-media img { object-fit: contain; }
 .collection-tile:hover .collection-tile-media img { transform: scale(1.03); }
 .collection-tile small { font: 600 var(--ad-text-xs) var(--ad-font-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--ad-gold-ink); }
 .collection-tile b { font: 400 clamp(1.35rem, 1.1rem + 1vw, 1.9rem) / 1.05 var(--ad-font-display); }
