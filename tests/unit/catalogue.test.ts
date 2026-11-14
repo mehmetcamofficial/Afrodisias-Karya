@@ -19,6 +19,22 @@ describe("product catalogue integrity", () => {
     }
   });
 
+  it("each illustrated product has its own distinct illustration file", () => {
+    const illustrated = products.filter((p) => p.image?.kind === "illustration");
+    expect(illustrated.map((p) => p.id).sort()).toEqual(
+      ["aromatic-set", "black-olive", "green-olive", "olive-club", "olive-paste", "soap-box", "tin-3l", "tin-5l"],
+    );
+    for (const product of illustrated) {
+      expect(product.image!.src, product.id).toBe(`/products/illustrations/${product.id}.webp`);
+      expect(product.image!.alt, product.id).toMatch(/temsili çizim$/);
+    }
+    expect(new Set(illustrated.map((p) => p.image!.src)).size).toBe(illustrated.length);
+  });
+
+  it("every product has an image (photo, range photo, editorial or disclosed illustration)", () => {
+    for (const product of products) expect(product.image, product.id).toBeDefined();
+  });
+
   it("only glass products use the glass range photo", () => {
     for (const product of products.filter((p) => p.image?.src === "/altin-dal-bottle-collection.webp")) expect(product.category).toBe("glass");
   });

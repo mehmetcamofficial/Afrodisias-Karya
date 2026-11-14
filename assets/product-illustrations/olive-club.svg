@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f4efe5"/><stop offset=".62" stop-color="#e9e0d1"/><stop offset="1" stop-color="#d9ccb7"/>
+  </linearGradient>
+  <radialGradient id="light" cx=".28" cy=".18" r=".75">
+    <stop offset="0" stop-color="#fffaf0" stop-opacity=".85"/><stop offset="1" stop-color="#fffaf0" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="plinth" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#e2d7c4"/><stop offset=".08" stop-color="#d6c9b2"/><stop offset="1" stop-color="#c3b498"/>
+  </linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#0f1a12"/><stop offset=".18" stop-color="#2b3d2a"/><stop offset=".32" stop-color="#162418"/>
+    <stop offset=".78" stop-color="#0c150e"/><stop offset="1" stop-color="#1d2b1d"/>
+  </linearGradient>
+  <linearGradient id="tin" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#26331f"/><stop offset=".22" stop-color="#3f5034"/><stop offset=".42" stop-color="#33432b"/>
+    <stop offset=".85" stop-color="#1f2a19"/><stop offset="1" stop-color="#2b3824"/>
+  </linearGradient>
+  <linearGradient id="tinTop" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4c5e40"/><stop offset="1" stop-color="#2c3a25"/>
+  </linearGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#d9c08a"/><stop offset=".45" stop-color="#b49a60"/><stop offset="1" stop-color="#8a7240"/>
+  </linearGradient>
+  <linearGradient id="paper" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#ebe3d3"/><stop offset=".3" stop-color="#f8f4ea"/><stop offset="1" stop-color="#e2d8c5"/>
+  </linearGradient>
+  <linearGradient id="jarGlass" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#ffffff" stop-opacity=".35"/><stop offset=".15" stop-color="#ffffff" stop-opacity=".08"/>
+    <stop offset=".85" stop-color="#ffffff" stop-opacity=".05"/><stop offset="1" stop-color="#ffffff" stop-opacity=".3"/>
+  </linearGradient>
+  <linearGradient id="kraft" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#e8dcc4"/><stop offset="1" stop-color="#cdbb98"/>
+  </linearGradient>
+  <linearGradient id="clubBox" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#23301f"/><stop offset=".5" stop-color="#34452d"/><stop offset="1" stop-color="#1f2a1b"/>
+  </linearGradient>
+  <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="18"/></filter>
+  <filter id="softer" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<rect width="1200" height="1200" fill="url(#bg)"/>
+<rect width="1200" height="1200" fill="url(#light)"/>
+<rect y="930" width="1200" height="270" fill="url(#plinth)"/>
+<rect y="930" width="1200" height="3" fill="#f3ead9" opacity=".8"/>
+<path d="M0 970 C 300 955, 700 1000, 1200 968" stroke="#b9a988" stroke-opacity=".28" stroke-width="2" fill="none"/><path d="M0 1022 C 300 1007, 700 1052, 1200 1020" stroke="#b9a988" stroke-opacity=".28" stroke-width="2" fill="none"/><path d="M0 1074 C 300 1059, 700 1104, 1200 1072" stroke="#b9a988" stroke-opacity=".28" stroke-width="2" fill="none"/><path d="M0 1126 C 300 1111, 700 1156, 1200 1124" stroke="#b9a988" stroke-opacity=".28" stroke-width="2" fill="none"/><path d="M0 1178 C 300 1163, 700 1208, 1200 1176" stroke="#b9a988" stroke-opacity=".28" stroke-width="2" fill="none"/><path d="M0 1230 C 300 1215, 700 1260, 1200 1228" stroke="#b9a988" stroke-opacity=".28" stroke-width="2" fill="none"/>
+<ellipse cx="620" cy="936" rx="460.0" ry="40.0" fill="#3a3122" opacity="0.5" filter="url(#soft)"/><path d="M250 670 L360 609.5 L1000 609.5 L890 670 Z" fill="#141c11"/><ellipse cx="480" cy="936" rx="120.0" ry="23.0" fill="#3a3122" opacity="0.42" filter="url(#soft)"/><path d="M400.0 716 Q400.0 730 414.0 730 L546.0 730 Q560.0 730 560.0 716 L560.0 420.2 C560.0 393.0 502.4 372.8 502.4 335.2 L502.4 288.2 L457.6 288.2 L457.6 335.2 C457.6 372.8 400.0 393.0 400.0 420.2 Z" fill="url(#glass)"/><rect x="422.4" y="417.0" width="9.6" height="235.0" rx="4.8" fill="#fff" opacity=".13"/><rect x="454.6" y="260" width="50.800000000000004" height="39.95" rx="6" fill="#1a1a17"/><rect x="454.6" y="292.9" width="50.800000000000004" height="5.64" fill="#b49a60"/><rect x="414.4" y="570.2" width="131.2" height="103.4" rx="4" fill="url(#paper)"/><rect x="422.4" y="578.2" width="115.19999999999999" height="87.4" rx="2" fill="none" stroke="#b49a60" stroke-width="2"/><text x="480" y="615.97" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="600" letter-spacing="2.5" fill="#5c5442" >500 ml</text><text x="480" y="637.4300000000001" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="2.5" fill="#5c5442" >ALTIN DAL</text><ellipse cx="700" cy="936" rx="120.0" ry="23.0" fill="#3a3122" opacity="0.42" filter="url(#soft)"/><path d="M620.0 716 Q620.0 730 634.0 730 L766.0 730 Q780.0 730 780.0 716 L780.0 420.2 C780.0 393.0 722.4 372.8 722.4 335.2 L722.4 288.2 L677.6 288.2 L677.6 335.2 C677.6 372.8 620.0 393.0 620.0 420.2 Z" fill="url(#glass)"/><rect x="642.4" y="417.0" width="9.6" height="235.0" rx="4.8" fill="#fff" opacity=".13"/><rect x="674.6" y="260" width="50.800000000000004" height="39.95" rx="6" fill="#1a1a17"/><rect x="674.6" y="292.9" width="50.800000000000004" height="5.64" fill="#b49a60"/><rect x="634.4" y="570.2" width="131.2" height="103.4" rx="4" fill="url(#paper)"/><rect x="642.4" y="578.2" width="115.19999999999999" height="87.4" rx="2" fill="none" stroke="#b49a60" stroke-width="2"/><text x="700" y="615.97" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="600" letter-spacing="2.5" fill="#5c5442" >500 ml</text><text x="700" y="637.4300000000001" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="2.5" fill="#5c5442" >ALTIN DAL</text><path d="M890 670 L1000 609.5 L1000 869.5 L890 930 Z" fill="#17200f"/><rect x="250" y="670" width="640" height="260" fill="url(#clubBox)"/><rect x="250" y="696" width="640" height="6" fill="url(#gold)"/><text x="570.0" y="810" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="66" font-weight="400" letter-spacing="10" fill="#e3cf9f" >OLIVE CLUB</text><text x="570.0" y="860" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="600" letter-spacing="6" fill="#cbbd9a" >ALTIN DAL · APHRODISIAS ESTATE</text><g transform="rotate(-8 990 1000)"><rect x="890" y="940" width="200" height="120" rx="8" fill="#f6f2e9"/><rect x="902" y="952" width="176" height="96" rx="4" fill="none" stroke="#b49a60" stroke-width="2"/><text x="990" y="992" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="5" fill="#7a6331" >ÜYELİK</text><text x="990" y="1028" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="400" letter-spacing="0" fill="#1f2a1e" >2 × 500 ml</text></g><text x="600" y="150" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="64" font-weight="400" letter-spacing="0" fill="#1f2a1e" >Olive Club</text><text x="600" y="198" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="5" fill="#6b5c3c" >ÜYELİK GÖNDERİMİ · 2 × 500 ML</text>
+<text x="600" y="1138" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="22" letter-spacing="5" fill="#5b5040" opacity=".85">TEMSİLİ ÇİZİM · GERÇEK ÜRÜN FOTOĞRAFI DEĞİLDİR</text>
+</svg>

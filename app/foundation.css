@@ -249,3 +249,13 @@
 .journal-card small, .product-page > article > span, .product-page dt,
 .store-group article small, .cart-head p, .cart-row-copy span, .empty-cart p { color: var(--ad-muted-ink); }
 .product-page-image .product-image-note { color: var(--ad-travertine); margin: 0; padding: 12px 16px; }
+
+/* Representative package illustrations: light studio backdrop, never cropped
+   so the embedded "TEMSİLİ ÇİZİM" notice stays visible. */
+.product-img-illustration { object-fit: contain !important; }
+.product-card-media:has(.product-img-illustration),
+.product-visual-frame:has(.product-img-illustration) {
+  /* matches the illustration backdrop: studio wall → travertine plinth */
+  background: linear-gradient(#f4efe5 0%, #ebe3d5 70%, #ddd1bd 77.5%, #cdbfa6 100%);
+}
+.product-card-media .product-img-illustration { transform: none !important; }

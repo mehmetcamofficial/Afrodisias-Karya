@@ -25,12 +25,12 @@ export function ProductVisual({ product, sizes, priority = false }: { product: P
       </div>
     );
   }
-  return <Image src={product.image.src} alt={product.image.alt} fill sizes={sizes} priority={priority} />;
+  return <Image className={`product-img product-img-${product.image.kind}`} src={product.image.src} alt={product.image.alt} fill sizes={sizes} priority={priority} />;
 }
 
-/** Disclosure always accompanies editorial and range visuals. */
+/** Disclosure always accompanies illustrative, editorial and range visuals. */
 export function productImageNote(product: Product): string | null {
-  if (!product.image) return "Temsili ambalaj çizimi; gerçek ürün fotoğrafı henüz eklenmedi.";
+  if (!product.image || product.image.kind === "illustration") return "Temsili ambalaj çizimi; gerçek ürün fotoğrafı henüz eklenmedi.";
   if (product.image.kind === "range") return "Görsel ürün serisini gösterir; bu boyun kendi fotoğrafı hazırlanıyor.";
   if (product.image.kind === "editorial") return "Atmosfer görseli; ürün ambalajını göstermez.";
   return null;
