@@ -12,6 +12,7 @@ test("/koleksiyon on Preview", async ({ page }, testInfo) => {
   await page.goto("/koleksiyon", { waitUntil: "load" });
   const r = await report(page);
   testInfo.annotations.push({ type: "stylesheets", description: JSON.stringify(r) });
+  console.log(`[${testInfo.project.name}] /koleksiyon ${JSON.stringify(r)}`);
   await page.locator("#seri-glass").scrollIntoViewIfNeeded();
   await testInfo.attach("koleksiyon first series", { body: await page.screenshot(), contentType: "image/png" });
   expect(r.tails).toEqual(["1", "1", "1"]);
@@ -22,6 +23,7 @@ test("/deneyim on Preview", async ({ page }, testInfo) => {
   await page.goto("/deneyim", { waitUntil: "load" });
   const r = await report(page);
   testInfo.annotations.push({ type: "stylesheets", description: JSON.stringify(r) });
+  console.log(`[${testInfo.project.name}] /deneyim ${JSON.stringify(r)}`);
   await page.locator("#kesfet").scrollIntoViewIfNeeded();
   await testInfo.attach("deneyim explorer", { body: await page.screenshot(), contentType: "image/png" });
   expect(r.tails).toEqual(["1", "1", "1"]);

@@ -55,7 +55,9 @@ jobs:
           for route in /koleksiyon /deneyim; do
             html=$(curl -fsS "${H[@]}" "${PREVIEW_URL}${route}")
             echo "== ${route}"
-            for href in $(printf '%s' "$html" | grep -o 'href="/_next/static/[^"]*\.css[^"]*"' | cut -d'"' -f2 | sort -u); do
+            hrefs=$(printf '%s' "$html" | grep -oE '/_next/static/[^"'"'"' \\]*\.css[^"'"'"' \\]*' | sort -u || true)
+            [[ -z "$hrefs" ]] && echo "no stylesheet hrefs found in HTML (first 400 chars follow)" && printf '%s\n' "${html:0:400}"
+            for href in $hrefs; do
               css=$(curl -fsS "${H[@]}" "${PREVIEW_URL}${href}")
               printf '%s bytes=%s series-grid=%s explorer-layout=%s tail-globals=%s tail-foundation=%s\n' "$href" "${#css}" \
                 "$(grep -o 'collection-series-grid' <<<"$css" | wc -l)" "$(grep -o 'experience-explorer-layout' <<<"$css" | wc -l)" \
