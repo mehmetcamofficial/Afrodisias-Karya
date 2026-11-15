@@ -29,6 +29,7 @@ export default async function ExperiencePage() {
         <nav className="experience-hero-links">
           <a href="#kesfet">Keşfe başla <ArrowRight size={16} aria-hidden="true"/></a>
           <Link href="/koleksiyon">Koleksiyona bak</Link>
+          <Link className="experience-language" href="/en/experience" hrefLang="en" lang="en">English</Link>
         </nav>
       </article>
     </section>
