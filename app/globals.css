@@ -364,3 +364,6 @@
 @supports (animation-timeline:view()){@media(prefers-reduced-motion:no-preference){.collection-series-card{animation:catalog-settle linear both;animation-timeline:view();animation-range:entry 0% entry 45%}}}
 @keyframes catalog-settle{from{transform:translateY(22px)}to{transform:none}}
 @media(prefers-reduced-motion:reduce){.collection-series-media img,.collection-series-card{transition:none;transform:none!important}}
+
+/* Parse sentinel: if this is not applied, the browser dropped the end of this stylesheet (see tests/e2e/visual-smoke.spec.ts). */
+:root { --css-tail-globals: 1; }

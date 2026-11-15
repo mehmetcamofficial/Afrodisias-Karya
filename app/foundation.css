@@ -319,3 +319,6 @@
 /* The legacy dark image panel left a dark strip under light product images. */
 .product-page .product-page-image { background: none; min-height: 0; }
 .product-page .product-page-image .product-image-note { color: var(--ad-muted-ink); padding: 10px 0 0; font: var(--ad-text-xs) / 1.5 var(--ad-font-ui); }
+
+/* Parse sentinel: if this is not applied, the browser dropped the end of this stylesheet (see tests/e2e/visual-smoke.spec.ts). */
+:root { --css-tail-foundation: 1; }
