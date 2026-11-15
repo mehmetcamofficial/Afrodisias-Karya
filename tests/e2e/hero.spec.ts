@@ -23,12 +23,15 @@ test("hero text fits the viewport and CTAs reach the right pages", async ({ page
   }
 });
 
-test("hero never requests missing video files", async ({ page }) => {
-  const videoRequests: string[] = [];
-  page.on("request", (request) => { if (/\.(mp4|webm)(\?|$)/.test(request.url())) videoRequests.push(request.url()); });
+test("hero loads only the single journey film, in one format, and it exists", async ({ page }) => {
+  const videoResponses: Array<{ url: string; status: number }> = [];
+  page.on("response", (response) => { if (/\.(mp4|webm)(\?|$)/.test(response.url())) videoResponses.push({ url: response.url(), status: response.status() }); });
   await page.goto("/", { waitUntil: "networkidle" });
   await page.mouse.wheel(0, 4000);
   await page.waitForTimeout(500);
-  expect(videoRequests).toEqual([]);
-  await expect(page.locator(".landing-hero img")).toBeVisible();
+  const files = [...new Set(videoResponses.map((r) => r.url.split("/").pop()!.split("?")[0]))];
+  expect(files.length).toBe(1);
+  expect(files[0]).toMatch(/^altin-dal-journey\.(webm|mp4)$/);
+  expect(videoResponses.every((r) => r.status === 200 || r.status === 206)).toBe(true);
+  await expect(page.locator(".hero-film-poster")).toBeVisible();
 });
