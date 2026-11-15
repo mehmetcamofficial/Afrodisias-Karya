@@ -64,8 +64,8 @@ type Mode = "static" | "scroll";
 /**
  * /koleksiyon opening: the bottle, the tin and the gift box in one lit
  * travertine set. Scrolling moves a camera through the set (sticky stage);
- * every product is a button that brings the camera to it. Reduced motion and
- * no-JS get the same set without scroll-driven movement.
+ * every product is a button that brings the camera to it. The runway itself is
+ * CSS (no layout change at hydration); reduced motion gets a static set.
  */
 export function CollectionScene({ products, children }: { products: SceneProduct[]; children: React.ReactNode }) {
   const trackRef = useRef<HTMLDivElement>(null);

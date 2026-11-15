@@ -43,13 +43,18 @@ export default async function CollectionPage() {
         <Link href="/magaza#urunler">Yayındaki ürünler</Link>
       </nav>
     </CollectionScene>
+    <section className="collection-threshold" id="koleksiyonlar" aria-labelledby="catalog-title">
+      <p>KATALOG · SERİLER</p>
+      <h2 id="catalog-title">Her ifade, <em>kendi serisinde.</em></h2>
+      <p>Cam şişelerden aile boylarına, Ataeymir lezzetlerinden Olive Club’a. Satış durumu her üründe ayrı belirtilir.</p>
+      <nav className="collection-category-nav" aria-label="Koleksiyon serileri">
+        {categories.map((group) => <a href={`#seri-${group.id}`} key={group.id}>{group.title}<ArrowRight size={14} aria-hidden="true"/></a>)}
+      </nav>
+    </section>
     {curated.length > 0 && <section className="cms-collections" aria-labelledby="curated-title">
       <header><p className="eyebrow">KÜRATÖRLÜ KOLEKSİYONLAR</p><h2 id="curated-title">Seçkiler</h2></header>
       <CollectionCards collections={curated} locale="tr"/>
     </section>}
-    <nav className="collection-category-nav" id="koleksiyonlar" aria-label="Koleksiyon serileri">
-      {categories.map((group) => <a href={`#seri-${group.id}`} key={group.id}>{group.title}<ArrowRight size={14} aria-hidden="true"/></a>)}
-    </nav>
     {categories.map((group) => {
       const items = catalogue.filter((item) => item.category === group.id);
       return <section className="collection-series" id={`seri-${group.id}`} key={group.id} aria-labelledby={`heading-${group.id}`}>

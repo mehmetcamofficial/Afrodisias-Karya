@@ -6,10 +6,10 @@
   --ink: #f3ede2; --gold: #d9b86f; --night: #070d09;
   position: relative; background: var(--night); color: var(--ink);
 }
-.cscene-track { position: relative; }
-.cscene.is-scroll .cscene-track { height: 420svh; }
-.cscene-stage { position: relative; height: 100svh; min-height: 560px; overflow: hidden; background: var(--night); }
-.cscene.is-scroll .cscene-stage { position: sticky; top: 0; }
+/* The scroll runway is CSS, not JS: it exists from the first paint, so hydration never moves anchors
+   (#koleksiyonlar, #seri-*) and a deep link lands where it points. Reduced motion gets no runway. */
+.cscene-track { position: relative; height: 420svh; }
+.cscene-stage { position: sticky; top: 0; height: 100svh; min-height: 560px; overflow: hidden; background: var(--night); }
 .cscene-unit { position: absolute; width: calc(1000 * var(--u)); height: 0; visibility: hidden; }
 
 /* ---------- the set ---------- */
@@ -110,7 +110,7 @@
 .cscene-intro nav a { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 11px 16px; border: 1px solid #cfae65; color: var(--ink); }
 .cscene-intro nav a:first-child { background: #cfae65; color: #11170f; }
 .cscene-hint { display: flex; align-items: center; gap: 8px; margin: 26px 0 0; font: 600 10px/1.4 Arial, sans-serif; letter-spacing: 0.2em; text-transform: uppercase; color: rgb(243 237 226 / 0.6); }
-.cscene.is-static .cscene-hint { display: none; }
+@media (prefers-reduced-motion: reduce) { .cscene-hint { display: none; } }
 
 .cscene-detail { animation: cscene-in 0.7s ease both; }
 .cscene-detail h2 { margin: 14px 0 10px; font: 400 clamp(2.6rem, 4.4vw, 4.4rem)/0.95 "Instrument Serif", Georgia, serif; color: #fff; }
@@ -137,7 +137,7 @@
 /* ---------- narrow screens: set above, copy below ---------- */
 @media (max-width: 700px) {
   .cscene { --u: min(calc(100vw / 600), calc(100svh / 900)); }
-  .cscene.is-scroll .cscene-track { height: 380svh; }
+  .cscene-track { height: 380svh; }
   .cscene-tin     { --x: -150; --top: 180; --z: -60;  --w: 260; --h: 150; --d: 200; --pw: 220; --pz: 0.5; }
   .cscene-bottle  { --x: 40;   --top: 110; --z: 60;   --w: 170; --h: 220; --d: 160; --pw: 115; --pz: 0.45; }
   .cscene-giftbox { --x: 190;  --top: 230; --z: -300; --w: 420; --h: 100; --d: 320; --pw: 380; --pz: 0.55; }
@@ -160,6 +160,8 @@
   .cscene-nav li:not(.is-active) button span { font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .cscene-track { height: auto; }
+  .cscene-stage { position: relative; }
   .cscene-product, .cscene-intro, .cscene-nav button { transition: none; }
   .cscene-detail { animation: none; }
 }
