@@ -62,6 +62,8 @@ jobs:
       - name: Computed styles on the real Preview (Chromium, WebKit, Firefox)
         if: steps.gate.outputs.ready == 'true'
         run: pnpm exec playwright test -c playwright.preview.config.ts
+        env:
+          HOME: /root # Firefox refuses to start when $HOME belongs to another user (container default)
       - uses: actions/upload-artifact@v4
         if: always() && steps.gate.outputs.ready == 'true'
         with:

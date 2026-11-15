@@ -99,6 +99,8 @@ jobs:
       - name: Keep the built CSS chunks
         run: mkdir -p .prod-css && cp .next/static/chunks/*.css .prod-css/ && ls -la .prod-css && rm -rf .next
       - run: pnpm exec playwright test -c playwright.cross.config.ts
+        env:
+          HOME: /root # Firefox refuses to start when $HOME belongs to another user (container default)
       - uses: actions/upload-artifact@v4
         if: always()
         with:
