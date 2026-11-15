@@ -6,6 +6,7 @@ import { media } from "../lib/media";
 import { groveZones } from "../lib/site-content";
 import { BrandFooter, BrandHeader } from "./components/site-shell";
 import { CinematicMedia } from "./components/cinematic-media";
+import { ImmersiveFilmJourney } from "./components/immersive-film-journey";
 import { JournalCard, resolveJournalCover } from "./components/journal-card";
 import { Reveal } from "./components/reveal";
 import { jsonLdScript, organizationJsonLd } from "../lib/structured-data";
@@ -64,6 +65,9 @@ export default function Home() {
           </article>
           <ArrowDown className="landing-scroll" size={18} aria-hidden="true" />
         </section>
+
+        {/* Immersive film journey: four independent, viewport-aware chapters */}
+        <ImmersiveFilmJourney />
 
         {/* 2 · Brand story */}
         <section className="home-story" aria-labelledby="story-title">
