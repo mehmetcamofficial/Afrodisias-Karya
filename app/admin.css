@@ -134,3 +134,8 @@
 .media-tile figcaption { display: grid; gap: 2px; padding: 8px 10px; font-size: 0.8rem; }
 .media-tile .is-bad { color: #a32222; }
 .audit-detail { max-width: 520px; max-height: 240px; overflow: auto; font-size: 0.75rem; white-space: pre-wrap; }
+.showcase-order { display: grid; gap: 6px; padding-left: 0; list-style: none; }
+.showcase-order li { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: #fff; border: 1px solid rgb(36 37 33 / 0.12); border-radius: 8px; }
+.showcase-order li span { flex: 1; }
+.showcase-order button { min-width: 36px; min-height: 36px; border: 1px solid rgb(36 37 33 / 0.2); background: #fff; border-radius: 6px; cursor: pointer; }
+.showcase-media-row { display: grid; gap: 6px; padding: 10px; border: 1px dashed rgb(36 37 33 / 0.25); border-radius: 8px; margin-bottom: 8px; }

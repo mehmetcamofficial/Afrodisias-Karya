@@ -80,3 +80,22 @@ Production remains fail-closed for all admin APIs.
 - Gövde kısıtlı Markdown'dır (`##`, `###`, `-`, `>`, `**kalın**`, `*italik*`, `[bağlantı](https://…)`) ve React metin düğümü olarak işlenir; ham HTML asla basılmaz. Bağlantılar yalnızca `/` veya `http(s)`.
 - Dış kaynaklı kapak/galeri görsellerinde kaynak ve lisans zorunlu. Dosya yükleme depolaması yapılandırılmadığı için medya URL ile eklenir (**BLOCKED:** yükleme için depolama erişimi gerekir).
 - Production showcase CMS içeriğini okumaz; `/gunluk` sayfaları 5 dakikada bir yenilenir.
+
+## Koleksiyon ve Deneyim CMS (Faz 8) — migration 0005
+
+`db/postgres/0005_collections_experience.sql` (eklemeli, idempotent; geri dönüş: `0005_collections_experience.down.sql`):
+`collections` + `collection_translations` (TR/EN) + `collection_products` (sıralı), `experience_sections` + `experience_translations`.
+`publication_approvals.entity_type` genişletildi (`collection`, `experience_section`).
+
+| Branch | Durum |
+|---|---|
+| `cms-0003-rehearsal` (br-purple-cherry-baqt9poa) | 0005 prova edildi + kabul senaryosu (aşağıda) çalıştırıldı; `acc-*` test kayıtlarını içerir |
+| `preview-backup-pre-0005` (br-polished-flower-bagpaeer) | Preview'in 0005 öncesi yedeği (compute'suz) |
+| preview (br-wispy-cherry-bafzo82p) | 0005 uygulandı; test verisi YAZILMADI (0 koleksiyon, 0 bölüm, 0 aktif ürün, 0 sipariş) |
+| production (br-wandering-block-baq7c11i) | **dokunulmadı** |
+
+**İş akışı:** taslak → yayında (sahip + `YAYINLA:<id>` + Preview yayın kapısı) → yayından kaldır → taslak; taslak → arşiv → geri yükle. Yayındaki koleksiyonu düzenlemek veya ürün sırasını değiştirmek onu taslağa alır. Sertifika/ödül/organik/coğrafi işaret iddiası veya `[KAYNAK GEREKLİ]` içeren metin 422 ile yayımlanamaz.
+
+**Genel sayfalar:** `/koleksiyon` (yayımlanmış CMS koleksiyonları sahibin seri görünümüne ek olarak), `/koleksiyon/[slugTr]`, `/en/collection`, `/en/collection/[slugEn]`, `/deneyim` (CMS bölümleri gezginin altında), `/en/experience`. Yalnızca İngilizce başlığı girilmiş kayıtlar EN sayfalarda görünür (makine çevirisi yok). Ürünler: canlı (yayında) ise fiyat (Production showcase'te asla), hacim, stok durumu ve detay bağlantısı; değilse "Henüz satışa açılmadı" ve bağlantı yok. Video: poster zorunlu, `preload="none"`, otomatik oynatma yok, kaynak görünüm alanına yaklaşınca eklenir, isteğe bağlı altyazı.
+
+**Kabul senaryosu (Neon izole dal):** `pnpm exec tsx scripts/acceptance-sql.ts` uygulamanın gerçek repository fonksiyonlarının ürettiği SQL'i (parametreler kaçışlı literal) çıkarır. `cms-0003-rehearsal` dalında tek transaction'da 15 yazma: ürün oluştur→güncelle→arşivle→geri getir; blog oluştur→düzenle→incelemeye gönder→onayla→yayımla; koleksiyon oluştur→3 ürün bağla→yeniden sırala→yayımla; deneyim bölümü (video+poster, görsel, ilgili koleksiyon) oluştur→yayımla. Ayrı bir çağrıda yeniden okundu: tüm durumlar/sürümler/sıralama/çeviriler kalıcı, 15 audit ve 5 onay kaydı.

@@ -36,8 +36,11 @@ test("experience offers interactive chapters and navigable content without booki
   const explorer = page.getByRole("region", { name: "Kendi yolculuğunu seç." });
   // Region is optional; inspect buttons directly for stable accessibility.
   void explorer;
-  await page.getByRole("button", { name: /Zeytinlik ve hasat/ }).click();
-  await expect(page.getByRole("heading", { name: "Toprağın ritmini izle" })).toBeVisible();
+  // The page is now dynamic (CMS sections); retry the first click until React has hydrated.
+  await expect(async () => {
+    await page.getByRole("button", { name: /Zeytinlik ve hasat/ }).click();
+    await expect(page.getByRole("heading", { name: "Toprağın ritmini izle" })).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 30_000 });
   await expect(page.getByRole("link", { name: /Hasat sürecini incele/ })).toHaveAttribute("href", "/hasat");
   await page.getByRole("button", { name: /Tadım ve Ege sofrası/ }).click();
   await expect(page.getByRole("heading", { name: "Sofraya yaklaş" })).toBeVisible();

@@ -6,11 +6,14 @@ test("admin APIs reject anonymous requests", async ({ playwright, baseURL }) => 
   expect((await anonymous.get("/api/orders")).status()).toBe(401);
   expect((await anonymous.patch("/api/orders", { data: { id: "x", status: "cancelled" } })).status()).toBe(401);
   expect((await anonymous.post("/api/products", { data: { name: "x", priceKurus: 100 } })).status()).toBe(401);
-  for (const path of ["/api/admin/cms/blog", "/api/admin/cms/users", "/api/admin/cms/audit", "/api/admin/ai/draft"]) {
+  for (const path of ["/api/admin/cms/blog", "/api/admin/cms/users", "/api/admin/cms/audit", "/api/admin/ai/draft", "/api/admin/cms/collections", "/api/admin/cms/experience"]) {
     expect((await anonymous.get(path)).status(), path).toBe(401);
   }
   expect((await anonymous.post("/api/admin/cms/blog/import", { data: { slug: "zeytinyagli-kereviz" } })).status()).toBe(401);
   expect((await anonymous.post("/api/admin/cms/users", { data: { email: "a@b.co", role: "editor" } })).status()).toBe(401);
+  expect((await anonymous.post("/api/admin/cms/collections", { data: { slugTr: "x-y", tr: { title: "XSS <script>" } } })).status()).toBe(401);
+  expect((await anonymous.put("/api/admin/cms/collections/x/products", { data: { expectedVersion: 1, productIds: [] } })).status()).toBe(401);
+  expect((await anonymous.post("/api/admin/cms/experience/x/actions", { data: { action: "publish", expectedVersion: 1, confirmation: "YAYINLA:x" } })).status()).toBe(401);
   await anonymous.dispose();
 });
 

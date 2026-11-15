@@ -4,12 +4,14 @@ import { getLiveProducts } from "../../lib/live-products";
 import { products as editorialProducts, categoryLabels, type Product } from "../../lib/products";
 import { BrandShell } from "../components/site-shell";
 import { ProductVisual, productImageNote } from "../components/product-visual";
+import { CollectionCards } from "../components/showcase";
+import { publishedCollections } from "../../lib/showcase-db";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Koleksiyon — Altın Dal",
   description: "Cam şişe, mat teneke, aromatik setler ve Ataeymir lezzetlerini keşfedin. Ürünler satışa açılmadan tasarım ve hikâyeleriyle tanışın.",
-  alternates: { canonical: "/koleksiyon" },
+  alternates: { canonical: "/koleksiyon", languages: { "tr-TR": "/koleksiyon", "en": "/en/collection" } },
 };
 
 const categories = [
@@ -22,7 +24,7 @@ const categories = [
 
 export default async function CollectionPage() {
   // The real, approved catalogue remains authoritative for commerce.
-  const live = await getLiveProducts();
+  const [live, curated] = await Promise.all([getLiveProducts(), publishedCollections()]);
   const published = new Map(live.map((item) => [item.id, item]));
   // Editorial concepts are NOT added to getLiveProducts or the order API.
   const catalogue: Product[] = editorialProducts.map((item) => published.get(item.id) ?? {
@@ -39,6 +41,10 @@ export default async function CollectionPage() {
         <Link href="/magaza#urunler">Yayındaki ürünler</Link>
       </nav>
     </section>
+    {curated.length > 0 && <section className="cms-collections" aria-labelledby="curated-title">
+      <header><p className="eyebrow">KÜRATÖRLÜ KOLEKSİYONLAR</p><h2 id="curated-title">Seçkiler</h2></header>
+      <CollectionCards collections={curated} locale="tr"/>
+    </section>}
     <nav className="collection-category-nav" id="koleksiyonlar" aria-label="Koleksiyon serileri">
       {categories.map((group) => <a href={`#seri-${group.id}`} key={group.id}>{group.title}<ArrowRight size={14} aria-hidden="true"/></a>)}
     </nav>

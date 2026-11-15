@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpenText, Boxes, ChevronRight, ExternalLink, Image as ImageIcon, Inbox, LayoutDashboard, PackageCheck, QrCode, ScrollText, Search, Settings, Sparkles, Users } from "lucide-react";
+import { BookOpenText, Boxes, Compass, Layers, ChevronRight, ExternalLink, Image as ImageIcon, Inbox, LayoutDashboard, PackageCheck, QrCode, ScrollText, Search, Settings, Sparkles, Users } from "lucide-react";
 
 const links = [
   ["Genel Bakış", "/admin", LayoutDashboard],
@@ -10,6 +10,8 @@ const links = [
   ["Siparişler", "/admin/siparisler", PackageCheck],
   ["QR & Lot", "/admin/qr-lot", QrCode],
   ["Blog & Tarifler", "/admin/blog", BookOpenText],
+  ["Koleksiyonlar", "/admin/koleksiyonlar", Layers],
+  ["Deneyim", "/admin/deneyim", Compass],
   ["Talepler", "/admin/talepler", Inbox],
 ] as const;
 const system = [
