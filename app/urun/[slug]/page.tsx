@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { publishedPosts } from "../../../lib/blog";
 import { getLiveProducts } from "../../../lib/live-products";
-import { categoryLabels, packagingLabels, storageGuidance, type Product } from "../../../lib/products";
+import { categoryLabels, packagingLabels, sizeSiblings, storageGuidance, type Product } from "../../../lib/products";
 import { isProductionShowcase } from "../../../lib/showcase-mode";
 import { breadcrumbJsonLd, jsonLdScript, productJsonLd } from "../../../lib/structured-data";
 import { BrandShell } from "../../components/site-shell";
@@ -49,6 +49,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const packaging = packagingLabels[product.id];
   const storage = storageGuidance(product);
   const related = relatedProducts(product, all);
+  const sizes = sizeSiblings(product, all);
   const recipes = publishedPosts.filter((post) => post.relatedProductIds.includes(product.id)).slice(0, 2);
 
   return (
@@ -70,6 +71,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <h1>{product.name}</h1>
           <span>{product.size} · Ataeymir, Karacasu</span>
           <p>{product.note}.</p>
+          {sizes.length > 1 && (
+            <nav className="size-switcher" aria-label="Boy seçenekleri">
+              <span>Boy</span>
+              <ul>{sizes.map((item) => (
+                <li key={item.id}>{item.id === product.id
+                  ? <span aria-current="page">{item.size}</span>
+                  : <Link href={`/urun/${item.id}`}>{item.size}</Link>}</li>
+              ))}</ul>
+            </nav>
+          )}
           <ProductDetailClient product={product} showcase={showcase} />
 
           <div className="product-details">

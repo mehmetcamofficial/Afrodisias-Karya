@@ -101,6 +101,13 @@ export const packagingLabels: Partial<Record<string, string>> = {
   "adopt-tree": "Deneyim programı",
 };
 
+/** Size families shown as a size switcher on product pages (same product, different volume). */
+export const sizeFamilies: string[][] = [["glass-250", "glass-500", "glass-750"], ["tin-3l", "tin-5l"]];
+export function sizeSiblings(product: Product, all: Product[]): Product[] {
+  const family = sizeFamilies.find((ids) => ids.includes(product.id));
+  return family ? family.map((id) => all.find((item) => item.id === id)).filter((item): item is Product => Boolean(item)) : [];
+}
+
 /** General, non-product-specific storage guidance by category. */
 export function storageGuidance(product: Product): string | null {
   if (product.id === "green-olive" || product.id === "black-olive") return "Açıldıktan sonra kapağı kapalı olarak buzdolabında saklayın; zeytinleri temiz ve kuru bir kaşıkla alın.";

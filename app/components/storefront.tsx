@@ -5,27 +5,30 @@ import { ArrowUpRight, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { categoryLabels, currencies, formatPrice, priceFor, type Product, type Currency, type ProductCategory } from "../../lib/products";
 import { useCart } from "./cart-context";
+import type { Sort } from "../../lib/store-query";
 import { ProductVisual, productImageNote } from "./product-visual";
 
-type Sort = "featured" | "price-asc" | "price-desc";
+
 
 const CATEGORIES = Object.keys(categoryLabels) as ProductCategory[];
 
-export function Storefront({ products, showcase = false, initialCategory = "all" }: { products: Product[]; showcase?: boolean; initialCategory?: ProductCategory | "all" }) {
+export function Storefront({ products, showcase = false, initialCategory = "all", initialQuery = "", initialSort = "featured" }: { products: Product[]; showcase?: boolean; initialCategory?: ProductCategory | "all"; initialQuery?: string; initialSort?: Sort }) {
   const { currency, setCurrency, add } = useCart();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [activeCategory, setActiveCategory] = useState<ProductCategory | "all">(initialCategory);
   const availableCategories = CATEGORIES.filter((category) => products.some((product) => product.category === category));
 
-  // Keep the selected category in the URL so it can be shared and survives reloads.
+  const [sort, setSort] = useState<Sort>(showcase && initialSort !== "featured" ? "featured" : initialSort);
+
+  // Keep category, search and sort in the URL so views can be shared and survive reloads.
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (activeCategory === "all") url.searchParams.delete("kategori");
-    else url.searchParams.set("kategori", activeCategory);
+    const set = (key: string, value: string, empty: string) => (value === empty ? url.searchParams.delete(key) : url.searchParams.set(key, value));
+    set("kategori", activeCategory, "all");
+    set("q", query.trim(), "");
+    set("siralama", sort, "featured");
     window.history.replaceState(window.history.state, "", url);
-  }, [activeCategory]);
-
-  const [sort, setSort] = useState<Sort>("featured");
+  }, [activeCategory, query, sort]);
 
   const visibleProducts = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("tr-TR");
