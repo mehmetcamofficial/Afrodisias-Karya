@@ -119,3 +119,11 @@
 .cms-ai-result dt { font-weight: 600; font-size: 0.8rem; }
 .cms-ai-result dd { margin: 0; white-space: pre-wrap; }
 .cms-ai-result li.is-error { color: #a32222; }
+.blog-editor { display: grid; gap: 6px; }
+.blog-toolbar { display: flex; gap: 4px; flex-wrap: wrap; }
+.blog-toolbar button { min-width: 36px; min-height: 36px; border: 1px solid rgb(36 37 33 / 0.2); background: #fff; border-radius: 6px; cursor: pointer; display: grid; place-items: center; }
+.blog-toolbar button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.blog-import { margin-top: 16px; }
+.blog-import ul { display: grid; gap: 8px; padding-left: 18px; }
+.blog-live-preview { margin-top: 16px; }
+.admin-section-title { margin: 32px 0 12px; font-size: 1.1rem; }

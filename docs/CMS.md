@@ -59,3 +59,24 @@ Production remains fail-closed for all admin APIs.
 - WhatsApp yalnızca ziyaretçi bağlantıya tıklayınca açılır; otomatik mesaj gönderilmez.
 - `POST /api/contact`: zod doğrulaması, zorunlu izin (DB'de de `CHECK consent = true`), honeypot, IP karması başına 10 dakikada 3 mesaj (tek SQL ifadesi). Eşzamanlı isteklerde sınır yumuşaktır (aynı anda gelen birkaç istek sınırı birkaç adet aşabilir). Veritabanı yoksa 503 döner ve mesajın kaydedilmediğini açıkça söyler.
 - `/admin/talepler`: `inquiry.manage` (owner/editor) durum günceller; her değişiklik `audit_logs`'a yazılır. Viewer yalnızca okur.
+
+## Blog CMS (Faz 4) — migration 0004
+
+`db/postgres/0004_blog_cms.sql` (eklemeli, idempotent) → blog_posts: `template` (article/recipe), `recipe`, `related_product_ids`, `cover`, `gallery`, `video_url`, `origin`, `archived_at`; blog_translations: `body_md`.
+
+| Branch | Durum |
+|---|---|
+| `cms-0003-rehearsal` (br-purple-cherry-baqt9poa) | 0004 prova edildi |
+| `preview-backup-pre-0004` (br-autumn-term-ban2ysy2) | preview'in 0004 öncesi yedeği (compute'suz) |
+| preview (br-wispy-cherry-bafzo82p) | 0004 uygulandı: 0 blog yazısı, 0 aktif ürün, 0 sipariş |
+| production (br-wandering-block-baq7c11i) | **dokunulmadı** |
+
+**Geri dönüş:** `0004_blog_cms.down.sql` (yalnızca 0004'ün eklediklerini kaldırır) veya preview'i `preview-backup-pre-0004` dalından geri yükleyin.
+
+**İş akışı:** taslak → incelemede → onaylı → (zamanlandı) → yayında; arşiv/geri yükleme; kalıcı silme yalnızca hiç yayımlanmamış arşiv yazısında. Her yazma tek SQL ifadesi (satır + sürüm + audit), `version` ile iyimser kilit. Yayındaki yazı salt okunur.
+- Yayımlama/zamanlama: `blog.publish` (owner) + `YAYINLA:<id>` + Preview yayın kapısı. Zamanlanan yazı `publish_at` geçince okuma anında görünür; arka planda hiçbir iş yayın yapmaz. Düzenleme zamanlamayı iptal edip taslağa alır.
+- "Yayın öncesi doğrulanacaklar" veya `[KAYNAK GEREKLİ]` metinde durdukça yayın/zamanlama 422 ile reddedilir.
+- Kod tabanlı taslaklar (`lib/blog.ts`) yalnızca "İçe aktar" ile, **taslak** olarak kopyalanır; doğrulama notları metnin başına eklenir. Yayındaki kod yazıları içe aktarılamaz.
+- Gövde kısıtlı Markdown'dır (`##`, `###`, `-`, `>`, `**kalın**`, `*italik*`, `[bağlantı](https://…)`) ve React metin düğümü olarak işlenir; ham HTML asla basılmaz. Bağlantılar yalnızca `/` veya `http(s)`.
+- Dış kaynaklı kapak/galeri görsellerinde kaynak ve lisans zorunlu. Dosya yükleme depolaması yapılandırılmadığı için medya URL ile eklenir (**BLOCKED:** yükleme için depolama erişimi gerekir).
+- Production showcase CMS içeriğini okumaz; `/gunluk` sayfaları 5 dakikada bir yenilenir.

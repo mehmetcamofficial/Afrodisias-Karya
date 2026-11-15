@@ -37,6 +37,9 @@ export type BlogPost = {
   seoDescription?: string;
   body: string[];
   relatedProductIds: string[];
+  /** CMS posts only: extra media with mandatory credits for external sources. */
+  gallery?: Array<{ src: string; alt: string; credit?: string }>;
+  video?: string;
   /** Editorial checks an editor must complete before publishing (admin only). */
   reviewNotes?: string[];
 };

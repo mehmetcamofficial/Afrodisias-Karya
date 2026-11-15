@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAnyPost, readMinutes } from "../../../../../lib/blog";
+import { cmsPostBySlug } from "../../../../../lib/blog-db";
 import { requireAdminPage } from "../../../../admin-auth";
 import { AdminForbidden } from "../../../../components/admin-forbidden";
 import { AdminShell } from "../../../../components/admin-shell";
@@ -15,7 +16,8 @@ export default async function DraftPreview({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const access = await requireAdminPage("/admin/blog");
   if (access.status !== "admin") return <AdminForbidden email={access.user.email} configured={access.configured} />;
-  const post = getAnyPost(slug);
+  // The CMS copy (if any) is the one being edited, so it wins over the code draft.
+  const post = (await cmsPostBySlug(slug, { includeUnpublished: true })) ?? getAnyPost(slug);
   if (!post) notFound();
   return (
     <AdminShell kicker={post.status === "draft" ? "TASLAK ÖNİZLEME · YAYINDA DEĞİL" : "YAYINDAKİ YAZI"} title={post.title}>

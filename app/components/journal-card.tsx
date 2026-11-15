@@ -89,20 +89,41 @@ export function JournalCard({ post, graphic = false }: { post: BlogPost; graphic
   );
 }
 
-/** Renders body blocks: paragraphs, "## " headings, "- " lists, "> " quotes. */
+/** Inline Markdown → React nodes: **bold**, *italic*, [text](url). Never raw HTML; only / and http(s) links. */
+export function renderInline(text: string): React.ReactNode[] {
+  const out: React.ReactNode[] = [];
+  const pattern = /\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  let last = 0;
+  for (const match of text.matchAll(pattern)) {
+    if (match.index > last) out.push(text.slice(last, match.index));
+    const key = `${match.index}`;
+    if (match[1]) out.push(<strong key={key}>{match[1]}</strong>);
+    else if (match[2]) out.push(<em key={key}>{match[2]}</em>);
+    else if (/^(\/(?!\/)|https?:\/\/)/.test(match[4])) {
+      const external = /^https?:/.test(match[4]);
+      out.push(external ? <a key={key} href={match[4]} target="_blank" rel="noopener noreferrer nofollow">{match[3]}</a> : <Link key={key} href={match[4]}>{match[3]}</Link>);
+    } else out.push(match[3]);
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
+/** Renders body blocks: paragraphs, "## "/"### " headings, "- " lists, "> " quotes, inline formatting. */
 export function ArticleBody({ blocks }: { blocks: string[] }) {
   const nodes: React.ReactNode[] = [];
   let list: string[] = [];
   const flush = () => {
-    if (list.length) nodes.push(<ul key={`ul-${nodes.length}`}>{list.map((item) => <li key={item}>{item}</li>)}</ul>);
+    if (list.length) nodes.push(<ul key={`ul-${nodes.length}`}>{list.map((item, i) => <li key={i}>{renderInline(item)}</li>)}</ul>);
     list = [];
   };
   blocks.forEach((block, index) => {
     if (block.startsWith("- ")) { list.push(block.slice(2)); return; }
     flush();
-    if (block.startsWith("## ")) nodes.push(<h2 key={index}>{block.slice(3)}</h2>);
-    else if (block.startsWith("> ")) nodes.push(<blockquote key={index}>{block.slice(2)}</blockquote>);
-    else nodes.push(<p key={index}>{block}</p>);
+    if (block.startsWith("### ")) nodes.push(<h3 key={index}>{renderInline(block.slice(4))}</h3>);
+    else if (block.startsWith("## ")) nodes.push(<h2 key={index}>{renderInline(block.slice(3))}</h2>);
+    else if (block.startsWith("> ")) nodes.push(<blockquote key={index}>{renderInline(block.slice(2))}</blockquote>);
+    else nodes.push(<p key={index}>{renderInline(block)}</p>);
   });
   flush();
   return <>{nodes}</>;

@@ -3,19 +3,24 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { categorySlugs, getPost, publishedPosts, readMinutes, relatedPosts } from "../../../lib/blog";
+import { cmsPostBySlug } from "../../../lib/blog-db";
 import { products } from "../../../lib/products";
 import { SITE_URL } from "../../../lib/site";
 import { breadcrumbJsonLd, jsonLdScript } from "../../../lib/structured-data";
 import { BrandShell } from "../../components/site-shell";
 import { ArticleBody, JournalCard, JournalCover } from "../../components/journal-card";
 
-// Only published posts are routable; drafts return 404.
+// Code posts are pre-rendered; CMS posts render on demand and only when
+// published (or scheduled with a past publish time). Drafts return 404.
 export function generateStaticParams() { return publishedPosts.map((post) => ({ slug: post.slug })); }
-export const dynamicParams = false;
+export const dynamicParams = true;
+export const revalidate = 300;
+
+const findPost = async (slug: string) => getPost(slug) ?? (await cmsPostBySlug(slug)) ?? undefined;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await findPost(slug);
   if (!post) return {};
   const title = post.seoTitle ?? post.title;
   const description = post.seoDescription ?? post.excerpt;
@@ -29,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await findPost(slug);
   if (!post) notFound();
   const related = relatedPosts(post);
   const mentioned = products.filter((product) => post.relatedProductIds.includes(product.id));
@@ -51,6 +56,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         <div className="article-body">
           <p className="article-lead">{post.excerpt}</p>
           <ArticleBody blocks={post.body} />
+          {post.video && <video className="article-video" src={post.video} controls preload="none" playsInline />}
+          {post.gallery && post.gallery.length > 0 && (
+            <div className="article-gallery">
+              {post.gallery.map((item) => (
+                // eslint-disable-next-line @next/next/no-img-element -- editor-supplied URLs; dimensions unknown
+                <figure key={item.src}><img src={item.src} alt={item.alt} loading="lazy" decoding="async" />{item.credit && <figcaption>{item.credit}</figcaption>}</figure>
+              ))}
+            </div>
+          )}
           {mentioned.length > 0 && (
             <aside className="article-products" aria-label="Yazıda geçen ürünler">
               <p className="eyebrow">Yazıda geçen ürünler</p>

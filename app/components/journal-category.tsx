@@ -3,9 +3,12 @@ import { ArrowLeft } from "lucide-react";
 import { categoryIntros, postsInCategory, type BlogCategory } from "../../lib/blog";
 import { BrandShell } from "./site-shell";
 import { JournalCard } from "./journal-card";
+import { visibleCmsPosts } from "../../lib/blog-db";
 
-export function JournalCategoryPage({ category }: { category: BlogCategory }) {
-  const posts = postsInCategory(category);
+export async function JournalCategoryPage({ category }: { category: BlogCategory }) {
+  const code = postsInCategory(category);
+  const slugs = new Set(code.map((post) => post.slug));
+  const posts = [...(await visibleCmsPosts()).filter((post) => post.category === category && !slugs.has(post.slug)), ...code];
   return (
     <BrandShell className="journal-site">
       <section className="category-hero">

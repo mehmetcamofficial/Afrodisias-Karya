@@ -309,3 +309,8 @@ body:has(.sticky-purchase.is-visible) .help-fab { bottom: 84px; }
 .help-answer a, .help-link { color: inherit; text-decoration: underline; min-height: 44px; }
 .help-link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
 .help-fineprint { margin-top: 10px; font-size: var(--ad-text-xs); opacity: 0.75; }
+.article-video { width: 100%; margin: 24px 0; border-radius: 8px; background: #000; }
+.article-gallery { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); margin: 24px 0; }
+.article-gallery figure { margin: 0; }
+.article-gallery img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; }
+.article-gallery figcaption { font-size: var(--ad-text-xs); opacity: 0.75; margin-top: 4px; }

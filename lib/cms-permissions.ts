@@ -22,6 +22,7 @@ export const PERMISSIONS = [
   "product.delete",
   "blog.write",
   "blog.publish",
+  "blog.delete",
   "inquiry.manage",
   "users.manage",
   "ai.use",

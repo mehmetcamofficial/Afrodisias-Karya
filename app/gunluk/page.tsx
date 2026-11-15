@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { blogCategories, categoryIntros, categorySlugs, featuredPost, postsInCategory, publishedPosts } from "../../lib/blog";
 import { BrandShell } from "../components/site-shell";
+import { visibleCmsPosts } from "../../lib/blog-db";
 import { JournalCard, JournalCover, JournalMeta } from "../components/journal-card";
 
 export const metadata: Metadata = {
@@ -11,9 +12,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/gunluk" },
 };
 
-export default function JournalPage() {
+export const revalidate = 300;
+
+export default async function JournalPage() {
   const featured = featuredPost();
-  const latest = publishedPosts.filter((post) => post.slug !== featured?.slug);
+  const codeSlugs = new Set(publishedPosts.map((post) => post.slug));
+  const cms = (await visibleCmsPosts()).filter((post) => !codeSlugs.has(post.slug));
+  const latest = [...cms, ...publishedPosts].filter((post) => post.slug !== featured?.slug).sort((a, b) => b.isoDate.localeCompare(a.isoDate));
   return (
     <BrandShell className="journal-site">
       <section className="journal-hero">
@@ -37,7 +42,7 @@ export default function JournalPage() {
 
       <nav className="journal-categories" aria-label="Günlük kategorileri">
         {blogCategories.map((category, index) => {
-          const count = postsInCategory(category).length;
+          const count = postsInCategory(category).length + cms.filter((post) => post.category === category).length;
           return (
             <Link key={category} href={`/gunluk/${categorySlugs[category]}`}>
               <span>{String(index + 1).padStart(2, "0")}</span>
