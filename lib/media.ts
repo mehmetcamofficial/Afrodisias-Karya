@@ -42,6 +42,27 @@ export const media = {
       // default: { mp4: "/video/altin-dal-cinematic.mp4" },
     },
   },
+  // Assets are delivered separately; poster fallback stays visible until upload.
+  filmLand: {
+    poster: "/hero-tetrapylon-grove.webp",
+    alt: "Sunlit olive grove landscape",
+    video: { default: { mp4: "/video/altin-dal-film-01.mp4" } },
+  },
+  filmHarvest: {
+    poster: "/hero-tetrapylon-grove.webp",
+    alt: "Olive harvest",
+    video: { default: { mp4: "/video/altin-dal-film-02.mp4" } },
+  },
+  filmGold: {
+    poster: "/altin-dal-bottle-collection.webp",
+    alt: "Golden extra virgin olive oil",
+    video: { default: { mp4: "/video/altin-dal-film-03.mp4" } },
+  },
+  filmProduct: {
+    poster: "/altin-dal-bottle-collection.webp",
+    alt: "Altın Dal olive oil bottle on travertine",
+    video: { default: { mp4: "/video/altin-dal-film-04.mp4" } },
+  },
 } satisfies Record<string, MediaSlot>;
 
 export function videoFor(slot: MediaSlot, locale: Locale): VideoSource | undefined {
