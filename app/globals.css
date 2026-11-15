@@ -295,3 +295,56 @@
 .journal-credits p{font:12px/1.7 Arial,sans-serif;max-width:1120px}
 .journal-credits a{text-decoration:underline;text-underline-offset:3px}
 @media(max-width:800px){.journal-featured{grid-template-columns:minmax(0,1fr);padding:25px 20px 52px}.journal-featured>a{min-height:280px}.journal-featured h2{font-size:clamp(2.5rem,10vw,4.2rem)}.journal-credits{padding:30px 22px}}
+
+
+/* Interactive collection + self-guided experience, 2026-11-15 */
+.collection-category-nav{scroll-margin-top:110px;display:flex;gap:12px;overflow-x:auto;padding:22px 7vw;background:#e9e1d4;border-top:1px solid #263d2b24;border-bottom:1px solid #263d2b24;scrollbar-width:thin}
+.collection-category-nav a{display:flex;gap:12px;align-items:center;white-space:nowrap;min-height:48px;padding:13px 20px;border:1px solid #24362945;font:600 12px/1.2 Arial,sans-serif;color:#213629}
+.collection-category-nav a:hover,.collection-category-nav a:focus-visible{background:#183122;color:#f7efe2}
+.collection-series{background:#eee8dc;color:#17281e;padding:clamp(45px,6vw,100px) 7vw;scroll-margin-top:110px;border-bottom:1px solid #17281e24}
+.collection-series:nth-of-type(even){background:#e7ded0}
+.collection-series>header{display:flex;align-items:end;justify-content:space-between;gap:26px;margin-bottom:35px}
+.collection-series>header h2{font:clamp(3rem,6vw,5.5rem)/.97 "Instrument Serif",Georgia,serif;margin:12px 0}
+.collection-series>header p:not(.eyebrow){font:18px/1.6 Georgia,serif;max-width:620px;color:#637066}
+.collection-series>header>a{display:inline-flex;gap:8px;align-items:center;border-bottom:1px solid #916f32;white-space:nowrap;padding:10px 0;font-size:13px}
+.collection-series-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.collection-series-card{min-width:0;background:#f9f5ee;border:1px solid #25392920}
+.collection-series-media{position:relative;aspect-ratio:4/5;background:#dfd5c7;overflow:hidden}
+.collection-series-media img{object-fit:cover;transition:transform .6s}
+.collection-series-card:hover img{transform:scale(1.035)}
+.collection-series-copy{padding:22px}
+.collection-series-copy small{color:#94743a;font:11px/1.4 Arial,sans-serif;letter-spacing:.09em}
+.collection-series-copy h3{font:clamp(1.7rem,2.5vw,2.5rem)/1.05 "Instrument Serif",Georgia,serif;margin:14px 0}
+.collection-series-copy>p{font:15px/1.6 Georgia,serif;color:#4b5c50}
+.collection-series-copy .collection-image-note{font:11px/1.5 Arial,sans-serif;color:#69786d}
+.collection-series-copy>a{display:inline-flex;gap:8px;align-items:center;border-bottom:1px solid #94743a;padding:8px 0;font-size:13px}
+.collection-pending{display:inline-block;margin-top:12px;font-size:12px;color:#735d37}
+.experience-hero-links{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.experience-hero-links a{display:inline-flex;align-items:center;gap:9px;padding:13px 20px;background:#f4eee3;color:#14291c;min-height:44px;font:600 13px Arial,sans-serif}
+.experience-hero-links a+ a{background:transparent;color:#f4eee3;border:1px solid #f4eee380}
+#kesfet{scroll-margin-top:90px}
+.experience-explorer{background:#ebe4d7;color:#182b20;padding:clamp(65px,8vw,120px) 7vw}
+.experience-explorer-intro{max-width:860px;margin-bottom:45px}
+.experience-explorer-intro h2{font:clamp(3.4rem,7vw,6.8rem)/.95 "Instrument Serif",Georgia,serif;margin:18px 0}
+.experience-explorer-intro h2 em{font-weight:400;color:#967438}
+.experience-explorer-intro>p:last-child{font:18px/1.65 Georgia,serif;color:#637066}
+.experience-explorer-layout{display:grid;grid-template-columns:minmax(270px,.8fr) minmax(0,1.4fr);gap:25px}
+.experience-explorer-tabs{display:flex;flex-direction:column;gap:10px}
+.experience-explorer-tabs button{display:grid;grid-template-columns:32px 28px 1fr 20px;align-items:center;gap:14px;width:100%;min-height:92px;text-align:left;border:1px solid #1a332735;background:#f7f1e6;color:#20382b;padding:20px;cursor:pointer}
+.experience-explorer-tabs button>span{color:#94743a}
+.experience-explorer-tabs button.is-selected{background:#1b3326;color:#f4ebdb}
+.experience-explorer-tabs button.is-selected>span{color:#cdb16f}
+.experience-explorer-tabs button:focus-visible,.experience-explorer-actions a:focus-visible,.experience-hero-links a:focus-visible{outline:3px solid #bd9b4f;outline-offset:3px}
+.experience-explorer-panel{min-width:0;padding:clamp(30px,5vw,75px);background:#173024;color:#f3eadc;min-height:360px}
+.experience-explorer-panel>span{font:11px Arial,sans-serif;letter-spacing:.24em;color:#cbb078}
+.experience-explorer-panel h3{font:clamp(2.8rem,5vw,5.4rem)/.95 "Instrument Serif",Georgia,serif;margin:22px 0}
+.experience-explorer-panel p{max-width:700px;font:17px/1.6 Georgia,serif;color:#d1d6ca}
+.experience-explorer-panel .experience-explorer-lead{font-size:22px;color:#f3eadc}
+.experience-explorer-actions{display:flex;flex-wrap:wrap;gap:15px;margin-top:30px}
+.experience-explorer-actions a{display:inline-flex;align-items:center;gap:8px;color:#ecd5a0;padding:10px 0;border-bottom:1px solid #b8a16e}
+.experience-explorer-footer{display:flex;align-items:start;gap:12px;max-width:920px;margin-top:28px;font:12px/1.6 Arial,sans-serif;color:#617064}
+.experience-explorer-footer p{margin:0}
+@media(max-width:1000px){.collection-series-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:740px){.collection-category-nav{padding-inline:18px}.collection-series{padding:45px 18px}.collection-series>header{display:block}.collection-series-grid{gap:12px}.collection-series-copy{padding:16px}.collection-series-copy h3{font-size:1.8rem}.collection-series-media{aspect-ratio:3/4}.experience-explorer{padding:60px 20px}.experience-explorer-layout{grid-template-columns:minmax(0,1fr)}.experience-explorer-tabs button{min-height:68px}.experience-explorer-panel{min-height:0}.experience-route-hero .experience-hero-links{gap:8px}}
+@media(max-width:390px){.collection-series-grid{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.collection-series-media img{transition:none;transform:none!important}}
