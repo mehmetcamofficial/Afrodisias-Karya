@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
 import { chatGPTSignOutPath } from "../chatgpt-auth";
+import { clerkPreviewConfigured } from "../../lib/clerk-preview";
+import { ClerkAdminSignOut } from "./clerk-admin-sign-out";
 
 /** Shown to signed-in users who are not on the ADMIN_EMAILS allowlist. */
 export function AdminForbidden({ email, configured }: { email: string; configured: boolean }) {
@@ -16,7 +18,9 @@ export function AdminForbidden({ email, configured }: { email: string; configure
         </span>
         <nav>
           <Link href="/">Siteye dön</Link>
-          <a href={chatGPTSignOutPath("/admin")}>Farklı hesapla giriş yap</a>
+          {clerkPreviewConfigured()
+            ? <ClerkAdminSignOut />
+            : <a href={chatGPTSignOutPath("/admin")}>Farklı hesapla giriş yap</a>}
         </nav>
       </section>
     </main>

@@ -17,7 +17,8 @@ test("every primary navigation link is clickable and lands on its page", async (
   void health;
   await page.goto("/", { waitUntil: "networkidle" });
   const menuButton = page.locator(".brand-menu");
-  const hrefs = await page.locator("#primary-navigation a").evaluateAll((links) => links.map((link) => link.getAttribute("href")!));
+  // Top-level links only; megamenu panels hold secondary links and are covered in experience.spec.ts.
+  const hrefs = await page.locator("#primary-navigation > a, #primary-navigation > .nav-group > a").evaluateAll((links) => links.map((link) => link.getAttribute("href")!));
   expect(hrefs).toEqual(["/hikayemiz", "/hasat", "/gunluk", "/koleksiyon", "/deneyim", "/magaza"]);
   for (const href of hrefs) {
     await page.goto("/", { waitUntil: "networkidle" });
@@ -25,7 +26,7 @@ test("every primary navigation link is clickable and lands on its page", async (
       await menuButton.click();
       await expect(menuButton).toHaveAttribute("aria-expanded", "true");
     }
-    await page.locator(`#primary-navigation a[href="${href}"]`).click();
+    await page.locator(`#primary-navigation > a[href="${href}"], #primary-navigation > .nav-group > a[href="${href}"]`).click();
     await expect(page).toHaveURL(new RegExp(`${href}$`));
     await expect(page.locator("h1").first()).toBeVisible();
   }

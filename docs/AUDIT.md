@@ -106,3 +106,16 @@ receive title/description/canonical in `<head>`; Lighthouse's default UA does no
 6. **Source of truth for the catalogue** — static file, or D1 managed from admin?
 7. **i18n routing** — recommended: Turkish stays at existing URLs, English under `/en/...` with English slugs and `hreflang` pairs.
 8. **Network access** — allow the reference sites and the preview host for the benchmark and live verification.
+
+## 8. Premium upgrade on `chore/vercel-portability-phase1` (2026-11-14)
+
+| Phase | Status | Notes |
+|---|---|---|
+| 1 Product imagery | **PASS (illustrations)** / BLOCKED (photos) | 8 distinct packshot *illustrations*, disclosed as "temsili çizim"; no image-generation model was available, and photorealistic fakes were deliberately not made. Real photos still required (`docs/ASSET-REQUIREMENTS.md`). |
+| 2 Homepage | PASS | Seven editorial sections; each photo used once (e2e-checked). |
+| 3 Store & PDP | PASS | URL category filters, zoom dialog, packaging/storage/origin/status details, de-duplicated related items, mobile sticky bar (never in showcase). |
+| 4 Journal | PASS | 4 published + 7 drafts; drafts 404 publicly, excluded from the sitemap, previewable only by admins; reading time is computed. |
+| 5 Admin | PASS | Honest dashboard, media audit table, read-only publish audit, no fake saves or status. |
+| 6 Quality | PASS locally | lint 0 errors · typecheck · 55 unit tests · `pnpm build` · `next build` · e2e 133 passed / 4 skipped. A local production-showcase smoke test passed (no prices or cart, orders 403, admin closed). |
+
+Removed unverified copy: the tasting claim "Canlı meyve. Temiz bitiş.", "Sınırlı seri", and the "Toplam ciro" metric built from unpaid orders.

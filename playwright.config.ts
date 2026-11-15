@@ -10,10 +10,19 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL, trace: "off" },
-  projects: widths.map((width) => ({
-    name: `w${width}`,
-    use: { ...devices["Desktop Chrome"], viewport: { width, height: width < 800 ? 812 : 900 }, isMobile: false },
-  })),
+  projects: [
+    {
+      name: "catalog-preflight",
+      testMatch: "**/preflight.setup.ts",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 375, height: 812 } },
+    },
+    ...widths.map((width) => ({
+      name: `w${width}`,
+      dependencies: ["catalog-preflight"],
+      testIgnore: "**/preflight.setup.ts",
+      use: { ...devices["Desktop Chrome"], viewport: { width, height: width < 800 ? 812 : 900 }, isMobile: false },
+    })),
+  ],
   // Reuses a running dev server; starts one otherwise (skipped for remote targets).
-  webServer: process.env.E2E_BASE_URL ? undefined : { command: "pnpm dev", url: baseURL, reuseExistingServer: true, timeout: 180_000 },
+  webServer: process.env.E2E_BASE_URL ? undefined : { command: "pnpm dev", url: baseURL, reuseExistingServer: !process.env.CI, timeout: 180_000, env: { E2E_CATALOG_FIXTURE: "1" } },
 });

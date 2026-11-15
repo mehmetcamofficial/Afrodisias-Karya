@@ -1,2 +1,6 @@
+import type { Metadata } from "next";
 import { JournalCategoryPage } from "../../components/journal-category";
-export default function Page(){return <JournalCategoryPage category="Aphrodisias Tarihi"/>}
+import { categoryIntros } from "../../../lib/blog";
+export const metadata: Metadata = { title: "Aphrodisias Tarihi — Mermer, Zanaat ve Peyzaj", description: categoryIntros["Aphrodisias Tarihi"], alternates: { canonical: "/gunluk/aphrodisias" } };
+export const revalidate = 300;
+export default function Page() { return <JournalCategoryPage category="Aphrodisias Tarihi" />; }

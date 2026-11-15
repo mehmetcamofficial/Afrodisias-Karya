@@ -35,7 +35,15 @@ const localBindingConfig = {
     : [],
 };
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ command }) => {
+  // Compile-time-only Playwright fixture. RSC executes within Cloudflare's
+  // isolated /bundle, where local fs/env flags cannot be relied upon.
+  // Production builds always compile this to false, even if an env var leaks.
+  const e2eCatalogue = command === "serve"
+    && process.env.E2E_CATALOG_FIXTURE === "1"
+    && !process.env.VERCEL
+    && !process.env.VERCEL_ENV
+    && !process.env.DATABASE_URL;
   // Use Miniflare's local Request.cf placeholder unless fetching is requested.
   process.env.CLOUDFLARE_CF_FETCH_ENABLED ??= "false";
   process.env.WRANGLER_SEND_METRICS ??= "false";
@@ -51,6 +59,7 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
+    define: { __ALTINDAL_E2E_FIXTURE__: JSON.stringify(e2eCatalogue) },
     server: {
       ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),
       ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),

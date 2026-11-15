@@ -2,11 +2,12 @@
 
 import { createContext, FormEvent, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
-import { formatAmount, formatPrice, priceFor, products, type Currency, type Product } from "../../lib/products";
+import { formatAmount, formatPrice, priceFor, type Currency, type Product } from "../../lib/products";
 import { MAX_QTY_PER_LINE } from "../../lib/orders";
 
 type CartLine = { product: Product; quantity: number };
 type CartValue = {
+  showcase: boolean;
   itemCount: number;
   currency: Currency;
   setCurrency: (value: Currency) => void;
@@ -41,7 +42,7 @@ export function maxQuantity(product: Product) {
 }
 
 /** Only ids and quantities are stored; prices always come from the catalogue. */
-function loadLines(): CartLine[] {
+function loadLines(products: Product[]): CartLine[] {
   try {
     const raw = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]") as Array<{ id?: unknown; qty?: unknown }>;
     return raw.flatMap((entry) => {
@@ -55,7 +56,7 @@ function loadLines(): CartLine[] {
   }
 }
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({ children, initialProducts, showcase = false }: { children: React.ReactNode; initialProducts: Product[]; showcase?: boolean }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [currency, setCurrency] = useState<Currency>("TRY");
@@ -72,7 +73,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Restore the saved cart after mount (reading localStorage during render would
   // cause an SSR hydration mismatch on the cart badge).
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setLines(loadLines()); setHydrated(true); }, []);
+  useEffect(() => { setLines(loadLines(initialProducts)); setHydrated(true); }, []);
   useEffect(() => {
     if (!hydrated) return;
     try {
@@ -112,6 +113,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [open, closeCart]);
 
   const add = (product: Product, quantity = 1) => {
+    if (showcase) return;
     setLines((current) => {
       const existing = current.find((line) => line.product.id === product.id);
       const next = Math.min((existing?.quantity ?? 0) + quantity, maxQuantity(product));
@@ -132,7 +134,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (ordering) return;
+    if (ordering || showcase) return;
     const form = event.currentTarget;
     setOrdering(true);
     setResult(null);
@@ -153,7 +155,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         for (const { field, code } of json.errors ?? []) {
           if (FIELD_MESSAGES[field]) fields[field] = FIELD_MESSAGES[field];
           else if (field.startsWith("items.")) {
-            const name = products.find((item) => item.id === field.slice(6))?.name ?? "Ürün";
+            const name = initialProducts.find((item) => item.id === field.slice(6))?.name ?? "Ürün";
             itemProblems.push(`${name}: ${ITEM_MESSAGES[code] ?? "doğrulanamadı."}`);
           }
         }
@@ -183,9 +185,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const errorFor = (name: string) => fieldErrors[name] && <span className="field-error" id={`${name}-error`}>{fieldErrors[name]}</span>;
 
   return (
-    <CartContext.Provider value={{ itemCount, currency, setCurrency, add, openCart }}>
+    <CartContext.Provider value={{ showcase, itemCount: showcase ? 0 : itemCount, currency, setCurrency, add, openCart }}>
       {children}
-      {open && (
+      {!showcase && open && (
         <div className="cart-backdrop" onClick={closeCart}>
           <aside ref={panelRef} className="cart-panel" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cart-title">
             <div className="cart-head">

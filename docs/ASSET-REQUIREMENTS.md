@@ -17,6 +17,27 @@ for a 5 L tin). Images are registered per product in `lib/products.ts`
 
 No video files are in the repository.
 
+### Owner-supplied AI packaging concepts (added 2026-11-14)
+
+The brand owner supplied eight **AI-generated packaging concept** images
+(`Altin_Dal_Web_Site_Entegrasyon_Paketi.zip`, 1122×1402 WebP, 134–220 KB).
+They are installed under `public/products/concepts/<sku>.webp`, mapped 1:1 to
+SKUs in `lib/products.ts` with `kind: "concept"`, and replace the earlier
+vector illustrations (removed). The UI states under every one:
+"Yapay zekâyla hazırlanmış temsili ambalaj tasarımı; gerçek ürün fotoğrafı
+değildir." They are never emitted as Product JSON-LD images. A Playwright test
+verifies that all eight actually load (`naturalWidth > 0`) on the store and
+product pages.
+
+| SKU | Concept shows | Open question |
+|---|---|---|
+| aromatic-set | gift box + 3 × 100 ml bottles (lemon/rosemary/chili) | final box design |
+| tin-3l / tin-5l | matte olive tin, gold cap | final tin design |
+| green-olive / black-olive | glass jar | **packaging type not confirmed by catalogue** |
+| olive-paste | 200 g glass jar | — |
+| soap-box | box with soap bars | — |
+| olive-club | box with **2 × 500 ml tins** | **catalogue says 2 × 500 ml shipment; bottle vs tin not approved** (disclosed on the product page) |
+
 ## Required product photography
 
 Spec: 2000×2000 px minimum, neutral travertine or ivory background, consistent
@@ -29,14 +50,14 @@ family. Deliver WebP/AVIF or high-quality JPEG. Label must be legible.
 | glass-500 | 500 ml Cam Şişe | glass | range photo | packshot of the 500 ml bottle |
 | glass-750 | 750 ml Cam Şişe | glass | range photo | packshot of the 750 ml bottle |
 | reserve-500 | Aphrodisias Special Reserve | box + 500 ml | gift-box photo (range) | confirm the box shown is this product; closed + open shots |
-| aromatic-set | Tadım & Aromatik Set | 3 × 100 ml | placeholder | set packshot |
-| tin-3l | 3 Litre Mat Teneke | tin | placeholder | **tin packshot** |
-| tin-5l | 5 Litre Mat Teneke | tin | placeholder | **tin packshot** |
-| green-olive | Ataeymir Kırma Yeşil Zeytin | 500 g | placeholder | jar/pack packshot |
-| black-olive | Siyah Sele Zeytin | 500 g | placeholder | jar/pack packshot |
-| olive-paste | Zeytin Ezmesi | 200 g jar | placeholder | jar packshot |
-| soap-box | El Yapımı Zeytinyağlı Sabun | 2-pack box | placeholder | box packshot |
-| olive-club | Olive Club | subscription | placeholder | shipment box / contents photo |
+| aromatic-set | Tadım & Aromatik Set | 3 × 100 ml | AI concept | set packshot |
+| tin-3l | 3 Litre Mat Teneke | tin | AI concept | **tin packshot** |
+| tin-5l | 5 Litre Mat Teneke | tin | AI concept | **tin packshot** |
+| green-olive | Ataeymir Kırma Yeşil Zeytin | 500 g | AI concept | jar/pack packshot |
+| black-olive | Siyah Sele Zeytin | 500 g | AI concept | jar/pack packshot |
+| olive-paste | Zeytin Ezmesi | 200 g jar | AI concept | jar packshot |
+| soap-box | El Yapımı Zeytinyağlı Sabun | 2-pack box | AI concept | box packshot |
+| olive-club | Olive Club | subscription | AI concept | shipment box / contents photo |
 | adopt-tree | Adopt an Olive Tree | experience | grove photo (editorial) | photo of the certificate / tree tag |
 
 ## Required video

@@ -19,6 +19,28 @@ describe("product catalogue integrity", () => {
     }
   });
 
+  it("each concept product has its own distinct owner-supplied concept file", () => {
+    const illustrated = products.filter((p) => p.image?.kind === "concept");
+    expect(illustrated.map((p) => p.id).sort()).toEqual(
+      ["aromatic-set", "black-olive", "green-olive", "olive-club", "olive-paste", "soap-box", "tin-3l", "tin-5l"],
+    );
+    for (const product of illustrated) {
+      expect(product.image!.src, product.id).toBe(`/products/concepts/${product.id}.webp`);
+      expect(product.image!.alt, product.id).toMatch(/yapay zekâyla oluşturulmuş temsili ambalaj tasarımı$/);
+    }
+    expect(new Set(illustrated.map((p) => p.image!.src)).size).toBe(illustrated.length);
+  });
+
+  it("Olive Club discloses the packaging mismatch between the concept and the catalogue", () => {
+    const club = products.find((p) => p.id === "olive-club")!;
+    expect(club.image?.note).toMatch(/teneke/);
+    expect(club.image?.note).toMatch(/onaylanmadı/);
+  });
+
+  it("every product has an image (photo, range photo, editorial or disclosed concept)", () => {
+    for (const product of products) expect(product.image, product.id).toBeDefined();
+  });
+
   it("only glass products use the glass range photo", () => {
     for (const product of products.filter((p) => p.image?.src === "/altin-dal-bottle-collection.webp")) expect(product.category).toBe("glass");
   });

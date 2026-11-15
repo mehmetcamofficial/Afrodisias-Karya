@@ -1,0 +1,79 @@
+name: Preview HTTP security smoke
+# Trigger branch-scoped smoke on workflow updates; keep Vercel Preview protection enabled.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chore/vercel-portability-phase1
+    paths:
+      - .github/workflows/preview-http-smoke.yml
+
+permissions:
+  contents: read
+
+jobs:
+  preview-http:
+    if: github.ref == 'refs/heads/chore/vercel-portability-phase1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PREVIEW_URL: https://altin-dal-aphrodisias-iqd77djyg-dragonfire-09s-projects.vercel.app
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+    steps:
+      - name: Check protected Preview without changing protection
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${VERCEL_AUTOMATION_BYPASS_SECRET}" ]]; then
+            echo "::error::BLOCKED: configure VERCEL_AUTOMATION_BYPASS_SECRET as an Actions secret; protection remains enabled."
+            exit 1
+          fi
+          test_http() {
+            local label="$1" expected="$2" method="$3" path="$4" payload="${5:-}"
+            local code
+            if [[ "$method" == POST ]]; then
+              code=$(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' \
+                -H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
+                -H "Content-Type: application/json" \
+                -X POST --data "$payload" "${PREVIEW_URL}${path}") || return 1
+            else
+              code=$(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' \
+                -H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
+                "${PREVIEW_URL}${path}") || return 1
+            fi
+            echo "$label: HTTP $code (expected $expected)"
+            case "$expected" in
+              200) [[ "$code" == 200 ]] ;;
+              4xx) [[ "$code" == 400 || "$code" == 422 ]] ;;
+              auth) [[ "$code" == 401 || "$code" == 403 ]] ;;
+            esac || { echo "::error::$label unexpected HTTP $code"; return 1; }
+          }
+          failed=0
+          test_http "Homepage" 200 GET / || failed=1
+          test_http "Products" 200 GET /api/products || failed=1
+          test_http "Invalid order" 4xx POST /api/orders '{}' || failed=1
+          test_http "Unauthorized orders" auth GET /api/orders || failed=1
+          # Concurrency smoke uses deliberately invalid bodies: no order can be persisted.
+          # This checks HTTP validation under concurrent load, not valid-order idempotency.
+          results_dir=$(mktemp -d)
+          pids=()
+          for i in $(seq 1 8); do
+            (
+              curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' \
+                -H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
+                -H "Content-Type: application/json" \
+                -X POST --data '{}' "${PREVIEW_URL}/api/orders" > "${results_dir}/${i}"
+            ) &
+            pids+=("$!")
+          done
+          for pid in "${pids[@]}"; do
+            wait "$pid" || failed=1
+          done
+          for i in $(seq 1 8); do
+            code=$(cat "${results_dir}/${i}")
+            echo "Concurrent invalid order #${i}: HTTP ${code}"
+            [[ "$code" == 422 ]] || failed=1
+          done
+          rm -rf "$results_dir"
+          exit "$failed"
