@@ -1,0 +1,165 @@
+/* /koleksiyon — one lit travertine set; the camera moves, the products stay put. */
+.brand-site:has(.cscene) { overflow-x: clip; } /* "hidden" would make .brand-site a scroll container and break sticky */
+
+.cscene {
+  --u: min(calc(100vw / 1440), calc(100svh / 900));
+  --ink: #f3ede2; --gold: #d9b86f; --night: #070d09;
+  position: relative; background: var(--night); color: var(--ink);
+}
+.cscene-track { position: relative; }
+.cscene.is-scroll .cscene-track { height: 420svh; }
+.cscene-stage { position: relative; height: 100svh; min-height: 560px; overflow: hidden; background: var(--night); }
+.cscene.is-scroll .cscene-stage { position: sticky; top: 0; }
+.cscene-unit { position: absolute; width: calc(1000 * var(--u)); height: 0; visibility: hidden; }
+
+/* ---------- the set ---------- */
+.cscene-set { position: absolute; inset: 0; perspective: calc(1200 * var(--u)); perspective-origin: 50% 50%; }
+.cscene-world { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform; }
+.cscene-world * { transform-style: preserve-3d; }
+
+.cscene-wall {
+  position: absolute; left: calc(-2400 * var(--u)); top: calc(-1500 * var(--u)); width: calc(4800 * var(--u)); height: calc(2300 * var(--u));
+  transform: translateZ(calc(-700 * var(--u)));
+  background:
+    radial-gradient(ellipse 18% 26% at 52% 62%, rgb(214 170 92 / 0.22), transparent 70%),
+    radial-gradient(ellipse 42% 48% at 52% 60%, #34452c 0%, #1d2a1d 46%, #0b130d 82%);
+}
+.cscene-wall i {
+  position: absolute; left: 41%; top: 36%; width: calc(1300 * var(--u)); height: calc(1490 * var(--u));
+  background: url("/collection/scene/leaf-shadow.webp") center / contain no-repeat; opacity: 0.6;
+}
+.cscene-floor {
+  position: absolute; left: calc(-2400 * var(--u)); top: calc(330 * var(--u)); width: calc(4800 * var(--u)); height: calc(1000 * var(--u));
+  transform-origin: top; transform: translateZ(calc(300 * var(--u))) rotateX(-90deg);
+  background:
+    radial-gradient(ellipse 22% 40% at 52% 72%, rgb(220 180 110 / 0.16), transparent 70%),
+    linear-gradient(180deg, #080d09 0%, #1b2219 70%, #262b20 100%);
+}
+
+/* A station: plinth (box of travertine) + product standing on its top face. */
+.cscene-station { position: absolute; left: 0; top: 0; transform: translate3d(calc(var(--x) * var(--u)), calc(var(--top) * var(--u)), calc(var(--z) * var(--u))); }
+.cscene-plinth > div { position: absolute; left: calc(var(--w) * var(--u) / -2); top: 0; width: calc(var(--w) * var(--u)); }
+.cscene-plinth-front {
+  height: calc(var(--h) * var(--u));
+  background: linear-gradient(180deg, rgb(10 16 11 / 0.3), rgb(4 8 5 / 0.82)), url("/collection/scene/travertine.webp") center / cover;
+}
+.cscene-plinth-top {
+  height: calc(var(--d) * var(--u)); transform-origin: top; transform: rotateX(-90deg);
+  background: linear-gradient(180deg, rgb(255 228 180 / 0.1), rgb(4 8 5 / 0.6)), url("/collection/scene/travertine.webp") center / cover;
+}
+.cscene-plinth-top i {
+  position: absolute; left: 50%; top: calc(var(--pz) * 100%); width: calc(var(--pw) * var(--u) * 1.3); height: calc(var(--d) * var(--u) * 0.5);
+  transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgb(2 5 3 / 0.75), rgb(2 5 3 / 0.3) 60%, transparent);
+}
+.cscene-plinth .cscene-plinth-left, .cscene-plinth .cscene-plinth-right {
+  width: calc(var(--d) * var(--u)); height: calc(var(--h) * var(--u));
+  background: linear-gradient(90deg, rgb(4 8 5 / 0.78), rgb(4 8 5 / 0.55)), url("/collection/scene/travertine.webp") center / cover;
+}
+.cscene-plinth .cscene-plinth-left { transform-origin: left; transform: rotateY(90deg); }
+.cscene-plinth .cscene-plinth-right { left: calc(var(--w) * var(--u) / 2 - var(--d) * var(--u)); transform-origin: right; transform: rotateY(-90deg); }
+
+.cscene-product {
+  position: absolute; left: 0; top: 0; width: calc(var(--pw) * var(--u)); padding: 0; border: 0; background: none; cursor: pointer;
+  transform: translate3d(-50%, calc(-100% + 2 * var(--u)), calc(var(--d) * var(--pz) * -1 * var(--u)));
+  filter: brightness(0.5) saturate(0.8); transition: filter 0.9s ease;
+}
+/* Hit areas follow the visible product, not the image box: a transparent corner of a
+   product further back must never swallow clicks meant for the one in front. */
+.cscene-product, .cscene-product img { pointer-events: none; }
+.cscene-hit { position: absolute; inset: 0; pointer-events: auto; }
+.cscene-bottle .cscene-hit { clip-path: polygon(30% 0, 70% 0, 72% 20%, 100% 31%, 100% 100%, 0 100%, 0 31%, 28% 20%); }
+.cscene-giftbox .cscene-hit { clip-path: polygon(20.1% 0, 99.5% 0, 98.4% 10.1%, 94.5% 36.1%, 93.2% 90.7%, 86.3% 99.8%, 1.4% 92.3%, 0.5% 81.5%, 18.4% 31.1%); } /* = cut-out polygon */
+.cscene-product img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+.cscene[data-beat="0"] .cscene-product, .cscene-station.is-focus .cscene-product { filter: brightness(1) saturate(1); }
+.cscene-product:hover, .cscene-product:focus-visible { filter: brightness(1.06) saturate(1.04) drop-shadow(0 0 calc(22 * var(--u)) rgb(217 184 111 / 0.38)); }
+.cscene-product:focus-visible { outline: 2px solid var(--gold); outline-offset: 6px; }
+
+/* Geometry, desktop (scene units; floor at y = 330). */
+.cscene-tin     { --x: -40; --top: 160; --z: -120; --w: 400; --h: 170; --d: 260; --pw: 330; --pz: 0.5; }
+.cscene-bottle  { --x: 230; --top: 80;  --z: 40;   --w: 240; --h: 250; --d: 200; --pw: 150; --pz: 0.45; }
+.cscene-giftbox { --x: 540; --top: 220; --z: -260; --w: 600; --h: 110; --d: 420; --pw: 540; --pz: 0.55; }
+
+/* Warm key light from the right, a vignette, and a legibility scrim behind the copy. */
+.cscene-light {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 75% at 60% 45%, transparent 55%, rgb(3 6 4 / 0.7) 100%),
+    linear-gradient(0deg, rgb(5 10 6 / 0.8) 0%, transparent 22%);
+}
+.cscene-light::before, .cscene-light::after { content: ""; position: absolute; inset: 0; transition: opacity 0.8s ease; }
+.cscene-light::before { background: linear-gradient(90deg, rgb(5 10 6 / 0.88) 0%, rgb(5 10 6 / 0.55) 28%, transparent 52%); }
+.cscene-light::after { background: linear-gradient(270deg, rgb(5 10 6 / 0.88) 0%, rgb(5 10 6 / 0.55) 28%, transparent 52%); opacity: 0; }
+/* Gift box beat: the box is framed left, so the copy and its scrim move right. */
+.cscene[data-beat="3"] .cscene-light::before { opacity: 0; }
+.cscene[data-beat="3"] .cscene-light::after { opacity: 1; }
+@media (min-width: 701px) { .cscene[data-beat="3"] .cscene-copy { left: auto; right: max(clamp(24px, 6vw, 96px), 150px); } }
+
+/* ---------- copy ---------- */
+.cscene-copy { position: absolute; z-index: 3; left: clamp(24px, 6vw, 96px); top: 50%; transform: translateY(-50%); width: min(470px, 38vw); display: grid; }
+.cscene-copy > * { grid-area: 1 / 1; }
+/* Copy floats over the set: only its links take clicks, so products underneath stay clickable. */
+.cscene-copy { pointer-events: none; }
+.cscene-copy a, .cscene-copy button { pointer-events: auto; }
+.cscene-intro { opacity: 0; visibility: hidden; transition: opacity 0.5s ease, visibility 0s 0.5s; }
+.cscene-intro.is-shown { opacity: 1; visibility: visible; transition: opacity 0.6s ease 0.1s; }
+.cscene-intro > p:first-child, .cscene-kicker { margin: 0; font: 600 11px/1.6 Arial, sans-serif; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); }
+.cscene-intro h1 { margin: 18px 0; font: 400 clamp(3rem, 5.4vw, 5.8rem)/0.92 "Instrument Serif", Georgia, serif; letter-spacing: -0.025em; color: #fff; }
+.cscene-intro h1 em { color: #efd69b; }
+.cscene-intro > span { display: block; font: 17px/1.6 Georgia, serif; color: rgb(243 237 226 / 0.86); }
+.cscene-intro nav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.cscene-intro nav a { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 11px 16px; border: 1px solid #cfae65; color: var(--ink); }
+.cscene-intro nav a:first-child { background: #cfae65; color: #11170f; }
+.cscene-hint { display: flex; align-items: center; gap: 8px; margin: 26px 0 0; font: 600 10px/1.4 Arial, sans-serif; letter-spacing: 0.2em; text-transform: uppercase; color: rgb(243 237 226 / 0.6); }
+.cscene.is-static .cscene-hint { display: none; }
+
+.cscene-detail { animation: cscene-in 0.7s ease both; }
+.cscene-detail h2 { margin: 14px 0 10px; font: 400 clamp(2.6rem, 4.4vw, 4.4rem)/0.95 "Instrument Serif", Georgia, serif; color: #fff; }
+.cscene-line { margin: 0; font: 17px/1.6 Georgia, serif; color: rgb(243 237 226 / 0.86); }
+.cscene-detail ul { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 20px 0 0; padding: 0; }
+.cscene-detail li { padding: 6px 11px; border: 1px solid rgb(217 184 111 / 0.45); font: 600 11px/1.3 Arial, sans-serif; letter-spacing: 0.08em; }
+.cscene-cta { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; margin-top: 22px; padding: 11px 16px; background: #cfae65; color: #11170f; font-weight: 600; }
+.cscene-cta:hover { background: #e2c47d; }
+.cscene-note { margin: 18px 0 0; font: 12px/1.55 Arial, sans-serif; color: rgb(243 237 226 / 0.62); }
+.cscene-intro nav a:focus-visible, .cscene-cta:focus-visible, .cscene-nav button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+@keyframes cscene-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ---------- chapter rail ---------- */
+.cscene-nav { position: absolute; z-index: 3; left: 0; right: 0; bottom: clamp(16px, 3vh, 30px); width: min(100%, 1440px); margin-inline: auto; padding: 0 clamp(24px, 5vw, 80px); }
+@media (min-width: 701px) { .cscene-nav { padding-right: max(clamp(24px, 5vw, 80px), 150px); } } /* clear the "Yardım" button */
+.cscene-nav ol { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; list-style: none; margin: 0; padding: 0; }
+.cscene-nav button {
+  width: 100%; min-height: 44px; padding: 12px 0 0; border: 0; border-top: 2px solid rgb(243 237 226 / 0.24); background: none; text-align: left; cursor: pointer;
+  font: 600 10px/1.4 Arial, sans-serif; letter-spacing: 0.2em; text-transform: uppercase; color: rgb(243 237 226 / 0.6); transition: color 0.3s, border-color 0.3s;
+}
+.cscene-nav button span { color: var(--gold); margin-right: 6px; }
+.cscene-nav li.is-active button, .cscene-nav button:hover { color: var(--ink); border-top-color: var(--gold); }
+
+/* ---------- narrow screens: set above, copy below ---------- */
+@media (max-width: 700px) {
+  .cscene { --u: min(calc(100vw / 600), calc(100svh / 900)); }
+  .cscene.is-scroll .cscene-track { height: 380svh; }
+  .cscene-tin     { --x: -150; --top: 180; --z: -60;  --w: 260; --h: 150; --d: 200; --pw: 220; --pz: 0.5; }
+  .cscene-bottle  { --x: 40;   --top: 110; --z: 60;   --w: 170; --h: 220; --d: 160; --pw: 115; --pz: 0.45; }
+  .cscene-giftbox { --x: 190;  --top: 230; --z: -300; --w: 420; --h: 100; --d: 320; --pw: 380; --pz: 0.55; }
+  .cscene-light { background: linear-gradient(0deg, rgb(5 10 6 / 0.94) 0%, rgb(5 10 6 / 0.82) 34%, transparent 58%), radial-gradient(ellipse 90% 70% at 50% 30%, transparent 50%, rgb(3 6 4 / 0.7) 100%); }
+  .cscene-light::before, .cscene-light::after { display: none; }
+  .cscene-copy { left: 22px; right: 22px; top: auto; bottom: 86px; transform: none; width: auto; }
+  .cscene-intro h1 { font-size: clamp(2.5rem, 11vw, 3.4rem); margin: 12px 0; }
+  .cscene-intro > span, .cscene-line { font-size: 15px; }
+  .cscene-intro nav { margin-top: 16px; }
+  .cscene-intro nav a { padding: 9px 13px; }
+  .cscene-hint { margin-top: 14px; }
+  .cscene-detail h2 { font-size: 2.4rem; margin: 10px 0 6px; }
+  .cscene-detail ul { margin-top: 12px; }
+  .cscene-cta { margin-top: 14px; }
+  .cscene-note { margin-top: 10px; font-size: 11px; }
+  .cscene-nav { padding-inline: 22px 128px; } /* the "Yardım" button sits bottom-right */
+  .cscene-nav ol { gap: 6px; }
+  .cscene-nav button { letter-spacing: 0.1em; font-size: 9px; }
+  .cscene-nav li:not(.is-active) button { font-size: 0; }
+  .cscene-nav li:not(.is-active) button span { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cscene-product, .cscene-intro, .cscene-nav button { transition: none; }
+  .cscene-detail { animation: none; }
+}

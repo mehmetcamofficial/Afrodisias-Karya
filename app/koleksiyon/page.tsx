@@ -6,6 +6,8 @@ import { BrandShell } from "../components/site-shell";
 import { ProductVisual, productImageNote } from "../components/product-visual";
 import { CollectionCards } from "../components/showcase";
 import { publishedCollections } from "../../lib/showcase-db";
+import { CollectionScene } from "../components/collection-scene";
+import { collectionSceneProducts } from "../../lib/collection-scene";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -32,15 +34,15 @@ export default async function CollectionPage() {
   });
 
   return <BrandShell>
-    <section className="collection-route-hero">
+    <CollectionScene products={collectionSceneProducts(catalogue, published)}>
       <p>ALTIN DAL · KOLEKSİYON</p>
       <h1>Bir toprağın<br/><em>farklı ifadeleri.</em></h1>
-      <span>Cam şişeler, özel setler, aile boyları ve Ataeymir lezzetleri. Koleksiyonu keşfedin; satış durumu her üründe ayrı değerlendirilir.</span>
-      <nav className="store-hero-actions" aria-label="Koleksiyonu keşfet">
+      <span>Cam şişe, mat teneke ve hediye kutusu; aynı topraktan üç ifade. Satış durumu her üründe ayrı değerlendirilir.</span>
+      <nav aria-label="Koleksiyonu keşfet">
         <a href="#koleksiyonlar">Serileri keşfet <ArrowRight size={16} aria-hidden="true"/></a>
         <Link href="/magaza#urunler">Yayındaki ürünler</Link>
       </nav>
-    </section>
+    </CollectionScene>
     {curated.length > 0 && <section className="cms-collections" aria-labelledby="curated-title">
       <header><p className="eyebrow">KÜRATÖRLÜ KOLEKSİYONLAR</p><h2 id="curated-title">Seçkiler</h2></header>
       <CollectionCards collections={curated} locale="tr"/>
