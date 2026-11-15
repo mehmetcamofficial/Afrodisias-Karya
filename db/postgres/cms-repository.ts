@@ -222,7 +222,7 @@ export async function listAuditLogs(db: SqlDriver, opts: { entityId?: string; en
   return result.rows;
 }
 
-export type AdminUserRow = { email: string; role: "owner" | "editor" | "viewer"; disabled: boolean; createdBy: string; createdAt: number };
+export type AdminUserRow = { email: string; role: "owner" | "editor" | "viewer" | "accountant"; disabled: boolean; createdBy: string; createdAt: number };
 
 export async function listAdminUsers(db: SqlDriver): Promise<AdminUserRow[]> {
   return (await db.query<AdminUserRow>(
@@ -230,7 +230,7 @@ export async function listAdminUsers(db: SqlDriver): Promise<AdminUserRow[]> {
 }
 
 /** Grant/change/disable an editor or viewer, with an audit row, in one statement. Owners come only from ADMIN_EMAILS. */
-export async function upsertAdminUser(db: SqlDriver, email: string, role: "editor" | "viewer", disabled: boolean, actor: string, now: number) {
+export async function upsertAdminUser(db: SqlDriver, email: string, role: "editor" | "viewer" | "accountant", disabled: boolean, actor: string, now: number) {
   const result = await db.query<{ email: string }>(
     `WITH changed AS (
        INSERT INTO admin_users(email, role, disabled, created_by, created_at) VALUES (lower($1), $2, $3, $4, $5)
@@ -248,8 +248,8 @@ export async function upsertAdminUser(db: SqlDriver, email: string, role: "edito
 }
 
 /** Role for a non-bootstrap admin, or null. */
-export async function findAdminRole(db: SqlDriver, email: string): Promise<"owner" | "editor" | "viewer" | null> {
-  const result = await db.query<{ role: "owner" | "editor" | "viewer" }>(
+export async function findAdminRole(db: SqlDriver, email: string): Promise<"owner" | "editor" | "viewer" | "accountant" | null> {
+  const result = await db.query<{ role: "owner" | "editor" | "viewer" | "accountant" }>(
     "SELECT role FROM admin_users WHERE email = $1 AND disabled = false", [email.trim().toLowerCase()],
   );
   return result.rows[0]?.role ?? null;

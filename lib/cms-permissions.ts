@@ -9,7 +9,7 @@
  *
  * AI never holds a role: AI output is always a suggestion an editor saves.
  */
-export type Role = "owner" | "editor" | "viewer";
+export type Role = "owner" | "editor" | "viewer" | "accountant";
 
 export const PERMISSIONS = [
   "cms.read",
@@ -26,6 +26,8 @@ export const PERMISSIONS = [
   "inquiry.manage",
   "users.manage",
   "ai.use",
+  "finance.read",
+  "finance.write",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -33,6 +35,8 @@ const grants: Record<Role, readonly Permission[]> = {
   owner: PERMISSIONS,
   editor: ["cms.read", "product.write", "product.submit", "product.archive", "blog.write", "inquiry.manage", "ai.use"],
   viewer: ["cms.read"],
+  // Finance-only role: no CMS rights; finance.write records entries but cannot change users or publish.
+  accountant: ["finance.read", "finance.write"],
 };
 
 export function can(role: Role | null | undefined, permission: Permission): boolean {
@@ -40,5 +44,5 @@ export function can(role: Role | null | undefined, permission: Permission): bool
 }
 
 export function isRole(value: unknown): value is Role {
-  return value === "owner" || value === "editor" || value === "viewer";
+  return value === "owner" || value === "editor" || value === "viewer" || value === "accountant";
 }

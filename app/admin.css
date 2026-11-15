@@ -139,3 +139,23 @@
 .showcase-order li span { flex: 1; }
 .showcase-order button { min-width: 36px; min-height: 36px; border: 1px solid rgb(36 37 33 / 0.2); background: #fff; border-radius: 6px; cursor: pointer; }
 .showcase-media-row { display: grid; gap: 6px; padding: 10px; border: 1px dashed rgb(36 37 33 / 0.25); border-radius: 8px; margin-bottom: 8px; }
+.finance-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.finance-tabs a { min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border: 1px solid rgb(36 37 33 / 0.18); border-radius: 999px; background: #fff; font-size: 14px; }
+.finance-tabs a[aria-current="page"] { background: #142219; color: #fff; border-color: #142219; }
+.finance-note { font-size: 13px; }
+.finance-empty { padding: 28px; text-align: left; }
+.finance-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.finance-list li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgb(36 37 33 / 0.1); }
+.finance-amount { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.finance-table tr.is-voided td, .admin-data-table tr.is-voided td { opacity: 0.55; text-decoration: line-through; }
+.finance-table tr.is-reversal td { color: #8a3b2f; }
+.finance-fx { border: 1px dashed rgb(36 37 33 / 0.25); padding: 10px; border-radius: 8px; }
+.finance-pl th { text-align: left; font-weight: 400; }
+.finance-pl td { text-align: right; font-variant-numeric: tabular-nums; }
+.finance-pl tr.is-total th, .finance-pl tr.is-total td { font-weight: 600; border-top: 1px solid rgb(36 37 33 / 0.2); }
+.finance-pl tr.is-grand th, .finance-pl tr.is-grand td { font-weight: 700; font-size: 1.1em; border-top: 2px solid #142219; }
+.is-negative { color: #9a3b2f; }
+/* Long option labels (e.g. order + customer + outstanding) must not widen the page on phones. */
+.finance-form label, .cms-form.inline label { min-width: 0; max-width: 100%; }
+.finance-form select, .finance-form input, .cms-form.inline select, .cms-form.inline input { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
+.finance-form fieldset { min-width: 0; }

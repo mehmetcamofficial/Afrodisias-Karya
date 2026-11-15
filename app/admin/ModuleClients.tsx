@@ -14,9 +14,9 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
 export function UserManager({ initial, owners }: { initial: AdminUserRow[]; owners: string[] }) {
   const [users, setUsers] = useState(initial);
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"editor" | "viewer">("editor");
+  const [role, setRole] = useState<"editor" | "viewer" | "accountant">("editor");
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
-  const save = async (target: string, nextRole: "editor" | "viewer", disabled: boolean) => {
+  const save = async (target: string, nextRole: "editor" | "viewer" | "accountant", disabled: boolean) => {
     setMessage(null);
     try {
       await api("/api/admin/cms/users", { method: "POST", body: JSON.stringify({ email: target, role: nextRole, disabled }) });
@@ -36,7 +36,7 @@ export function UserManager({ initial, owners }: { initial: AdminUserRow[]; owne
         <div className="admin-card-head"><div><small>EDİTÖR & İZLEYİCİ</small><h2 id="users-title">Ekip</h2></div><span>{users.length} hesap</span></div>
         <form className="cms-form inline" onSubmit={(event) => { event.preventDefault(); void save(email, role, false); }}>
           <label>E-posta<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
-          <label>Rol<select value={role} onChange={(event) => setRole(event.target.value as "editor" | "viewer")}><option value="editor">Editör</option><option value="viewer">İzleyici</option></select></label>
+          <label>Rol<select value={role} onChange={(event) => setRole(event.target.value as "editor" | "viewer" | "accountant")}><option value="editor">Editör</option><option value="viewer">İzleyici</option><option value="accountant">Muhasebe</option></select></label>
           <button type="submit" className="cms-primary">Ekle / güncelle</button>
         </form>
         {message && <p className={`cms-notice is-${message.tone}`} role={message.tone === "error" ? "alert" : "status"}>{message.text}</p>}
@@ -46,12 +46,12 @@ export function UserManager({ initial, owners }: { initial: AdminUserRow[]; owne
             <tr key={user.email}>
               <td>{user.email}</td>
               <td>{user.role === "owner" ? "Sahip" : (
-                <select aria-label={`${user.email} rolü`} value={user.role} onChange={(event) => void save(user.email, event.target.value as "editor" | "viewer", user.disabled)}>
-                  <option value="editor">Editör</option><option value="viewer">İzleyici</option>
+                <select aria-label={`${user.email} rolü`} value={user.role} onChange={(event) => void save(user.email, event.target.value as "editor" | "viewer" | "accountant", user.disabled)}>
+                  <option value="editor">Editör</option><option value="viewer">İzleyici</option><option value="accountant">Muhasebe</option>
                 </select>)}</td>
               <td>{user.disabled ? "Devre dışı" : "Etkin"}</td>
               <td>{user.createdBy}</td>
-              <td>{user.role !== "owner" && <button type="button" className="admin-action" onClick={() => void save(user.email, user.role as "editor" | "viewer", !user.disabled)}>{user.disabled ? "Etkinleştir" : "Devre dışı bırak"}</button>}</td>
+              <td>{user.role !== "owner" && <button type="button" className="admin-action" onClick={() => void save(user.email, user.role as "editor" | "viewer" | "accountant", !user.disabled)}>{user.disabled ? "Etkinleştir" : "Devre dışı bırak"}</button>}</td>
             </tr>))}</tbody>
         </table></div>
       </section>

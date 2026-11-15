@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpenText, Boxes, Compass, Layers, ChevronRight, ExternalLink, Image as ImageIcon, Inbox, LayoutDashboard, PackageCheck, QrCode, ScrollText, Search, Settings, Sparkles, Users } from "lucide-react";
+import { BookOpenText, Boxes, Wallet, Compass, Layers, ChevronRight, ExternalLink, Image as ImageIcon, Inbox, LayoutDashboard, PackageCheck, QrCode, ScrollText, Search, Settings, Sparkles, Users } from "lucide-react";
 
 const links = [
   ["Genel Bakış", "/admin", LayoutDashboard],
@@ -13,6 +13,7 @@ const links = [
   ["Koleksiyonlar", "/admin/koleksiyonlar", Layers],
   ["Deneyim", "/admin/deneyim", Compass],
   ["Talepler", "/admin/talepler", Inbox],
+  ["Finans", "/admin/finans", Wallet],
 ] as const;
 const system = [
   ["Medya", "/admin/medya", ImageIcon],
@@ -31,7 +32,7 @@ export function AdminShell({ children, title, kicker }: { children: React.ReactN
         <Link className="admin-brand" href="/admin"><span>AD</span><div><b>ALTIN DAL</b><small>YÖNETİM MERKEZİ</small></div></Link>
         <nav aria-label="Yönetim navigasyonu">
           <small>OPERASYON</small>
-          {links.map(([label, href, Icon]) => <Link key={href} href={href} className={path === href ? "active" : ""} aria-current={path === href ? "page" : undefined}><Icon size={18}/><span>{label}</span><ChevronRight size={14}/></Link>)}
+          {links.map(([label, href, Icon]) => <Link key={href} href={href} className={path === href || (href !== "/admin" && path?.startsWith(href + "/")) ? "active" : ""} aria-current={path === href ? "page" : undefined}><Icon size={18}/><span>{label}</span><ChevronRight size={14}/></Link>)}
           <small>SİSTEM</small>
           {system.map(([label, href, Icon]) => <Link key={href} href={href} className={path === href ? "active" : ""} aria-current={path === href ? "page" : undefined}><Icon size={18}/><span>{label}</span><ChevronRight size={14}/></Link>)}
         </nav>

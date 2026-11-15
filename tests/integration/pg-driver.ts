@@ -14,7 +14,7 @@ export function createDriver(pool: pg.Pool): SqlDriver {
   };
 }
 
-const MIGRATIONS = ["0001_initial.sql", "preview_draft_catalog_seed.sql", "0002_publish_audit.sql", "0003_cms.sql", "0004_blog_cms.sql", "0005_collections_experience.sql"];
+const MIGRATIONS = ["0001_initial.sql", "preview_draft_catalog_seed.sql", "0002_publish_audit.sql", "0003_cms.sql", "0004_blog_cms.sql", "0005_collections_experience.sql", "0006_finance.sql"];
 
 /** Rebuilds a clean schema. Refuses anything that does not look like a throwaway test DB. */
 export async function resetSchema(pool: pg.Pool) {

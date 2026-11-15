@@ -14,7 +14,7 @@ export async function GET() {
   try { return NextResponse.json({ users: await listAdminUsers(requirePostgres()) }); } catch (error) { return cmsErrorResponse(error); }
 }
 
-const schema = z.object({ email: z.string().trim().toLowerCase().email().max(254), role: z.enum(["editor", "viewer"]), disabled: z.boolean().default(false) });
+const schema = z.object({ email: z.string().trim().toLowerCase().email().max(254), role: z.enum(["editor", "viewer", "accountant"]), disabled: z.boolean().default(false) });
 
 /** Owner-only. Cannot touch ADMIN_EMAILS owners or the caller's own account. */
 export async function POST(request: Request) {
