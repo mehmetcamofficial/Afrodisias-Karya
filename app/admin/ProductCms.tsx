@@ -5,6 +5,7 @@ import { Archive, Copy, Eye, History, Plus, RefreshCw, RotateCcw, Save, Send, Sh
 import { useCallback, useMemo, useState } from "react";
 import type { CmsProduct, ProductStatus, AuditRow, RevisionRow } from "../../db/postgres/cms-repository";
 import { can, type Role } from "../../lib/cms-permissions";
+import { AiAssist } from "./AiAssist";
 
 /**
  * Product CMS. Every button calls the real API; success is only shown after
@@ -187,6 +188,8 @@ export function ProductCms({ initialProducts, role, publishingEnabled, images }:
             {editable && can(role, "product.write") && <button type="submit" className="cms-primary" disabled={busy}><Save size={16} aria-hidden="true" /> {selected === "new" ? "Taslak olarak oluştur" : "Değişiklikleri kaydet"}</button>}
             {selected !== "new" && editable && <small className="cms-hint">Kaydetmek incelenmiş/onaylı ürünü yeniden taslağa alır.</small>}
           </form>
+
+          {can(role, "ai.use") && <AiAssist form={form} productId={detail?.product.id} disabled={!editable || !can(role, "product.write")} onApply={(patch) => setForm({ ...form, ...patch })} />}
 
           {detail && (
             <div className="cms-workflow">

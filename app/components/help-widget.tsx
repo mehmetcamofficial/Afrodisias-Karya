@@ -15,7 +15,10 @@ import { faqs } from "../../lib/faq";
 export function HelpWidget({ config }: { config: ContactConfig }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<"faq" | "form">("faq");
+  const [tab, setTab] = useState<"faq" | "ask" | "form">("faq");
+  const [question, setQuestion] = useState("");
+  const [reply, setReply] = useState<{ mode: "ai" | "search"; answer: string; sources: Array<{ id: string; title: string; href?: string }>; handoff: boolean } | { error: string } | null>(null);
+  const [asking, setAsking] = useState(false);
   const [state, setState] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [sending, setSending] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -39,6 +42,19 @@ export function HelpWidget({ config }: { config: ContactConfig }) {
   }, [open]);
 
   if (pathname?.startsWith("/admin")) return null;
+
+  const ask = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setAsking(true); setReply(null);
+    try {
+      const response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question }) });
+      type Reply = { mode: "ai" | "search"; answer: string; sources: Array<{ id: string; title: string; href?: string }>; handoff: boolean };
+      const body = (await response.json().catch(() => ({ error: "Yanıt alınamadı." }))) as Reply & { error?: string };
+      setReply(response.ok && !body.error ? body : { error: body.error ?? "Yanıt alınamadı." });
+    } catch {
+      setReply({ error: "Bağlantı sorunu nedeniyle yanıt alınamadı." });
+    } finally { setAsking(false); }
+  };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -72,6 +88,7 @@ export function HelpWidget({ config }: { config: ContactConfig }) {
             </header>
             <div className="help-tabs" role="tablist" aria-label="Yardım seçenekleri">
               <button role="tab" type="button" aria-selected={tab === "faq"} onClick={() => setTab("faq")}>Sık sorulanlar</button>
+              <button role="tab" type="button" aria-selected={tab === "ask"} onClick={() => setTab("ask")}>Soru sorun</button>
               <button role="tab" type="button" aria-selected={tab === "form"} onClick={() => setTab("form")}>Bize yazın</button>
             </div>
             {tab === "faq" ? (
@@ -83,6 +100,22 @@ export function HelpWidget({ config }: { config: ContactConfig }) {
                     {item.link && <Link href={item.link.href} onClick={() => setOpen(false)}>{item.link.label} →</Link>}
                   </details>
                 ))}
+              </div>
+            ) : tab === "ask" ? (
+              <div className="help-ask" role="tabpanel">
+                <form onSubmit={ask}>
+                  <label>Sorunuz<textarea value={question} onChange={(event) => setQuestion(event.target.value)} required minLength={3} maxLength={500} rows={2} placeholder="Örn. Zeytinyağı nasıl saklanır?" /></label>
+                  <button type="submit" disabled={asking}>{asking ? "Yanıtlanıyor…" : "Sor"}</button>
+                </form>
+                {reply && ("error" in reply
+                  ? <p className="help-state is-error" role="alert">{reply.error}</p>
+                  : <div className="help-answer" role="status">
+                      <small>{reply.mode === "ai" ? "Yapay zekâ yanıtı · yalnızca site bilgilerine dayanır, hata içerebilir" : "Sitedeki bilgilerden"}</small>
+                      <p>{reply.answer}</p>
+                      {reply.sources.length > 0 && <ul>{reply.sources.map((source) => <li key={source.id}>{source.href ? <Link href={source.href} onClick={() => setOpen(false)}>{source.title}</Link> : source.title}</li>)}</ul>}
+                      {reply.handoff && <button type="button" className="help-link" onClick={() => setTab("form")}>Ekibimize yazın →</button>}
+                    </div>)}
+                <p className="help-fineprint">Sorularınız yanıt üretmek için işlenir, kaydedilmez. Kişisel bilgi paylaşmayın.</p>
               </div>
             ) : (
               <form className="help-form" role="tabpanel" onSubmit={submit}>

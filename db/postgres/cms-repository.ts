@@ -246,3 +246,16 @@ export async function setInquiryStatus(db: SqlDriver, id: string, status: (typeo
   if (!result.rows[0]) throw new CmsError("not_found", "Talep bulunamadı");
   return result.rows[0];
 }
+
+/** AI usage is recorded in the append-only audit log (no prompt text, only task/model/token counts). */
+export async function countAiUsageSince(db: SqlDriver, since: number) {
+  const result = await db.query<{ n: number }>(`SELECT count(*)::int AS n FROM audit_logs WHERE action = 'ai.draft' AND created_at > $1`, [since]);
+  return result.rows[0]?.n ?? 0;
+}
+
+export async function recordAiUsage(db: SqlDriver, actor: string, detail: { task: string; model: string; inputTokens: number; outputTokens: number }, now: number) {
+  await db.query(
+    `INSERT INTO audit_logs(actor_email, action, entity_type, entity_id, detail, created_at) VALUES ($1, 'ai.draft', 'ai', $2, $3::jsonb, $4)`,
+    [actor, detail.task, JSON.stringify(detail), now],
+  );
+}

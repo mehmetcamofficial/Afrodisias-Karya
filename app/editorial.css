@@ -298,3 +298,14 @@ body:has(.sticky-purchase.is-visible) .help-fab { bottom: 84px; }
 .help-channels { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgb(36 37 33 / 0.14); }
 .help-channels a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid rgb(36 37 33 / 0.25); font: 500 var(--ad-text-sm) var(--ad-font-ui); }
 @media print { .help-fab { display: none; } }
+.help-ask form { display: grid; gap: 8px; }
+.help-ask label { display: grid; gap: 6px; font: 600 var(--ad-text-sm) var(--ad-font-ui); }
+.help-ask textarea { font: inherit; font-weight: 400; padding: 10px; border: 1px solid rgb(36 37 33 / 0.25); border-radius: 8px; }
+.help-ask button[type="submit"] { justify-self: start; min-height: 44px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--ad-ink, #242521); color: #fff; cursor: pointer; }
+.help-answer { margin-top: 12px; padding: 12px; border-radius: 10px; background: rgb(36 37 33 / 0.05); }
+.help-answer small { font: 600 var(--ad-text-xs) var(--ad-font-ui); letter-spacing: 0.04em; color: var(--ad-gold-ink); }
+.help-answer p { margin: 6px 0; }
+.help-answer ul { margin: 6px 0 0; padding-left: 18px; }
+.help-answer a, .help-link { color: inherit; text-decoration: underline; min-height: 44px; }
+.help-link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
+.help-fineprint { margin-top: 10px; font-size: var(--ad-text-xs); opacity: 0.75; }

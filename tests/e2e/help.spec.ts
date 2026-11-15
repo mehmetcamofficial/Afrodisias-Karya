@@ -43,6 +43,17 @@ test.describe("help widget", () => {
     await expect(page.getByRole("alert")).toContainText("kaydedilmedi");
     expect(posted).toBe(true);
   });
+  test("assistant answers from site content and labels the answer source", async ({ page }) => {
+    await page.goto("/");
+    await openHelp(page);
+    await page.getByRole("tab", { name: "Soru sorun" }).click();
+    await page.getByLabel("Sorunuz").fill("Zeytinyağı nasıl saklanır?");
+    await page.getByRole("button", { name: "Sor", exact: true }).click();
+    const answer = page.locator(".help-answer");
+    await expect(answer).toContainText(/serin|karanlık/i);
+    await expect(answer).toContainText(/Sitedeki bilgilerden|Yapay zekâ yanıtı/);
+  });
+
   // Hidden on /admin via usePathname; not exercised here because the vinext dev server
   // cannot render admin pages (Clerk require) and its error overlay leaks into parallel tests.
 });

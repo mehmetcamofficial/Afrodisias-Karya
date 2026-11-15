@@ -18,6 +18,7 @@
     "test:db": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
     "@base-ui/react": "^1.7.0",
     "@clerk/nextjs": "7.9.24",
     "@hookform/resolvers": "^5.7.1",

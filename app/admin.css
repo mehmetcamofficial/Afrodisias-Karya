@@ -110,3 +110,12 @@
 .cms-danger p { margin: 0; font: var(--ad-text-sm) / 1.5 var(--ad-font-ui); }
 .cms-danger button { background: #8a2f17; }
 .cms-history ol { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font: var(--ad-text-sm) / 1.4 var(--ad-font-ui); }
+.cms-ai { margin-top: 24px; padding: 16px; border: 1px dashed rgb(36 37 33 / 0.25); border-radius: 12px; display: grid; gap: 10px; }
+.cms-ai h3 { display: flex; gap: 8px; align-items: center; margin: 0; }
+.cms-ai label { display: grid; gap: 6px; }
+.cms-ai textarea { font: inherit; padding: 8px; }
+.cms-ai-result { padding: 12px; border-radius: 10px; background: rgb(36 37 33 / 0.05); display: grid; gap: 8px; }
+.cms-ai-result dl { display: grid; gap: 6px; margin: 0; }
+.cms-ai-result dt { font-weight: 600; font-size: 0.8rem; }
+.cms-ai-result dd { margin: 0; white-space: pre-wrap; }
+.cms-ai-result li.is-error { color: #a32222; }
