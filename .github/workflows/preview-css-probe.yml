@@ -1,0 +1,87 @@
+name: Preview CSS probe (issue #6)
+# After Vercel deploys this PR's commit, read the CSS the Preview actually serves and check computed styles
+# in Chromium, WebKit and Firefox on the real Preview. Vercel protection stays enabled: access uses the
+# automation bypass secret only; without it the job reports BLOCKED and changes nothing. Read-only.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: read
+  pull-requests: read
+
+jobs:
+  probe:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+    timeout-minutes: 30
+    env:
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+    steps:
+      - name: Require the bypass secret (protection is never disabled)
+        id: gate
+        shell: bash
+        run: |
+          if [[ -z "${VERCEL_AUTOMATION_BYPASS_SECRET}" ]]; then
+            echo "::warning::BLOCKED: VERCEL_AUTOMATION_BYPASS_SECRET is not configured; the protected Preview cannot be read. Protection remains enabled."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.ready == 'true'
+      - name: Wait for this commit's Preview and resolve its URL
+        if: steps.gate.outputs.ready == 'true'
+        id: url
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR: ${{ github.event.pull_request.number }}
+        run: echo "preview=$(node scripts/ci/resolve-preview-url.mjs)" >> "$GITHUB_OUTPUT"
+      - name: Inspect the CSS the Preview actually serves
+        if: steps.gate.outputs.ready == 'true'
+        shell: bash
+        env:
+          PREVIEW_URL: ${{ steps.url.outputs.preview }}
+        run: |
+          set -euo pipefail
+          echo "Preview: ${PREVIEW_URL}"
+          H=(-H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" -H "x-vercel-set-bypass-cookie: true")
+          for route in /koleksiyon /deneyim; do
+            html=$(curl -fsS "${H[@]}" "${PREVIEW_URL}${route}")
+            echo "== ${route}"
+            hrefs=$(printf '%s' "$html" | grep -oE '/_next/static/[^"'"'"' \\]*\.css[^"'"'"' \\]*' | sort -u || true)
+            [[ -z "$hrefs" ]] && echo "no stylesheet hrefs found in HTML (first 400 chars follow)" && printf '%s\n' "${html:0:400}"
+            for href in $hrefs; do
+              css=$(curl -fsS "${H[@]}" "${PREVIEW_URL}${href}")
+              printf '%s bytes=%s series-grid=%s explorer-layout=%s tail-globals=%s tail-foundation=%s\n' "$href" "${#css}" \
+                "$(grep -o 'collection-series-grid' <<<"$css" | wc -l)" "$(grep -o 'experience-explorer-layout' <<<"$css" | wc -l)" \
+                "$(grep -o 'css-tail-globals' <<<"$css" | wc -l)" "$(grep -o 'css-tail-foundation' <<<"$css" | wc -l)"
+            done
+          done
+      - uses: pnpm/action-setup@v4
+        if: steps.gate.outputs.ready == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+      - if: steps.gate.outputs.ready == 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Computed styles on the real Preview (Chromium, WebKit, Firefox)
+        if: steps.gate.outputs.ready == 'true'
+        run: pnpm exec playwright test -c playwright.preview.config.ts
+        env:
+          PREVIEW_URL: ${{ steps.url.outputs.preview }}
+          HOME: /root # Firefox refuses to start when $HOME belongs to another user (container default)
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.gate.outputs.ready == 'true'
+        with:
+          name: preview-css-probe-report
+          path: playwright-report-preview/
+          retention-days: 7

@@ -50,6 +50,7 @@ export default async function CollectionPage() {
       <nav className="collection-category-nav" aria-label="Koleksiyon serileri">
         {categories.map((group) => <a href={`#seri-${group.id}`} key={group.id}>{group.title}<ArrowRight size={14} aria-hidden="true"/></a>)}
       </nav>
+      <p className="collection-language"><Link href="/en/collection" hrefLang="en" lang="en">English version</Link></p>
     </section>
     {curated.length > 0 && <section className="cms-collections" aria-labelledby="curated-title">
       <header><p className="eyebrow">KÜRATÖRLÜ KOLEKSİYONLAR</p><h2 id="curated-title">Seçkiler</h2></header>

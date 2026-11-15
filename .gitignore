@@ -52,3 +52,5 @@ next-env.d.ts
 # Playwright
 /test-results/
 /playwright-report/
+.prod-css/
+playwright-report-cross/

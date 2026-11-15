@@ -1,7 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { categorySlugs, readMinutes, type BlogCategory, type BlogPost } from "../../lib/blog";
+import { CoverPhoto } from "./cover-photo";
 
 export { categorySlugs };
 
@@ -53,19 +53,18 @@ export function resolveJournalCover(category: BlogCategory, post?: BlogPost) {
 export function JournalCover({ category, size = "card", post, graphic = false }: { category: BlogCategory; size?: "card" | "hero"; post?: BlogPost; graphic?: boolean }) {
   // `graphic` lets a page that already shows this photograph fall back to the typographic cover.
   const photo = graphic ? undefined : resolveJournalCover(category, post);
+  const graphicCover = (
+    <div className="journal-cover-graphic" aria-hidden="true">
+      <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">{motifs[category]}</svg>
+      <span>{category}</span>
+    </div>
+  );
   return (
     <div className={`journal-cover journal-cover-${categorySlugs[category]} journal-cover-${size}`}>
       {photo ? (
-        <>
-          <Image src={photo.src} alt={photo.alt} fill unoptimized={photo.src.startsWith("https://")} sizes={size === "hero" ? "(max-width: 900px) 100vw, 55vw" : "(max-width: 700px) 100vw, 33vw"} />
-          <span className="journal-photo-label">{photo.credit ? `Fotoğraf: ${photo.credit} · Wikimedia Commons` : "Editoryal kompozisyon"}</span>
-        </>
-      ) : (
-        <div className="journal-cover-graphic" aria-hidden="true">
-          <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">{motifs[category]}</svg>
-          <span>{category}</span>
-        </div>
-      )}
+        <CoverPhoto src={photo.src} alt={photo.alt} sizes={size === "hero" ? "(max-width: 900px) 100vw, 55vw" : "(max-width: 700px) 100vw, 33vw"}
+          label={photo.credit ? `Fotoğraf: ${photo.credit} · Wikimedia Commons` : "Editoryal kompozisyon"} fallback={graphicCover} />
+      ) : graphicCover}
     </div>
   );
 }

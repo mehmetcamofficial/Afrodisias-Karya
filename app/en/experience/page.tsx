@@ -24,8 +24,8 @@ export default async function Page() {
           <nav className="store-hero-actions" aria-label="Language"><Link href="/deneyim" hrefLang="tr" lang="tr">Türkçe</Link></nav>
         </section>
         {english.length
-          ? <ExperienceSections sections={english} locale="en" collections={collections} live={live} />
-          : <p className="cms-collection-empty" role="status">English stories are being prepared. Please see the <Link href="/deneyim" lang="tr">Turkish experience page</Link> for now.</p>}
+          ? <section className="cms-experience-wrap" aria-label="Stories"><ExperienceSections sections={english} locale="en" collections={collections} live={live} /></section>
+          : <section className="cms-experience-wrap"><p className="cms-collection-empty" role="status">English stories are being prepared. Please see the <Link href="/deneyim" lang="tr">Turkish experience page</Link> for now.</p></section>}
       </div>
     </BrandShell>
   );

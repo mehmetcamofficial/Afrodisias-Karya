@@ -18,7 +18,7 @@
   --ad-travertine: #d8ccb8;
   --ad-gold: #b49a60;
   --ad-gold-soft: #e3cf9f;
-  --ad-gold-ink: #7a6331;
+  --ad-gold-ink: #735d2e;
   --ad-charcoal: #242521;
   --ad-muted-ink: #5b6356;
   --ad-danger: #9b2c1f;
@@ -195,7 +195,7 @@
 .admin-forbidden nav a { border-bottom: 1px solid var(--ad-gold); padding-bottom: 4px; }
 
 /* ---------- Footer utility link ---------- */
-.brand-footer .footer-utility { font-size: var(--ad-text-xs); opacity: 0.7; }
+.brand-footer .footer-utility { font-size: var(--ad-text-xs); opacity: 0.85; text-decoration: underline; text-underline-offset: 3px; } /* distinguishable without colour */
 .brand-footer .footer-utility:hover { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -319,3 +319,6 @@
 /* The legacy dark image panel left a dark strip under light product images. */
 .product-page .product-page-image { background: none; min-height: 0; }
 .product-page .product-page-image .product-image-note { color: var(--ad-muted-ink); padding: 10px 0 0; font: var(--ad-text-xs) / 1.5 var(--ad-font-ui); }
+
+/* Parse sentinel: if this is not applied, the browser dropped the end of this stylesheet (see tests/e2e/visual-smoke.spec.ts). */
+:root { --css-tail-foundation: 1; }

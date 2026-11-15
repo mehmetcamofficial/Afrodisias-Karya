@@ -105,8 +105,9 @@ test.describe("collection catalogue below the scene", () => {
     }).toPass({ timeout: 30_000 });
     // PageTransition (AnimatePresence mode="wait") briefly renders the new route inside the exiting wrapper;
     // wait until only the settled wrapper remains before measuring.
-    await expect(page.locator(".route-transition")).toHaveCount(1);
-    await expect(page.locator(".route-transition")).toHaveCSS("opacity", "1");
+    // Generous timeouts: on a cold dev server the first client-side /koleksiyon render compiles on demand.
+    await expect(page.locator(".route-transition")).toHaveCount(1, { timeout: 15_000 });
+    await expect(page.locator(".route-transition")).toHaveCSS("opacity", "1", { timeout: 15_000 });
     await assertCatalogueLayout(page);
     await page.locator("#seri-tin").evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 96, behavior: "instant" }));
     await assertCardMedia(page, "#seri-tin");
