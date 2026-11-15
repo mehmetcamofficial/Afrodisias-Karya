@@ -1,12 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { publishedPosts } from "../lib/blog";
-import { media } from "../lib/media";
 import { groveZones } from "../lib/site-content";
 import { BrandFooter, BrandHeader } from "./components/site-shell";
-import { CinematicMedia } from "./components/cinematic-media";
-import { ImmersiveFilmJourney } from "./components/immersive-film-journey";
+import { HeroFilm } from "./components/hero-film";
 import { JournalCard, resolveJournalCover } from "./components/journal-card";
 import { Reveal } from "./components/reveal";
 import { jsonLdScript, organizationJsonLd } from "../lib/structured-data";
@@ -35,7 +33,7 @@ export default function Home() {
   const journal = publishedPosts.slice(0, 3);
   // Photographs already used above on this page; a journal card whose cover
   // would repeat one (or repeat another card) shows its typographic cover.
-  const usedPhotos = new Set(["/hero-tetrapylon-grove.webp", "/altin-dal-bottle-collection.webp", "/altin-dal-gift-box.webp"]);
+  const usedPhotos = new Set(["/altin-dal-bottle-collection.webp", "/altin-dal-gift-box.webp"]);
   const journalCards = journal.map((post) => {
     const src = resolveJournalCover(post.category, post)?.src;
     const graphic = !src || usedPhotos.has(src);
@@ -47,10 +45,8 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(organizationJsonLd())} />
       <BrandHeader />
       <main id="main">
-        {/* 1 · Hero */}
-        <section className="landing-hero" aria-labelledby="hero-title">
-          <CinematicMedia slot={media.hero} priority />
-          <div />
+        {/* 1 · Hero film: one continuous film (grove → harvest → oil → bottle) with chapter navigation */}
+        <HeroFilm labelledBy="hero-title">
           <article>
             <div className="hero-content">
               <p>ATAEYMİR · KARACASU<br />APHRODISIAS ESTATE</p>
@@ -63,11 +59,7 @@ export default function Home() {
               </nav>
             </div>
           </article>
-          <ArrowDown className="landing-scroll" size={18} aria-hidden="true" />
-        </section>
-
-        {/* Immersive film journey: four independent, viewport-aware chapters */}
-        <ImmersiveFilmJourney />
+        </HeroFilm>
 
         {/* 2 · Brand story */}
         <section className="home-story" aria-labelledby="story-title">

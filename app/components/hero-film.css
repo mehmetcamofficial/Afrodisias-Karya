@@ -1,0 +1,71 @@
+/* Hero film — one continuous film with dissolves; chapters follow its clock. */
+.hero-film { --film-ink: #f3ede2; --film-gold: #d9b86f; --film-night: #07100b; }
+.landing-hero.hero-film > .hero-film-media { position: absolute; inset: 0; background: var(--film-night); }
+.hero-film-media img, .hero-film-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* Video stays invisible until it renders frames, so the poster never flashes to black. */
+.hero-film-video { opacity: 0; transition: opacity 0.9s ease; }
+.hero-film.is-rendering .hero-film-video { opacity: 1; }
+.hero-film-still { opacity: 0; transition: opacity 0.8s ease; }
+.hero-film-still.is-active { opacity: 1; }
+
+/* Legibility: a quiet scrim, strongest where the copy sits. */
+.landing-hero.hero-film > .hero-film-shade {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, rgb(4 12 8 / 0.72) 0%, rgb(4 12 8 / 0.34) 42%, transparent 72%),
+    linear-gradient(0deg, rgb(4 12 8 / 0.82) 0%, rgb(4 12 8 / 0.18) 38%, transparent 60%),
+    linear-gradient(180deg, rgb(4 12 8 / 0.45) 0%, transparent 18%);
+}
+
+/* Keep the rail and links clear of the fixed "Yardım" button (bottom-right). */
+@media (min-width: 701px) { .landing-hero.hero-film > .hero-film-controls { padding-right: max(clamp(24px, 5vw, 80px), 150px); } }
+
+/* Copy sits above the chapter rail. */
+.landing-hero.hero-film article { bottom: clamp(118px, 17vh, 190px); }
+
+/* Controls layer (overrides the global ".landing-hero > div" overlay rules). */
+.landing-hero.hero-film > .hero-film-controls {
+  position: absolute; inset: auto 0 0 0; z-index: 3; pointer-events: auto; background: none;
+  width: min(100%, 1440px); margin-inline: auto; padding: 0 clamp(24px, 5vw, 80px) clamp(18px, 3.2vh, 34px);
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "caption link" "nav nav"; align-items: end; gap: 10px 24px;
+  color: var(--film-ink);
+}
+.hero-film-caption { grid-area: caption; margin: 0; font: 400 15px/1.45 Georgia, serif; color: rgb(243 237 226 / 0.86); animation: film-caption-in 0.7s ease both; }
+.hero-film-caption span { display: block; font: 600 10px/1.6 Arial, sans-serif; letter-spacing: 0.26em; text-transform: uppercase; color: var(--film-gold); }
+.hero-film-chapter-link { grid-area: link; justify-self: end; font: 600 12px/1 Arial, sans-serif; letter-spacing: 0.08em; color: var(--film-ink); border-bottom: 1px solid rgb(217 184 111 / 0.7); padding: 12px 0 6px; min-height: 44px; display: inline-flex; align-items: flex-end; gap: 8px; }
+.hero-film-chapter-link:hover { color: #fff; border-color: var(--film-gold); }
+
+.hero-film-nav { grid-area: nav; display: flex; align-items: center; gap: 14px; }
+.hero-film-nav ol { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; list-style: none; margin: 0; padding: 0; --chapter-progress: 0; }
+.hero-film-nav ol button { width: 100%; min-height: 44px; padding: 10px 0 0; display: grid; gap: 9px; text-align: left; border: 0; background: none; color: rgb(243 237 226 / 0.62); cursor: pointer; }
+.hero-film-bar { display: block; height: 2px; background: rgb(243 237 226 / 0.26); overflow: hidden; border-radius: 2px; }
+.hero-film-bar i { display: block; height: 100%; background: var(--film-gold); transform-origin: left; transform: scaleX(0); }
+.is-done .hero-film-bar i { transform: scaleX(1); opacity: 0.55; }
+.is-active .hero-film-bar i { transform: scaleX(var(--chapter-progress)); }
+.hero-film.is-stills .is-active .hero-film-bar i, .hero-film.is-pending .is-active .hero-film-bar i { transform: scaleX(1); }
+.hero-film-label { font: 600 10px/1.4 Arial, sans-serif; letter-spacing: 0.22em; text-transform: uppercase; white-space: nowrap; }
+.hero-film-label b { font-weight: 600; letter-spacing: 0.16em; }
+.hero-film-nav li.is-active button, .hero-film-nav button:hover { color: var(--film-ink); }
+.hero-film-nav button:focus-visible, .hero-film-toggle:focus-visible, .hero-film-chapter-link:focus-visible { outline: 2px solid var(--film-gold); outline-offset: 4px; border-radius: 2px; }
+.hero-film-toggle { order: -1; flex: none; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgb(243 237 226 / 0.4); background: rgb(7 16 11 / 0.35); color: var(--film-ink); cursor: pointer; backdrop-filter: blur(6px); }
+.hero-film-toggle:hover { border-color: var(--film-gold); }
+
+@keyframes film-caption-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 700px) {
+  .landing-hero.hero-film article { bottom: 132px; }
+  .landing-hero.hero-film > .hero-film-controls { grid-template-areas: "nav nav" "link link"; padding-inline: 22px; gap: 4px; }
+  .hero-film-caption { display: none; }
+  .hero-film-chapter-link { justify-self: start; }
+  .hero-film-nav ol { gap: 6px; }
+  .hero-film-label { letter-spacing: 0.12em; }
+  .hero-film-label b { display: none; }
+  .hero-film-nav li.is-active .hero-film-label b { display: inline; }
+}
+@media (max-height: 640px) and (max-width: 700px) {
+  .landing-hero.hero-film article { bottom: 120px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-film-video, .hero-film-still { transition: none; }
+  .hero-film-caption { animation: none; }
+}
