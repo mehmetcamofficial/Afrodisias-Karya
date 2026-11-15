@@ -74,3 +74,25 @@ versions and register them under `tr` / `en`; language-neutral files go under
 
 Generated imagery may only be used for non-product editorial scenes, and
 must never depict packaging that does not exist.
+
+## /koleksiyon scene (Faz 10, 2026-11-15)
+
+The collection page opens with one 2.5D set: glass bottle, matte tin and gift
+box on travertine plinths. There is **no real product photography and no 3D
+model** in the repository, so no 3D was faked: the products are flat cut-outs
+of existing images, placed at different depths under CSS perspective, and the
+camera moves between them on scroll.
+
+| Layer | Source | What it is |
+|---|---|---|
+| `public/collection/scene/scene-bottle.webp` | `altin-dal-bottle-collection.webp` (centre bottle) | brand visual, **not verified as a photograph**; its label reads "Caria", which is not a catalogue name |
+| `public/collection/scene/scene-tin.webp` | `products/concepts/tin-3l.webp` | owner-supplied **AI packaging concept** |
+| `public/collection/scene/scene-giftbox.webp` | `altin-dal-gift-box.webp` (open base + lid) | brand visual, **not verified as a photograph**; final box design not approved |
+| `travertine.webp`, `leaf-shadow.webp` | crops of the tin concept | set dressing |
+
+Every product beat shows its disclosure note on the page. The cut-outs are masks
+only (no generated pixels) and are rebuilt with
+`python3 scripts/build-collection-scene.py public/collection/scene`.
+When real packshots arrive (spec above: 2000 px, travertine/ivory background,
+consistent light), replace the three inputs and rerun the script. Use the same
+camera height for all three so the set reads as one photograph.
