@@ -77,3 +77,42 @@ jobs:
           name: playwright-results
           path: test-results/
           retention-days: 7
+
+  admin-e2e:
+    # Admin screens (finance) against `next start` + a disposable PostgreSQL service.
+    # The app's local driver is enabled only by LOCAL_PG_DRIVER=1 for a localhost URL, never on Vercel.
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: checks
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test_admin
+          POSTGRES_PASSWORD: test_only_local
+          POSTGRES_DB: altindal_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test_admin -d altindal_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL_E2E: postgres://test_admin:test_only_local@127.0.0.1:5432/altindal_e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e:admin
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: admin-playwright-results
+          path: test-results/
+          retention-days: 7
