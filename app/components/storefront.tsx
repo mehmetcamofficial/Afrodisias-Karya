@@ -68,7 +68,7 @@ export function Storefront({ products, showcase = false, initialCategory = "all"
           <button key={category} className={activeCategory === category ? "active" : ""} aria-pressed={activeCategory === category} onClick={() => setActiveCategory(category)}>{categoryLabels[category]} <span>{products.filter((product) => product.category === category).length}</span></button>
         ))}
       </nav>
-      <div className="shop-results-head" aria-live="polite"><p><b>{visibleProducts.length}</b> ürün gösteriliyor</p><span>{showcase ? "Ürün tanıtımı · Satış henüz açık değil" : "Seçili hasat · Sınırlı üretim"}</span></div>
+      <div className="shop-results-head" aria-live="polite"><p><b>{visibleProducts.length}</b> ürün gösteriliyor{(activeCategory !== "all" || query.trim()) && <button type="button" className="shop-clear" onClick={() => { setQuery(""); setActiveCategory("all"); }}>Filtreleri temizle</button>}</p><span>{showcase ? "Ürün tanıtımı · Satış henüz açık değil" : "Seçili hasat · Sınırlı üretim"}</span></div>
       {visibleProducts.length === 0 ? (
         <section className="shop-empty"><Search/><h2>Aradığınız ürün bulunamadı</h2><p>Arama terimini veya kategori filtresini değiştirmeyi deneyin.</p><button onClick={() => { setQuery(""); setActiveCategory("all"); }}>Filtreleri temizle</button></section>
       ) : (
