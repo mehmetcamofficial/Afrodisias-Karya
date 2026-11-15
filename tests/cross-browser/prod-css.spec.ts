@@ -59,7 +59,7 @@ test("/deneyim: production CSS parses to its end and lays out the explorer", asy
     panelBg: getComputedStyle(document.querySelector(".experience-explorer-panel")!).backgroundColor,
     pad: parseFloat(getComputedStyle(document.querySelector(".experience-explorer")!).paddingLeft),
   }));
-  expect(s).toMatchObject({ layout: "grid", tab: "grid", panelBg: "rgb(23, 48, 36)" });
+  expect(s).toMatchObject({ layout: "grid", tab: "grid", panelBg: "rgb(42, 42, 31)" }); // heritage route tone (default route)
   expect(s.pad).toBeGreaterThanOrEqual(18);
   await page.locator("#kesfet").evaluate((el) => el.scrollIntoView());
   await testInfo.attach("deneyim explorer (prod css)", { body: await page.screenshot(), contentType: "image/png" });

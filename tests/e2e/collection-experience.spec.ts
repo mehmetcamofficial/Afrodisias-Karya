@@ -38,11 +38,11 @@ test("experience offers interactive chapters and navigable content without booki
   void explorer;
   // The page is now dynamic (CMS sections); retry the first click until React has hydrated.
   await expect(async () => {
-    await page.getByRole("button", { name: /Zeytinlik ve hasat/ }).click();
+    await page.getByRole("tab", { name: /Zeytinlik ve hasat/ }).click();
     await expect(page.getByRole("heading", { name: "Toprağın ritmini izle" })).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 30_000 });
   await expect(page.getByRole("link", { name: /Hasat sürecini incele/ })).toHaveAttribute("href", "/hasat");
-  await page.getByRole("button", { name: /Tadım ve Ege sofrası/ }).click();
+  await page.getByRole("tab", { name: /Tadım ve Ege sofrası/ }).click();
   await expect(page.getByRole("heading", { name: "Sofraya yaklaş" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Tarifleri keşfet/ })).toHaveAttribute("href", "/gunluk/tarifler");
   await expect(page.getByText(/rezervasyon oluşturmaz/)).toBeVisible();
