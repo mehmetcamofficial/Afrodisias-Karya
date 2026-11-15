@@ -77,3 +77,32 @@ jobs:
           name: playwright-results
           path: test-results/
           retention-days: 7
+
+  # Issue #6: does every browser engine apply the production stylesheet to its end?
+  # WebKit (Safari/iOS) and Firefox are available in this image, not in the dev sandbox.
+  cross-browser-css:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+    timeout-minutes: 30
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build the production CSS exactly as Vercel does
+        run: pnpm exec next build
+      - name: Keep the built CSS chunks
+        run: mkdir -p .prod-css && cp .next/static/chunks/*.css .prod-css/ && ls -la .prod-css && rm -rf .next
+      - run: pnpm exec playwright test -c playwright.cross.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cross-browser-css-report
+          path: playwright-report-cross/
+          retention-days: 7
+
