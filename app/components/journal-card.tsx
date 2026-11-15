@@ -18,7 +18,7 @@ const motifs: Record<BlogCategory, React.ReactNode> = {
   "Marka Hikâyeleri": <><path d="M60 98V28" /><path d="M60 46c-14-4-22-12-24-22 12 0 20 6 24 14M60 64c14-4 22-12 24-22-12 0-20 6-24 14M60 80c-12-3-19-10-21-18 10 0 17 5 21 11" /></>,
 };
 
-const editorialCoverByCategory: Partial<Record<BlogCategory, { src: string; alt: string; credit?: string; creditUrl?: string }>> = {
+export const editorialCoverByCategory: Partial<Record<BlogCategory, { src: string; alt: string; credit?: string; creditUrl?: string }>> = {
   "Zeytinyağı Rehberi": {
     src: "https://commons.wikimedia.org/wiki/Special:FilePath/Bottle_of_olive_oil.jpg?width=1100",
     alt: "Gerçek cam şişede zeytinyağı fotoğrafı; Altın Dal ürün fotoğrafı değildir.",

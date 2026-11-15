@@ -42,3 +42,24 @@ run("Contact inquiries against real PostgreSQL", () => {
     await expect(pool.query("INSERT INTO contact_inquiries(id,name,email,topic,message,consent,created_at) VALUES ('a','A','a@b.c','other','hello',false,1)")).rejects.toThrow();
   });
 });
+
+run("Admin users and audit filters against real PostgreSQL", () => {
+  beforeAll(async () => { pool = new pg.Pool({ connectionString: TEST_URL }); holder.db = createDriver(pool); });
+  afterAll(async () => { await pool?.end(); });
+  beforeEach(async () => { await resetSchema(pool); });
+
+  it("grants, changes and disables roles with audit rows; a DB owner row cannot be overwritten", async () => {
+    const { findAdminRole, listAdminUsers, upsertAdminUser } = await import("../../db/postgres/cms-repository");
+    await upsertAdminUser(holder.db!, "Editor@Example.test", "editor", false, "owner@example.test", 1);
+    expect(await findAdminRole(holder.db!, "editor@example.test")).toBe("editor");
+    await upsertAdminUser(holder.db!, "editor@example.test", "viewer", true, "owner@example.test", 2);
+    expect(await findAdminRole(holder.db!, "editor@example.test")).toBeNull();
+    expect((await listAdminUsers(holder.db!))[0]).toMatchObject({ email: "editor@example.test", role: "viewer", disabled: true });
+    await pool.query("INSERT INTO admin_users(email, role, created_by, created_at) VALUES ('boss@example.test','owner','seed',1)");
+    await expect(upsertAdminUser(holder.db!, "boss@example.test", "viewer", false, "owner@example.test", 3)).rejects.toMatchObject({ code: "protected" });
+    const logs = await listAuditLogs(holder.db!, { entityType: "admin_user" });
+    expect(logs.map((l) => l.action)).toEqual(["user.role", "user.role"]);
+    expect(await listAuditLogs(holder.db!, { actionPrefix: "product." })).toEqual([]);
+    expect((await listAuditLogs(holder.db!, { before: logs[0].id })).map((l) => l.id)).toEqual([logs[1].id]);
+  });
+});

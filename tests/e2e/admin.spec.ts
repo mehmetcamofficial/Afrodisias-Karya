@@ -6,6 +6,11 @@ test("admin APIs reject anonymous requests", async ({ playwright, baseURL }) => 
   expect((await anonymous.get("/api/orders")).status()).toBe(401);
   expect((await anonymous.patch("/api/orders", { data: { id: "x", status: "cancelled" } })).status()).toBe(401);
   expect((await anonymous.post("/api/products", { data: { name: "x", priceKurus: 100 } })).status()).toBe(401);
+  for (const path of ["/api/admin/cms/blog", "/api/admin/cms/users", "/api/admin/cms/audit", "/api/admin/ai/draft"]) {
+    expect((await anonymous.get(path)).status(), path).toBe(401);
+  }
+  expect((await anonymous.post("/api/admin/cms/blog/import", { data: { slug: "zeytinyagli-kereviz" } })).status()).toBe(401);
+  expect((await anonymous.post("/api/admin/cms/users", { data: { email: "a@b.co", role: "editor" } })).status()).toBe(401);
   await anonymous.dispose();
 });
 

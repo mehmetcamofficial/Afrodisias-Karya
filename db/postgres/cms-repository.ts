@@ -205,14 +205,46 @@ export async function listProductRevisions(db: SqlDriver, id: string, limit = 20
   return result.rows;
 }
 
-export async function listAuditLogs(db: SqlDriver, opts: { entityId?: string; limit?: number } = {}): Promise<AuditRow[]> {
+export async function listAuditLogs(db: SqlDriver, opts: { entityId?: string; entityType?: string; actionPrefix?: string; before?: number; limit?: number } = {}): Promise<AuditRow[]> {
   const limit = Math.min(Math.max(opts.limit ?? 50, 1), 200);
+  const where: string[] = [];
+  const params: unknown[] = [limit];
+  const add = (sql: string, value: unknown) => { params.push(value); where.push(sql.replace("?", `$${params.length}`)); };
+  if (opts.entityId) add("entity_id = ?", opts.entityId);
+  if (opts.entityType) add("entity_type = ?", opts.entityType);
+  if (opts.actionPrefix) add("action LIKE ? || '%'", opts.actionPrefix);
+  if (opts.before) add("id < ?", opts.before);
   const result = await db.query<AuditRow>(
     `SELECT id::float8 AS id, actor_email AS "actorEmail", action, entity_type AS "entityType", entity_id AS "entityId", detail, created_at::float8 AS "createdAt"
-       FROM audit_logs ${opts.entityId ? "WHERE entity_id = $2" : ""} ORDER BY created_at DESC, id DESC LIMIT $1`,
-    opts.entityId ? [limit, opts.entityId] : [limit],
+       FROM audit_logs ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY id DESC LIMIT $1`,
+    params,
   );
   return result.rows;
+}
+
+export type AdminUserRow = { email: string; role: "owner" | "editor" | "viewer"; disabled: boolean; createdBy: string; createdAt: number };
+
+export async function listAdminUsers(db: SqlDriver): Promise<AdminUserRow[]> {
+  return (await db.query<AdminUserRow>(
+    `SELECT email, role, disabled, created_by AS "createdBy", created_at::float8 AS "createdAt" FROM admin_users ORDER BY email`)).rows;
+}
+
+/** Grant/change/disable an editor or viewer, with an audit row, in one statement. Owners come only from ADMIN_EMAILS. */
+export async function upsertAdminUser(db: SqlDriver, email: string, role: "editor" | "viewer", disabled: boolean, actor: string, now: number) {
+  const result = await db.query<{ email: string }>(
+    `WITH changed AS (
+       INSERT INTO admin_users(email, role, disabled, created_by, created_at) VALUES (lower($1), $2, $3, $4, $5)
+       ON CONFLICT (email) DO UPDATE SET role = excluded.role, disabled = excluded.disabled
+       WHERE admin_users.role <> 'owner'
+       RETURNING *),
+     aud AS (
+       INSERT INTO audit_logs(actor_email, action, entity_type, entity_id, detail, created_at)
+       SELECT $4, 'user.role', 'admin_user', changed.email, jsonb_build_object('role', changed.role, 'disabled', changed.disabled), $5 FROM changed RETURNING 1)
+     SELECT email FROM changed`,
+    [email.trim(), role, disabled, actor, now],
+  );
+  if (!result.rows[0]) throw new CmsError("protected", "Sahip (owner) hesapları buradan değiştirilemez");
+  return result.rows[0];
 }
 
 /** Role for a non-bootstrap admin, or null. */
