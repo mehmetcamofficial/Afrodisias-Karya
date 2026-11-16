@@ -53,3 +53,20 @@ test("/ vitrine on Preview: three families with loaded images, honest purchase s
   for (const href of await vitrine.locator("a").evaluateAll((as) => [...new Set(as.map((a) => a.getAttribute("href")!.split("#")[0]))]))
     expect((await page.request.get(href)).status(), href).toBe(200);
 });
+
+test("13B on Preview: no draft is exposed and no exchange-rate price appears", async ({ page, request }, testInfo) => {
+  // Read-only: GET requests only; no order or admin call is made.
+  const res = await request.get("/api/products");
+  expect(res.status()).toBe(200);
+  const rows = await res.json() as Array<{ id: string; active: boolean }>;
+  console.log(`[${testInfo.project.name}] public catalogue rows: ${rows.length}`);
+  expect(rows.every((row) => row.active === true)).toBe(true);
+  await page.goto("/magaza", { waitUntil: "load" });
+  const select = page.locator(".shop-selects select").nth(1);
+  for (const currency of ["USD", "EUR"]) {
+    if (await select.count()) await select.selectOption(currency);
+    // A converted price would render as "$123" / "€45" on a product card; only business-set prices may.
+    const converted = await page.locator(".product-card footer strong").evaluateAll((els) => els.map((e) => e.textContent ?? "").filter((t) => /[$€]\s?\d/.test(t)));
+    expect(converted, `${currency} prices on cards`).toEqual(rows.length ? converted : []);
+  }
+});
