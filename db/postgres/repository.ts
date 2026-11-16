@@ -24,7 +24,14 @@ export type NewOrder = {
 
 export async function listProducts(db: SqlDriver): Promise<ProductRow[]> {
   const result = await db.query<ProductRow>(
-    `SELECT id,name,type,size,note,price_kurus AS "priceKurus",price_eur_cents AS "priceEurCents",price_usd_cents AS "priceUsdCents",size_family AS "sizeFamily",ships_to AS "shipsTo",stock,active FROM products WHERE active=true ORDER BY name`
+    // 0008: only COMMERCIALLY APPROVED prices leave the database for the storefront and orders.
+    // An unapproved TRY price reads as 0 (not orderable); an unapproved EUR/USD price as NULL (not shown).
+    `SELECT id,name,type,size,note,
+            CASE WHEN product_price_approved(products,'TRY') THEN price_kurus ELSE 0 END AS "priceKurus",
+            CASE WHEN product_price_approved(products,'EUR') THEN price_eur_cents END AS "priceEurCents",
+            CASE WHEN product_price_approved(products,'USD') THEN price_usd_cents END AS "priceUsdCents",
+            size_family AS "sizeFamily",ships_to AS "shipsTo",stock,active
+       FROM products WHERE active=true ORDER BY name`
   );
   return result.rows;
 }

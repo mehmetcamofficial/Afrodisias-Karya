@@ -4,7 +4,7 @@ import { CmsError, createCmsProduct, deleteCmsProduct, duplicateCmsProduct, getC
   listProductRevisions, transitionCmsProduct, updateCmsProduct } from "../../db/postgres/cms-repository";
 import { listProducts, publishReviewedProduct } from "../../db/postgres/repository";
 import type { ProductInput } from "../../lib/cms-validation";
-import { attachMedia, createDriver, resetSchema, TEST_URL } from "./pg-driver";
+import { approveCurrentPrices, attachMedia, createDriver, resetSchema, TEST_URL } from "./pg-driver";
 
 const run = TEST_URL ? describe : describe.skip;
 const actor = "owner@example.test";
@@ -63,6 +63,7 @@ run("Product CMS against real PostgreSQL", () => {
   it("publishes an approved product with stock and makes it visible to the storefront", async () => {
     await createCmsProduct(db, input(), actor, 1000);
     await attachMedia(pool, "test-oil", "photo");
+    await approveCurrentPrices(pool, "test-oil");
     await transitionCmsProduct(db, "test-oil", 1, "submit", actor, "", 2000);
     await transitionCmsProduct(db, "test-oil", 2, "approve", actor, "", 3000);
     await transitionCmsProduct(db, "test-oil", 3, "publish", actor, "", 4000);
@@ -123,6 +124,7 @@ run("Product CMS against real PostgreSQL", () => {
     expect(await getCmsProduct(db, "glass-500")).toMatchObject({ status: "draft", active: false });
     await createCmsProduct(db, input(), actor, 1000);
     await attachMedia(pool, "test-oil", "photo");
+    await approveCurrentPrices(pool, "test-oil");
     await transitionCmsProduct(db, "test-oil", 1, "submit", actor, "", 2000);
     const legacy = (stock: number, price = 99000) => publishReviewedProduct(db, { id: "test-oil", expectedPriceKurus: price, approvedStock: stock, actorUserId: "u", actorEmail: actor }, 3000);
     expect(await legacy(5)).toBe(false); // in_review: not approved yet

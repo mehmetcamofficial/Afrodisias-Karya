@@ -10,6 +10,7 @@
 import type { SqlDriver } from "./repository";
 import type { ProductInput } from "../../lib/cms-validation";
 import { BLOCKER_LABELS, type PublishBlocker } from "../../lib/publish-blockers";
+import type { PriceApproval, ProductMedia } from "./product-cms-repository";
 export { BLOCKER_LABELS, type PublishBlocker };
 
 export type ProductStatus = "draft" | "in_review" | "approved" | "published" | "archived";
@@ -21,6 +22,8 @@ export type CmsProduct = {
   netVolumeMl: number | null; netWeightG: number | null; sizeFamily: string | null; shipsTo: string[];
   stock: number; tags: string[]; status: ProductStatus; active: boolean; version: number;
   archivedAt: number | null; updatedAt: number; tr: Translation; en: Translation; publishBlockers: PublishBlocker[];
+  /** 0008: commercial approvals (who approved which amount, when) and the product's images. */
+  priceApprovals: PriceApproval[]; media: ProductMedia[];
 };
 
 export type AuditRow = { id: number; actorEmail: string; action: string; entityType: string; entityId: string; detail: Record<string, unknown>; createdAt: number };
@@ -36,6 +39,12 @@ const PRODUCT_SELECT = `
          p.net_volume_ml AS "netVolumeMl", p.net_weight_g AS "netWeightG", p.size_family AS "sizeFamily", p.ships_to AS "shipsTo",
          p.tags, p.status, p.active, p.version, p.archived_at::float8 AS "archivedAt", p.updated_at::float8 AS "updatedAt",
          product_publish_blockers(p) AS "publishBlockers",
+         (SELECT coalesce(jsonb_agg(jsonb_build_object('currency', a.currency, 'amountMinor', a.amount_minor, 'approvedBy', a.approved_by, 'approvedAt', a.approved_at) ORDER BY a.currency), '[]'::jsonb)
+            FROM product_price_approvals a WHERE a.product_id = p.id) AS "priceApprovals",
+         (SELECT coalesce(jsonb_agg(jsonb_build_object('id', m.id, 'url', m.url, 'truth', m.truth, 'kind', m.kind, 'mime', m.mime, 'bytes', m.bytes,
+                   'width', m.width, 'height', m.height, 'altTr', m.alt_tr, 'altEn', m.alt_en, 'credit', m.credit, 'license', m.license,
+                   'approvedBy', m.approved_by, 'approvedAt', m.approved_at, 'position', pm.position) ORDER BY pm.position, m.id), '[]'::jsonb)
+            FROM product_media pm JOIN media_assets m ON m.id = pm.media_id WHERE pm.product_id = p.id) AS media,
          jsonb_build_object('name', coalesce(tr.name, p.name), 'description', coalesce(tr.description, p.note),
            'seoTitle', coalesce(tr.seo_title, ''), 'seoDescription', coalesce(tr.seo_description, ''),
            'origin', coalesce(tr.origin, ''), 'ingredients', coalesce(tr.ingredients, ''), 'usage', coalesce(tr.usage, ''), 'storage', coalesce(tr.storage, '')) AS tr,

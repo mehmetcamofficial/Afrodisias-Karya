@@ -42,7 +42,7 @@ export default async function Page() {
         : <AdminUnavailable what="Ürün CMS (veritabanı veya 0003_cms migration'ı)" />}
       <div className="admin-notice" role="note">
         <b>{missingPhotos} / {products.length}</b> üründe gerçek ürün fotoğrafı yok; bunlar sitede “temsili” veya “seri” notuyla gösterilir.
-        Fiyat ve stok yalnızca Neon kaydından okunur. Fiyat/stok düzenleme ve onaylı yayımlama <Link href="/admin">Genel bakış</Link> ekranındadır.
+        Fiyat ve stok yalnızca Neon kaydından okunur. Fiyatlar, ticari onay, görseller ve yayın iş akışı yukarıdaki ürün düzenleyicisindedir; yayın kaydı <Link href="/admin">Genel bakış</Link> ekranında görünür.
         {snapshot.products === null && " Veritabanına ulaşılamadığı için satış durumu bilinmiyor."}
       </div>
       <section className="admin-card wide" aria-labelledby="media-title">

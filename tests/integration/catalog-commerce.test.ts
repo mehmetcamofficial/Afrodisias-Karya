@@ -4,7 +4,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { CmsError, createCmsProduct, getCmsProduct, transitionCmsProduct, updateCmsProduct } from "../../db/postgres/cms-repository";
 import { createPendingOrder, listProducts } from "../../db/postgres/repository";
 import type { ProductInput } from "../../lib/cms-validation";
-import { attachMedia, createDriver, resetSchema, TEST_URL } from "./pg-driver";
+import { approveCurrentPrices, attachMedia, createDriver, resetSchema, TEST_URL } from "./pg-driver";
 
 const run = TEST_URL ? describe : describe.skip;
 const actor = "owner@example.test";
@@ -40,14 +40,14 @@ run("Faz 13B catalogue commerce against real PostgreSQL", () => {
     expect(rows).toHaveLength(13);
     for (const r of rows) expect(r).toEqual({ status: "draft", active: false, stock: 0, sku: null, packaging: null, price_eur_cents: null, price_usd_cents: null, ships_to: ["TR"], size_family: null });
     const blockers = (await pool.query("SELECT product_publish_blockers(p) AS b FROM products p WHERE id = 'glass-500'")).rows[0].b;
-    expect(blockers).toEqual(["sku", "packaging", "stock", "content_tr", "photo"]);
+    expect(blockers).toEqual(["sku", "packaging", "price_try_approval", "stock", "content_tr", "photo"]); // seed prices are NOT approved (0008)
   });
 
   it("publication requires SKU, packaging, TR content, stock and a real photo — and lists what is missing", async () => {
     await createCmsProduct(db, complete({ sku: null, packaging: null }), actor, 1000);
     const v = await approve("fam-500");
-    expect(await codeOf(transitionCmsProduct(db, "fam-500", v, "publish", actor, "", 3000))).toMatch(/invalid_state: Yayımlanamaz; eksik: SKU, ambalaj tipi, onaylı ürün fotoğrafı/);
-    expect((await getCmsProduct(db, "fam-500"))?.publishBlockers).toEqual(["sku", "packaging", "photo"]);
+    expect(await codeOf(transitionCmsProduct(db, "fam-500", v, "publish", actor, "", 3000))).toMatch(/invalid_state: Yayımlanamaz; eksik: SKU, ambalaj tipi, TL fiyatının ticari onayı, onaylı gerçek ürün fotoğrafı/);
+    expect((await getCmsProduct(db, "fam-500"))?.publishBlockers).toEqual(["sku", "packaging", "price_try_approval", "photo"]);
     expect(await listProducts(db)).toEqual([]);
   });
 
@@ -59,6 +59,7 @@ run("Faz 13B catalogue commerce against real PostgreSQL", () => {
     const v = await approve("fam-500");
     expect(await codeOf(transitionCmsProduct(db, "fam-500", v, "publish", actor, "", 3000))).toMatch(/fotoğrafı/);
     await attachMedia(pool, "fam-500", "photo");
+    await approveCurrentPrices(pool, "fam-500");
     expect(await codeOf(transitionCmsProduct(db, "fam-500", v, "publish", actor, "", 3000))).toBe("ok");
     expect((await listProducts(db)).map((r) => r.id)).toEqual(["fam-500"]);
   });
@@ -66,6 +67,7 @@ run("Faz 13B catalogue commerce against real PostgreSQL", () => {
   it("an experience may use an editorial image; a bottle may not", async () => {
     await createCmsProduct(db, complete({ id: "exp", sku: "AD-EXP-1", category: "subscription", packaging: "experience", sizeFamily: null }), actor, 1000);
     await attachMedia(pool, "exp", "editorial");
+    await approveCurrentPrices(pool, "exp");
     const v = await approve("exp");
     expect(await codeOf(transitionCmsProduct(db, "exp", v, "publish", actor, "", 3000))).toBe("ok");
   });
@@ -76,13 +78,14 @@ run("Faz 13B catalogue commerce against real PostgreSQL", () => {
       VALUES ('raw','Raw',100,1,true,0,'published','AD-RAW','tin')`)).rejects.toThrow(/publish_requires_approved/);
     await pool.query("UPDATE products SET status='in_review' WHERE id='glass-500'");
     await pool.query("UPDATE products SET status='approved' WHERE id='glass-500'");
-    await expect(pool.query("UPDATE products SET status='published', active=true WHERE id='glass-500'")).rejects.toThrow(/publish_blocked: sku,packaging,stock,content_tr,photo/);
+    await expect(pool.query("UPDATE products SET status='published', active=true WHERE id='glass-500'")).rejects.toThrow(/publish_blocked: sku,packaging,price_try_approval,stock,content_tr,photo/);
     expect((await pool.query("SELECT count(*)::int AS n FROM products WHERE status='published'")).rows[0].n).toBe(0);
   });
 
   it("editing a published product is refused; unpublishing and re-publishing re-runs the policy", async () => {
     await createCmsProduct(db, complete(), actor, 1000);
     await attachMedia(pool, "fam-500", "photo");
+    await approveCurrentPrices(pool, "fam-500");
     let v = await approve("fam-500");
     await transitionCmsProduct(db, "fam-500", v, "publish", actor, "", 3000); v++;
     expect(await codeOf(updateCmsProduct(db, "fam-500", v, complete({ priceKurus: 1 }), actor, 4000))).toMatch(/invalid_state/);
@@ -121,6 +124,7 @@ run("Faz 13B catalogue commerce against real PostgreSQL", () => {
   });
 
   it("migration 0007 is idempotent and its rollback is safe: up → up → down → up", async () => {
+    await pool.query(readFileSync("db/postgres/0008_product_cms.down.sql", "utf8")); // 0008 builds on 0007
     const up = readFileSync("db/postgres/0007_catalog_commerce.sql", "utf8");
     const down = readFileSync("db/postgres/0007_catalog_commerce.down.sql", "utf8");
     const columns = async () => (await pool.query(`SELECT string_agg(table_name||'.'||column_name, ',' ORDER BY table_name, column_name) AS c
@@ -139,12 +143,14 @@ run("Faz 13B catalogue commerce against real PostgreSQL", () => {
   });
 
   it("rollback refuses to discard 0007 data", async () => {
+    await pool.query(readFileSync("db/postgres/0008_product_cms.down.sql", "utf8"));
     await pool.query("UPDATE products SET price_eur_cents = 3200 WHERE id='glass-500'");
     await expect(onOneConnection(readFileSync("db/postgres/0007_catalog_commerce.down.sql", "utf8"))).rejects.toThrow(/rollback stopped/);
     expect((await pool.query("SELECT price_eur_cents FROM products WHERE id='glass-500'")).rows[0].price_eur_cents).toBe(3200);
   });
 
   it("0007 stops instead of guessing when a non-TRY base price exists", async () => {
+    await pool.query(readFileSync("db/postgres/0008_product_cms.down.sql", "utf8"));
     await pool.query(readFileSync("db/postgres/0007_catalog_commerce.down.sql", "utf8"));
     await pool.query("UPDATE products SET currency='EUR' WHERE id='glass-500'");
     await expect(onOneConnection(readFileSync("db/postgres/0007_catalog_commerce.sql", "utf8"))).rejects.toThrow(/0007 stopped/);

@@ -70,3 +70,20 @@ test("13B on Preview: no draft is exposed and no exchange-rate price appears", a
     expect(converted, `${currency} prices on cards`).toEqual(rows.length ? converted : []);
   }
 });
+
+test("13C on Preview: admin product APIs are closed to anonymous callers and the test harness does not exist", async ({ request }, testInfo) => {
+  // Read-only probes: every request is unauthenticated (no Clerk session) and must be refused before any write.
+  const checks: Array<[string, Promise<{ status(): number }>, number]> = [
+    ["prices", request.post("/api/admin/cms/products/glass-500/prices", { data: { action: "approve", currency: "TRY", amountMinor: 89000, expectedVersion: 1 } }), 401],
+    ["media add", request.post("/api/admin/cms/products/glass-500/media", { data: { url: "/x.webp", truth: "concept", altTr: "x" } }), 401],
+    ["media approval", request.post("/api/admin/cms/media/m-1/approval", { data: { approve: true } }), 401],
+    ["e2e harness", request.get("/e2e/urun-yonetimi"), 404],
+    ["media bad id", request.get("/media/not-an-id"), 404],
+    ["media unknown", request.get("/media/m-00000000-0000-4000-8000-000000000000"), 404],
+  ];
+  for (const [name, pending, expected] of checks) {
+    const status = (await pending).status();
+    console.log(`[${testInfo.project.name}] ${name}: ${status}`);
+    expect(status, name).toBe(expected);
+  }
+});
