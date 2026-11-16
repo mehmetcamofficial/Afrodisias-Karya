@@ -48,6 +48,18 @@ test("non-TRY display discloses the TRY amount that will be recorded", async ({ 
   await expect(page.locator(".cart-currency-note")).toContainText("₺3.200");
 });
 
+test("a currency without a set price shows the TRY price, flagged — never an exchange-rate conversion", async ({ page }) => {
+  await page.goto("/magaza", { waitUntil: "networkidle" });
+  await page.locator(".shop-selects select").nth(1).selectOption("USD");
+  const card = page.locator(".product-card", { hasText: "5 Litre" });
+  await expect(card.locator("footer strong")).toContainText("₺3.200");
+  await expect(card.locator("footer strong")).toContainText("USD fiyatı yok");
+  await expect(page.locator(".product-card footer strong", { hasText: "$" })).toHaveCount(0);
+  await card.getByRole("button", { name: /Sepete ekle/ }).click();
+  await expect(page.locator(".cart-total strong")).toHaveText("₺3.200");
+  await expect(page.locator(".cart-currency-note")).toContainText("USD fiyatı belirlenmedi");
+});
+
 async function fillCheckout(page: import("@playwright/test").Page) {
   await page.goto("/urun/glass-250", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: /Sepete ekle/ }).click();

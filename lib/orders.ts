@@ -7,7 +7,13 @@ import { products, type Product } from "./products";
  * is resolved against the catalogue and priced in TRY kuruş (the currency the
  * order is recorded and will be charged in). This module is pure so it can be
  * unit-tested without a database.
+ *
+ * Orders are TRY-only until an international payment provider is live: a
+ * request in EUR/USD is refused, never converted. Delivery country defaults to
+ * TR and every line must ship there (products.ships_to, 0007).
  */
+export const ORDER_CURRENCIES = ["TRY"] as const;
+export const DEFAULT_COUNTRY = "TR";
 
 export const MAX_QTY_PER_LINE = 20;
 export const MAX_LINES = 30;
@@ -54,6 +60,10 @@ export function validateOrder(input: unknown, catalogue: Product[] = products): 
   if (!phone || !PHONE.test(phone)) errors.push({ field: "phone", code: "invalid" });
   if (!address) errors.push({ field: "address", code: "required" });
 
+  if (body.currency !== undefined && !(ORDER_CURRENCIES as readonly unknown[]).includes(body.currency)) errors.push({ field: "currency", code: "unsupported_currency" });
+  const country = body.country === undefined || body.country === "" ? DEFAULT_COUNTRY : body.country;
+  if (typeof country !== "string" || !/^[A-Z]{2}$/.test(country)) errors.push({ field: "country", code: "invalid" });
+
   const rawItems = Array.isArray(body.items) ? body.items : [];
   if (rawItems.length === 0 || rawItems.length > MAX_LINES) errors.push({ field: "items", code: "invalid" });
 
@@ -73,6 +83,7 @@ export function validateOrder(input: unknown, catalogue: Product[] = products): 
     const product = orderableProduct(id, catalogue)!;
     if (qty > MAX_QTY_PER_LINE) { errors.push({ field: `items.${id}`, code: "quantity_limit" }); continue; }
     if (qty > product.stock) { errors.push({ field: `items.${id}`, code: "insufficient_stock" }); continue; }
+    if (typeof country === "string" && !(product.shipsTo ?? [DEFAULT_COUNTRY]).includes(country)) { errors.push({ field: `items.${id}`, code: "not_shippable" }); continue; }
     const unitKurus = Math.round(product.prices.TRY! * 100);
     items.push({ id, name: product.name, size: product.size, qty, unitKurus, lineKurus: unitKurus * qty });
   }

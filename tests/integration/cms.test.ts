@@ -4,7 +4,7 @@ import { CmsError, createCmsProduct, deleteCmsProduct, duplicateCmsProduct, getC
   listProductRevisions, transitionCmsProduct, updateCmsProduct } from "../../db/postgres/cms-repository";
 import { listProducts, publishReviewedProduct } from "../../db/postgres/repository";
 import type { ProductInput } from "../../lib/cms-validation";
-import { createDriver, resetSchema, TEST_URL } from "./pg-driver";
+import { attachMedia, createDriver, resetSchema, TEST_URL } from "./pg-driver";
 
 const run = TEST_URL ? describe : describe.skip;
 const actor = "owner@example.test";
@@ -13,6 +13,7 @@ let db: ReturnType<typeof createDriver>;
 
 const input = (over: Partial<ProductInput> = {}): ProductInput & { id: string } => ({
   id: "test-oil", sku: "AD-TEST-1", category: "glass", size: "500 ml", priceKurus: 99000, currency: "TRY", stock: 5,
+  priceEurCents: null, priceUsdCents: null, packaging: "glass_bottle", netVolumeMl: 500, netWeightG: null, sizeFamily: null, shipsTo: ["TR"],
   tags: ["erken hasat"], tr: { name: "Test Yağı", description: "Açıklama", seoTitle: "", seoDescription: "" },
   en: { name: "Test Oil", description: "Description" }, ...over,
 } as ProductInput & { id: string });
@@ -61,6 +62,7 @@ run("Product CMS against real PostgreSQL", () => {
 
   it("publishes an approved product with stock and makes it visible to the storefront", async () => {
     await createCmsProduct(db, input(), actor, 1000);
+    await attachMedia(pool, "test-oil", "photo");
     await transitionCmsProduct(db, "test-oil", 1, "submit", actor, "", 2000);
     await transitionCmsProduct(db, "test-oil", 2, "approve", actor, "", 3000);
     await transitionCmsProduct(db, "test-oil", 3, "publish", actor, "", 4000);
@@ -115,8 +117,20 @@ run("Product CMS against real PostgreSQL", () => {
     await expect(pool.query("DELETE FROM audit_logs")).rejects.toThrow(/append-only/);
   });
 
-  it("legacy Preview publish keeps status consistent with active", async () => {
-    expect(await publishReviewedProduct(db, { id: "glass-500", expectedPriceKurus: 89000, approvedStock: 3, actorUserId: "u", actorEmail: actor }, 1000)).toBe(true);
-    expect(await getCmsProduct(db, "glass-500")).toMatchObject({ status: "published", active: true });
+  it("legacy Preview publish refuses drafts (13B) and follows the same policy as the workflow", async () => {
+    // Seeded drafts can never be published by the legacy route (draft → published is blocked).
+    expect(await publishReviewedProduct(db, { id: "glass-500", expectedPriceKurus: 89000, approvedStock: 3, actorUserId: "u", actorEmail: actor }, 1000)).toBe(false);
+    expect(await getCmsProduct(db, "glass-500")).toMatchObject({ status: "draft", active: false });
+    await createCmsProduct(db, input(), actor, 1000);
+    await attachMedia(pool, "test-oil", "photo");
+    await transitionCmsProduct(db, "test-oil", 1, "submit", actor, "", 2000);
+    const legacy = (stock: number, price = 99000) => publishReviewedProduct(db, { id: "test-oil", expectedPriceKurus: price, approvedStock: stock, actorUserId: "u", actorEmail: actor }, 3000);
+    expect(await legacy(5)).toBe(false); // in_review: not approved yet
+    await transitionCmsProduct(db, "test-oil", 2, "approve", actor, "", 2500);
+    expect(await legacy(9)).toBe(false); // stock differs from the reviewed snapshot
+    expect(await legacy(5, 1)).toBe(false); // price differs
+    expect(await legacy(5)).toBe(true);
+    expect(await getCmsProduct(db, "test-oil")).toMatchObject({ status: "published", active: true, stock: 5 });
+    expect((await listAuditLogs(db, { entityId: "test-oil" }))[0]).toMatchObject({ action: "product.publish", detail: { route: "legacy" } });
   });
 });

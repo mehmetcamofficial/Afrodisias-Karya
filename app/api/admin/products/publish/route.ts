@@ -5,7 +5,8 @@ import { publishReviewedProduct } from "../../../../../db/postgres/repository";
 
 export const runtime = "nodejs";
 
-/** Explicit feature gate. Not configured in Preview or Production by default. */
+/** Explicit feature gate. Not configured in Preview or Production by default.
+ * Publishes only an APPROVED product (never draft/in_review) — see publishReviewedProduct. */
 export async function POST(request: Request) {
   const access = await checkAdmin();
   if (access.status !== "admin" || access.role !== "owner") {
@@ -33,7 +34,8 @@ export async function POST(request: Request) {
       id: body.id, expectedPriceKurus: body.expectedPriceKurus, approvedStock: body.approvedStock,
       actorUserId: access.user.userId, actorEmail: access.user.email,
     }, Date.now());
-    if (!published) return NextResponse.json({ error: "Ürün değişti, aktif veya bulunamadı; incelemeyi yenileyin" }, { status: 409 });
+    // Same policy as the CMS workflow: approved only, exact reviewed price + stock, no publish blockers.
+    if (!published) return NextResponse.json({ error: "Ürün onaylı (approved) değil, değişti, eksik bilgi içeriyor veya bulunamadı; incelemeyi yenileyin" }, { status: 409 });
     return NextResponse.json({ ok: true, id: body.id });
   } catch (error) {
     console.error("catalog publish database unavailable", error);

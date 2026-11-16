@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { categoryLabels, currencies, formatPrice, priceFor, type Product, type Currency, type ProductCategory } from "../../lib/products";
+import { categoryLabels, currencies, displayPrice, formatPrice, priceFor, type Product, type Currency, type ProductCategory } from "../../lib/products";
 import { useCart } from "./cart-context";
 import type { Sort } from "../../lib/store-query";
 import { ProductVisual, productImageNote } from "./product-visual";
@@ -37,8 +37,10 @@ export function Storefront({ products, showcase = false, initialCategory = "all"
       const haystack = `${product.name} ${product.size} ${product.note}`.toLocaleLowerCase("tr-TR");
       return matchesCategory && (!normalized || haystack.includes(normalized));
     });
-    if (sort === "price-asc") return [...filtered].sort((a, b) => priceFor(a, currency) - priceFor(b, currency));
-    if (sort === "price-desc") return [...filtered].sort((a, b) => priceFor(b, currency) - priceFor(a, currency));
+    // Sort by the TRY price: comparable across products even when some lack a EUR/USD price.
+    const tryPrice = (p: Product) => priceFor(p, "TRY") ?? Number.POSITIVE_INFINITY;
+    if (sort === "price-asc") return [...filtered].sort((a, b) => tryPrice(a) - tryPrice(b));
+    if (sort === "price-desc") return [...filtered].sort((a, b) => tryPrice(b) - tryPrice(a));
     return filtered;
   }, [activeCategory, currency, query, sort]);
 
@@ -86,7 +88,7 @@ export function Storefront({ products, showcase = false, initialCategory = "all"
                 <p>{product.note}</p>
                 {productImageNote(product) && <p className="product-card-image-disclosure">{productImageNote(product)}</p>}
                 <div className="product-card-meta">{!showcase && <span className={product.stock < 25 ? "limited" : ""}>{product.stock < 25 ? "Sınırlı stok" : "Stokta"}</span>}<span>{product.lot ?? "Tek köken"}</span></div>
-                <footer>{showcase ? <strong>Yakında</strong> : <><strong>{formatPrice(product, currency)}</strong><button disabled={product.stock < 1} onClick={() => add(product)}>{product.stock < 1 ? "Tükendi" : "Sepete ekle"} <Plus size={17}/></button></>}</footer>
+                <footer>{showcase ? <strong>Yakında</strong> : <><strong>{formatPrice(product, currency)}{displayPrice(product, currency)?.fallback && <small className="store-currency-note"> · {currency} fiyatı yok</small>}</strong><button disabled={product.stock < 1} onClick={() => add(product)}>{product.stock < 1 ? "Tükendi" : "Sepete ekle"} <Plus size={17}/></button></>}</footer>
               </div>
             </article>
           ))}

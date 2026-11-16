@@ -9,6 +9,9 @@ export type SqlDriver = {
 export type ProductRow = {
   id: string; name: string; type: string; size: string; note: string;
   priceKurus: number; stock: number; active: boolean;
+  /** 0007: business-set EUR/USD prices in cents; null = not sold in that currency. */
+  priceEurCents?: number | null; priceUsdCents?: number | null;
+  sizeFamily?: string | null; shipsTo?: string[];
 };
 export type OrderRow = {
   id: string; customerName: string; email: string; totalKurus: number;
@@ -21,7 +24,7 @@ export type NewOrder = {
 
 export async function listProducts(db: SqlDriver): Promise<ProductRow[]> {
   const result = await db.query<ProductRow>(
-    'SELECT id,name,type,size,note,price_kurus AS "priceKurus",stock,active FROM products WHERE active=true ORDER BY name'
+    `SELECT id,name,type,size,note,price_kurus AS "priceKurus",price_eur_cents AS "priceEurCents",price_usd_cents AS "priceUsdCents",size_family AS "sizeFamily",ships_to AS "shipsTo",stock,active FROM products WHERE active=true ORDER BY name`
   );
   return result.rows;
 }
@@ -29,27 +32,32 @@ export async function listProducts(db: SqlDriver): Promise<ProductRow[]> {
 /** Admin inventory includes inactive drafts; public listProducts never does. */
 export async function listAllProducts(db: SqlDriver): Promise<ProductRow[]> {
   const result = await db.query<ProductRow>(
-    'SELECT id,name,type,size,note,price_kurus AS "priceKurus",stock,active FROM products ORDER BY name'
+    `SELECT id,name,type,size,note,price_kurus AS "priceKurus",price_eur_cents AS "priceEurCents",price_usd_cents AS "priceUsdCents",size_family AS "sizeFamily",ships_to AS "shipsTo",stock,active FROM products ORDER BY name`
   );
   return result.rows;
 }
 
-export async function upsertProduct(db: SqlDriver, product: ProductRow, updatedAt: number): Promise<void> {
-  await db.query(
-    // 0003: `status` must mirror `active` (products_active_matches_status).
+/**
+ * Legacy create: inserts a NEW inactive draft only. An existing id is never
+ * overwritten here (that path had no version check, revision or audit); edits
+ * go through the CMS repository. Returns false when the id already exists.
+ */
+export async function upsertProduct(db: SqlDriver, product: ProductRow, updatedAt: number): Promise<boolean> {
+  const result = await db.query(
     `INSERT INTO products(id,name,type,size,note,price_kurus,stock,active,updated_at,status)
-     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,CASE WHEN $8 THEN 'published' ELSE 'draft' END)
-     ON CONFLICT(id) DO UPDATE SET name=excluded.name,type=excluded.type,
-       size=excluded.size,note=excluded.note,price_kurus=excluded.price_kurus,
-       stock=excluded.stock,active=excluded.active,updated_at=excluded.updated_at,
-       status=excluded.status,version=products.version+1`,
-    [product.id, product.name, product.type, product.size, product.note, product.priceKurus, product.stock, product.active, updatedAt]
+     VALUES($1,$2,$3,$4,$5,$6,0,false,$7,'draft')
+     ON CONFLICT(id) DO NOTHING RETURNING id`,
+    [product.id, product.name, product.type, product.size, product.note, product.priceKurus, updatedAt]
   );
+  return result.rowCount > 0;
 }
 
-/** Publish only the exact reviewed snapshot; prevents stale-price/stock approval.
- * Stock must be a verified positive integer; no automatic stock allocation.
- */ 
+/**
+ * Legacy Preview publish, bound to the same policy as the CMS workflow:
+ * only an APPROVED product whose reviewed price and stock match exactly, and
+ * whose publish blockers (SKU, packaging, TR content, real photo, stock) are
+ * empty. Draft → published is impossible here (and in the DB trigger, 0007).
+ */
 export async function publishReviewedProduct(
   db: SqlDriver,
   input: { id: string; expectedPriceKurus: number; approvedStock: number; actorUserId: string; actorEmail: string },
@@ -60,15 +68,21 @@ export async function publishReviewedProduct(
   const result = await db.query<{ id: string }>(
     `WITH published AS (
        UPDATE products
-       SET active=true, status='published', version=version+1, stock=$3, updated_at=$4
-       WHERE id=$1 AND active=false AND status IN ('draft','approved') AND price_kurus=$2
-         AND $2 > 0 AND $3 > 0
-       RETURNING id, price_kurus, stock
+       SET active=true, status='published', version=version+1, updated_at=$4
+       WHERE id=$1 AND active=false AND status='approved' AND price_kurus=$2 AND stock=$3
+         AND $2 > 0 AND $3 > 0 AND cardinality(product_publish_blockers(products)) = 0
+       RETURNING id, price_kurus, stock, version, status
      ), recorded AS (
        INSERT INTO product_publish_audit
          (product_id, actor_user_id, actor_email, action, price_kurus, approved_stock, occurred_at)
        SELECT id, $5, $6, 'publish', price_kurus, stock, $4 FROM published
        RETURNING product_id
+     ), aud AS (
+       INSERT INTO audit_logs(actor_email, action, entity_type, entity_id, detail, created_at)
+       SELECT $6, 'product.publish', 'product', id,
+              jsonb_build_object('version', version, 'status', status, 'priceKurus', price_kurus, 'stock', stock, 'route', 'legacy'), $4
+         FROM published
+       RETURNING 1
      )
      SELECT product_id AS id FROM recorded`,
     [input.id, input.expectedPriceKurus, input.approvedStock, updatedAt, input.actorUserId, input.actorEmail],
@@ -97,8 +111,8 @@ export async function createPendingOrder(db: SqlDriver, order: NewOrder): Promis
   // A mismatched retry never changes the stored order. The WHERE clause prevents
   // a conflicting payload from returning a row, even under concurrent inserts.
   const result = await db.query<{ totalKurus: number }>(
-    `INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,status,payment_provider,created_at)
-     VALUES($1,$2,$3,$4,$5,$6,$7,'payment_pending','iyzico',$8)
+    `INSERT INTO orders(id,customer_name,email,phone,address,items_json,total_kurus,currency,status,payment_provider,created_at)
+     VALUES($1,$2,$3,$4,$5,$6,$7,'TRY','payment_pending','iyzico',$8)
      ON CONFLICT(id) DO UPDATE SET id=orders.id
      WHERE orders.customer_name IS NOT DISTINCT FROM excluded.customer_name
        AND orders.email IS NOT DISTINCT FROM excluded.email
@@ -106,6 +120,7 @@ export async function createPendingOrder(db: SqlDriver, order: NewOrder): Promis
        AND orders.address IS NOT DISTINCT FROM excluded.address
        AND orders.items_json IS NOT DISTINCT FROM excluded.items_json
        AND orders.total_kurus IS NOT DISTINCT FROM excluded.total_kurus
+       AND orders.currency IS NOT DISTINCT FROM excluded.currency
      RETURNING total_kurus AS "totalKurus"`,
     [order.id, order.customerName, order.email, order.phone, order.address, order.itemsJson, order.totalKurus, order.createdAt]
   );

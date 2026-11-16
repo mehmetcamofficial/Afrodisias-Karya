@@ -8,15 +8,32 @@ export const translationSchema = z.object({
   description: text(4000).default(""),
   seoTitle: text(70).default(""),
   seoDescription: text(170).default(""),
+  // 0007 product content. Empty means "not stated" — the site never fills it in.
+  origin: text(600).default(""),
+  ingredients: text(1200).default(""),
+  usage: text(1200).default(""),
+  storage: text(600).default(""),
 });
+
+export const PACKAGING = ["glass_bottle", "tin", "gift_box", "jar", "pouch", "box", "set", "subscription", "experience"] as const;
+const cents = z.number().int().positive().max(100_000_000).nullable().default(null);
 
 export const productInputSchema = z.object({
   id: z.string().trim().regex(/^[a-z0-9][a-z0-9-]{1,62}$/, "id: küçük harf, rakam ve tire").optional(),
   sku: z.string().trim().regex(/^[A-Z0-9][A-Z0-9-]{2,40}$/, "SKU: büyük harf, rakam ve tire").nullable().optional(),
   category: z.enum(["glass", "luxury", "tin", "pantry", "subscription"]),
   size: text(60),
+  /** TRY price in kuruş. `currency` is the base currency and is always TRY (0007). */
   priceKurus: z.number().int().positive().max(100_000_000),
-  currency: z.enum(["TRY", "EUR", "USD"]).default("TRY"),
+  currency: z.literal("TRY").default("TRY"),
+  /** Business-set prices; null = not sold in that currency. Never derived by exchange rate. */
+  priceEurCents: cents,
+  priceUsdCents: cents,
+  packaging: z.enum(PACKAGING).nullable().default(null),
+  netVolumeMl: z.number().int().positive().max(100_000).nullable().default(null),
+  netWeightG: z.number().int().positive().max(100_000).nullable().default(null),
+  sizeFamily: z.string().trim().regex(/^[a-z0-9][a-z0-9-]{1,39}$/, "Boy ailesi: küçük harf, rakam ve tire").nullable().default(null),
+  shipsTo: z.array(z.string().regex(/^[A-Z]{2}$/, "Ülke kodu: ISO 3166-1 alfa-2 (ör. TR)")).max(60).default(["TR"]),
   stock: z.number().int().min(0).max(1_000_000),
   tags: z.array(z.string().trim().regex(/^[\p{L}\p{N} -]{1,30}$/u)).max(12).default([]),
   tr: translationSchema.extend({ name: text(160).min(2, "Türkçe ad zorunlu") }),

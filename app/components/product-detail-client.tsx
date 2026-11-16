@@ -1,7 +1,7 @@
 "use client";
 import { Minus, Plus, ShoppingBag } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { formatPrice, type Product } from "../../lib/products";
+import { displayPrice, formatPrice, missingCurrencyNote, type Product } from "../../lib/products";
 import { maxQuantity, useCart } from "./cart-context";
 
 export function ProductDetailClient({ product, showcase = false }: { product: Product; showcase?: boolean }) {
@@ -33,6 +33,7 @@ export function ProductDetailClient({ product, showcase = false }: { product: Pr
     <>
       <div className="product-purchase" ref={purchaseRef}>
         <strong>{formatPrice(product, currency)}</strong>
+        {displayPrice(product, currency)?.fallback && <small className="product-currency-note">{missingCurrencyNote(currency)}</small>}
         <span className={product.stock < 25 ? "limited" : ""}>{!available ? "Tükendi" : product.stock < 25 ? "Sınırlı stok" : "Stokta"} · {product.stock} adet</span>
         <div className="quantity" role="group" aria-label="Adet">
           <button onClick={() => setQuantity((value) => Math.max(1, value - 1))} disabled={quantity <= 1} aria-label="Adedi azalt"><Minus size={16} /></button>

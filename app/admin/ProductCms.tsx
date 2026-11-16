@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Archive, Copy, Eye, History, Plus, RefreshCw, RotateCcw, Save, Send, ShieldCheck, Trash2, Undo2, Upload } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import type { CmsProduct, ProductStatus, AuditRow, RevisionRow } from "../../db/postgres/cms-repository";
+import { BLOCKER_LABELS } from "../../lib/publish-blockers";
 import { can, type Role } from "../../lib/cms-permissions";
 import { AiAssist } from "./AiAssist";
 
@@ -17,19 +18,31 @@ type Form = {
   id: string; sku: string; category: string; size: string; priceTl: string; currency: string; stock: string; tags: string;
   trName: string; trDescription: string; trSeoTitle: string; trSeoDescription: string;
   enName: string; enDescription: string; enSeoTitle: string; enSeoDescription: string;
+  /** 0007 fields not yet editable in this form (13C): carried through unchanged so an edit never erases them. */
+  carry: Carry;
 };
+type Carry = Pick<CmsProduct, "priceEurCents" | "priceUsdCents" | "packaging" | "netVolumeMl" | "netWeightG" | "sizeFamily" | "shipsTo">
+  & { trExtra: Pick<CmsProduct["tr"], "origin" | "ingredients" | "usage" | "storage">; enExtra: Pick<CmsProduct["en"], "origin" | "ingredients" | "usage" | "storage"> };
+const noExtra = { origin: "", ingredients: "", usage: "", storage: "" };
+const emptyCarry: Carry = { priceEurCents: null, priceUsdCents: null, packaging: null, netVolumeMl: null, netWeightG: null, sizeFamily: null, shipsTo: ["TR"], trExtra: noExtra, enExtra: noExtra };
 
 const STATUS_LABEL: Record<ProductStatus, string> = { draft: "Taslak", in_review: "İncelemede", approved: "Onaylı", published: "Yayında", archived: "Arşivde" };
 const STATUS_TONE: Record<ProductStatus, string> = { draft: "muted", in_review: "warn", approved: "ok", published: "live", archived: "bad" };
 const CATEGORIES = [["glass", "Cam seri"], ["luxury", "Özel seri"], ["tin", "Teneke"], ["pantry", "Kiler"], ["subscription", "Abonelik"]] as const;
 
-const emptyForm: Form = { id: "", sku: "", category: "glass", size: "", priceTl: "", currency: "TRY", stock: "0", tags: "", trName: "", trDescription: "", trSeoTitle: "", trSeoDescription: "", enName: "", enDescription: "", enSeoTitle: "", enSeoDescription: "" };
+const emptyForm: Form = { id: "", sku: "", category: "glass", size: "", priceTl: "", currency: "TRY", stock: "0", tags: "", trName: "", trDescription: "", trSeoTitle: "", trSeoDescription: "", enName: "", enDescription: "", enSeoTitle: "", enSeoDescription: "", carry: emptyCarry };
 
 function toForm(p: CmsProduct): Form {
   return {
     id: p.id, sku: p.sku ?? "", category: p.category, size: p.size, priceTl: String(p.priceKurus / 100), currency: p.currency, stock: String(p.stock), tags: p.tags.join(", "),
     trName: p.tr.name, trDescription: p.tr.description, trSeoTitle: p.tr.seoTitle, trSeoDescription: p.tr.seoDescription,
     enName: p.en.name, enDescription: p.en.description, enSeoTitle: p.en.seoTitle, enSeoDescription: p.en.seoDescription,
+    carry: {
+      priceEurCents: p.priceEurCents, priceUsdCents: p.priceUsdCents, packaging: p.packaging, netVolumeMl: p.netVolumeMl,
+      netWeightG: p.netWeightG, sizeFamily: p.sizeFamily, shipsTo: p.shipsTo,
+      trExtra: { origin: p.tr.origin, ingredients: p.tr.ingredients, usage: p.tr.usage, storage: p.tr.storage },
+      enExtra: { origin: p.en.origin, ingredients: p.en.ingredients, usage: p.en.usage, storage: p.en.storage },
+    },
   };
 }
 
@@ -39,10 +52,12 @@ function toPayload(form: Form) {
     sku: form.sku.trim() ? form.sku.trim() : null,
     category: form.category, size: form.size,
     priceKurus: Math.round(Number(form.priceTl.replace(",", ".")) * 100),
-    currency: form.currency, stock: Number(form.stock),
+    currency: "TRY", stock: Number(form.stock),
     tags: form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
-    tr: { name: form.trName, description: form.trDescription, seoTitle: form.trSeoTitle, seoDescription: form.trSeoDescription },
-    en: { name: form.enName, description: form.enDescription, seoTitle: form.enSeoTitle, seoDescription: form.enSeoDescription },
+    priceEurCents: form.carry.priceEurCents, priceUsdCents: form.carry.priceUsdCents, packaging: form.carry.packaging,
+    netVolumeMl: form.carry.netVolumeMl, netWeightG: form.carry.netWeightG, sizeFamily: form.carry.sizeFamily, shipsTo: form.carry.shipsTo,
+    tr: { name: form.trName, description: form.trDescription, seoTitle: form.trSeoTitle, seoDescription: form.trSeoDescription, ...form.carry.trExtra },
+    en: { name: form.enName, description: form.enDescription, seoTitle: form.enSeoTitle, seoDescription: form.enSeoDescription, ...form.carry.enExtra },
   };
 }
 
@@ -84,7 +99,7 @@ export function ProductCms({ initialProducts, role, publishingEnabled, images }:
 
   const visible = useMemo(() => products.filter((p) => statusFilter === "all" || p.status === statusFilter), [products, statusFilter]);
   const editable = selected === "new" || (detail && ["draft", "in_review", "approved"].includes(detail.product.status));
-  const field = (key: keyof Form) => ({ value: form[key], onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setForm({ ...form, [key]: event.target.value }), disabled: !editable || !can(role, "product.write") });
+  const field = (key: Exclude<keyof Form, "carry">) => ({ value: form[key], onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setForm({ ...form, [key]: event.target.value }), disabled: !editable || !can(role, "product.write") });
 
   const run = async (label: string, work: () => Promise<unknown>, reopen?: string) => {
     setBusy(true); setNotice(null);
@@ -169,7 +184,7 @@ export function ProductCms({ initialProducts, role, publishingEnabled, images }:
               <label>Kategori<select {...field("category")}>{CATEGORIES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label>Boyut / hacim<input {...field("size")} required /></label>
               <label>Fiyat<input {...field("priceTl")} inputMode="decimal" required /></label>
-              <label>Para birimi<select {...field("currency")}><option>TRY</option><option>EUR</option><option>USD</option></select></label>
+              <label>Para birimi<input value="TRY (taban fiyat)" readOnly aria-describedby="currency-help" /><small id="currency-help">EUR/USD fiyatları ayrı girilir; kurla hesaplanmaz.</small></label>
               <label>Stok (doğrulanmış)<input {...field("stock")} type="number" min="0" required /></label>
               <label>Etiketler (virgülle)<input {...field("tags")} /></label>
             </fieldset>
@@ -215,7 +230,8 @@ export function ProductCms({ initialProducts, role, publishingEnabled, images }:
                 <div className="cms-danger">
                   <p><b>Yayımlama</b> ürünü mağazada satışa açar. Fiyatın, stokun ve ambalaj görselinin doğrulandığından emin olun.{!publishingEnabled && " Bu ortamda yayımlama kapalı (yalnızca Preview + PREVIEW_CATALOG_PUBLISH_ENABLED)."}</p>
                   <label>Onaylamak için <code>YAYINLA:{detail.product.id}</code> yazın<input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></label>
-                  <button type="button" onClick={() => act("publish", "Yayımlandı")} disabled={busy || !publishingEnabled || confirmation !== `YAYINLA:${detail.product.id}`}><Upload size={14} aria-hidden="true" /> Yayımla</button>
+                  {detail.product.publishBlockers.length > 0 && <p className="admin-help" role="note"><b>Yayımlanamaz — eksik:</b> {detail.product.publishBlockers.map((b) => BLOCKER_LABELS[b] ?? b).join(", ")}.</p>}
+                  <button type="button" onClick={() => act("publish", "Yayımlandı")} disabled={busy || !publishingEnabled || detail.product.publishBlockers.length > 0 || confirmation !== `YAYINLA:${detail.product.id}`}><Upload size={14} aria-hidden="true" /> Yayımla</button>
                 </div>
               )}
               {status === "archived" && can(role, "product.delete") && (

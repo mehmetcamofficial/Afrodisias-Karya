@@ -32,6 +32,10 @@ export type Product = {
   lot?: string;
   badge?: string;
   image?: ProductImage;
+  /** Size switcher group (DB `size_family`); falls back to `sizeFamilies` below. */
+  sizeFamily?: string;
+  /** ISO country codes the product may ship to (DB `ships_to`, default TR). */
+  shipsTo?: string[];
 };
 
 const GLASS_RANGE: ProductImage = { src: "/altin-dal-bottle-collection.webp", alt: "Altın Dal koyu cam şişe serisi mermer kaide üzerinde", kind: "range" };
@@ -61,7 +65,7 @@ export const products: Product[] = [
   { id: "reserve-500", name: "Aphrodisias Special Reserve", category: "luxury", size: "500 ml", note: "Özel ahşap/mermer kutu + 500 ml", prices: { TRY: 1450, EUR: 48 }, stock: 24, lot: "AD-26-SR", badge: "Reserve", image: GIFT_BOX },
   { id: "aromatic-set", name: "Tadım & Aromatik Set", category: "luxury", size: "3 x 100 ml", note: "Limon, biberiye ve acı biber çeşnili set", prices: { TRY: 780, EUR: 28 }, stock: 42, lot: "AD-26-AROMA" , image: concept("aromatic-set", "Üç adet 100 ml koyu cam şişeden oluşan limon, biberiye ve acı biber aromalı tadım seti") },
   { id: "tin-3l", name: "3 Litre Mat Teneke", category: "tin", size: "3 L", note: "Aile kullanımı için ekonomik premium boy", prices: { TRY: 2100, EUR: 75 }, stock: 36, lot: "AD-26-T3" , image: concept("tin-3l", "3 litrelik mat zeytin yeşili teneke, sapı ve altın kapaklı ağzı ile") },
-  { id: "tin-5l", name: "5 Litre Mat Teneke", category: "tin", size: "5 L", note: "Yoğun tüketim ve mutfak stoğu için", prices: { TRY: 3200, EUR: 110 }, stock: 19, lot: "AD-26-T5", badge: "Stok dikkat" , image: concept("tin-5l", "5 litrelik mat zeytin yeşili teneke, sapı ve altın kapaklı ağzı ile") },
+  { id: "tin-5l", name: "5 Litre Mat Teneke", category: "tin", size: "5 L", note: "Yoğun tüketim ve mutfak stoğu için", prices: { TRY: 3200, EUR: 110 }, stock: 19, lot: "AD-26-T5" , image: concept("tin-5l", "5 litrelik mat zeytin yeşili teneke, sapı ve altın kapaklı ağzı ile") },
   { id: "green-olive", name: "Ataeymir Kırma Yeşil Zeytin", category: "pantry", size: "500 g", note: "Köy usulü salamura", prices: { TRY: 240 }, stock: 75 , image: concept("green-olive", "Cam kavanozda 500 g kırma yeşil zeytin") },
   { id: "black-olive", name: "Siyah Sele Zeytin", category: "pantry", size: "500 g", note: "Az tuzlu, doğal sele karakteri", prices: { TRY: 260 }, stock: 61 , image: concept("black-olive", "Cam kavanozda 500 g siyah sele zeytin") },
   { id: "olive-paste", name: "Zeytin Ezmesi", category: "pantry", size: "200 g cam kavanoz", note: "Kahvaltı ve meze tabağı için", prices: { TRY: 180 }, stock: 88 , image: concept("olive-paste", "200 g cam kavanozda zeytin ezmesi") },
@@ -70,15 +74,25 @@ export const products: Product[] = [
   { id: "adopt-tree", name: "Adopt an Olive Tree", category: "subscription", size: "Yıllık", note: "İsme özel sertifika, ağaçtan 3L yağ, özel etiket", prices: { TRY: 4500 }, stock: 40, badge: "Deneyim", image: GROVE },
 ];
 
-const eurToUsd = 1.09;
-const tryToUsd = 0.031;
+/**
+ * The business-set price in this currency, or null. Prices are NEVER derived by
+ * exchange rate: a product without an approved EUR/USD price is not sold in it.
+ */
+export function priceFor(product: Product, currency: Currency): number | null {
+  const value = product.prices[currency];
+  return typeof value === "number" && value > 0 ? value : null;
+}
 
-export function priceFor(product: Product, currency: Currency) {
-  if (product.prices[currency]) return product.prices[currency]!;
-  if (currency === "USD" && product.prices.EUR) return Math.round(product.prices.EUR * eurToUsd);
-  if (currency === "USD" && product.prices.TRY) return Math.round(product.prices.TRY * tryToUsd);
-  if (currency === "EUR" && product.prices.TRY) return Math.round(product.prices.TRY / 35);
-  return product.prices.TRY ?? 0;
+/**
+ * What to show for the selected currency. Falls back to the TRY price (the
+ * currency orders are recorded and charged in), flagged, when the selected
+ * currency has no set price. Null when there is no price at all.
+ */
+export function displayPrice(product: Product, currency: Currency): { amount: number; currency: Currency; fallback: boolean } | null {
+  const own = priceFor(product, currency);
+  if (own !== null) return { amount: own, currency, fallback: false };
+  const tryPrice = priceFor(product, "TRY");
+  return tryPrice === null ? null : { amount: tryPrice, currency: "TRY", fallback: currency !== "TRY" };
 }
 
 export const isCategory = (value: unknown): value is ProductCategory => typeof value === "string" && Object.hasOwn(categoryLabels, value);
@@ -104,6 +118,8 @@ export const packagingLabels: Partial<Record<string, string>> = {
 /** Size families shown as a size switcher on product pages (same product, different volume). */
 export const sizeFamilies: string[][] = [["glass-250", "glass-500", "glass-750"], ["tin-3l", "tin-5l"]];
 export function sizeSiblings(product: Product, all: Product[]): Product[] {
+  // The database's size_family is authoritative; the static families are the fallback until it is set.
+  if (product.sizeFamily) return all.filter((item) => item.sizeFamily === product.sizeFamily);
   const family = sizeFamilies.find((ids) => ids.includes(product.id));
   return family ? family.map((id) => all.find((item) => item.id === id)).filter((item): item is Product => Boolean(item)) : [];
 }
@@ -124,12 +140,18 @@ export function formatAmount(value: number, currency: Currency) {
 }
 
 export function formatPrice(product: Product, currency: Currency) {
-  return formatAmount(priceFor(product, currency), currency);
+  const shown = displayPrice(product, currency);
+  return shown ? formatAmount(shown.amount, shown.currency) : "Fiyat belirlenmedi";
+}
+
+/** Shown next to a fallback price: the selected currency has no set price. */
+export function missingCurrencyNote(currency: Currency) {
+  return `${currency} fiyatı belirlenmedi; TL fiyatı gösteriliyor.`;
 }
 
 /** Price is set in this currency by the business (not derived by conversion). */
 export function hasListedPrice(product: Product, currency: Currency) {
-  return typeof product.prices[currency] === "number";
+  return priceFor(product, currency) !== null;
 }
 
 export function productsByCategory() {

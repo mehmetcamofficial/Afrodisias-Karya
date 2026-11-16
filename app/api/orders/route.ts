@@ -50,7 +50,8 @@ export async function POST(request: Request) {
     inventory = rows.map(row => ({
       id: row.id, name: row.name, category: row.type as ProductCategory,
       size: row.size, note: row.note,
-      prices: { TRY: row.priceKurus / 100 }, stock: row.stock,
+      // Orders are priced in TRY only; EUR/USD columns are never used for charging.
+      prices: { TRY: row.priceKurus / 100 }, stock: row.stock, shipsTo: row.shipsTo ?? ["TR"],
     }));
   } catch (error) {
     console.error("orders POST catalogue unavailable", error);

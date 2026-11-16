@@ -2,7 +2,7 @@
 
 import { createContext, FormEvent, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
-import { formatAmount, formatPrice, priceFor, type Currency, type Product } from "../../lib/products";
+import { formatAmount, formatPrice, missingCurrencyNote, priceFor, type Currency, type Product } from "../../lib/products";
 import { MAX_QTY_PER_LINE } from "../../lib/orders";
 
 type CartLine = { product: Product; quantity: number };
@@ -28,6 +28,7 @@ const ITEM_MESSAGES: Record<string, string> = {
   invalid_quantity: "Geçersiz adet.",
   quantity_limit: `Tek siparişte en fazla ${MAX_QTY_PER_LINE} adet.`,
   insufficient_stock: "Yeterli stok yok.",
+  not_shippable: "Bu ürün seçilen ülkeye gönderilemiyor.",
 };
 
 export function useCart() {
@@ -82,8 +83,13 @@ export function CartProvider({ children, initialProducts, showcase = false }: { 
   }, [lines, hydrated]);
 
   const itemCount = useMemo(() => lines.reduce((sum, line) => sum + line.quantity, 0), [lines]);
-  const total = useMemo(() => lines.reduce((sum, line) => sum + priceFor(line.product, currency) * line.quantity, 0), [lines, currency]);
-  const totalTry = useMemo(() => lines.reduce((sum, line) => sum + (line.product.prices.TRY ?? 0) * line.quantity, 0), [lines]);
+  const totalTry = useMemo(() => lines.reduce((sum, line) => sum + (priceFor(line.product, "TRY") ?? 0) * line.quantity, 0), [lines]);
+  // A total in EUR/USD only when EVERY line has a business-set price in it; otherwise the TRY total.
+  const pricedInCurrency = lines.every((line) => priceFor(line.product, currency) !== null);
+  const totalCurrency: Currency = pricedInCurrency ? currency : "TRY";
+  const total = useMemo(() => pricedInCurrency
+    ? lines.reduce((sum, line) => sum + priceFor(line.product, currency)! * line.quantity, 0)
+    : totalTry, [lines, currency, pricedInCurrency, totalTry]);
 
   const openCart = useCallback(() => {
     returnFocus.current = document.activeElement as HTMLElement | null;
@@ -207,14 +213,17 @@ export function CartProvider({ children, initialProducts, showcase = false }: { 
                         <b aria-live="polite">{quantity}</b>
                         <button onClick={() => setQuantity(product.id, quantity + 1)} disabled={quantity >= maxQuantity(product)} aria-label="Adedi artır"><Plus size={14}/></button>
                       </div>
-                      <strong>{formatAmount(priceFor(product, currency) * quantity, currency)}</strong>
+                      <strong>{formatAmount((priceFor(product, totalCurrency) ?? 0) * quantity, totalCurrency)}</strong>
                       <button className="cart-remove" onClick={() => setQuantity(product.id, 0)} aria-label={`${product.name} ürününü kaldır`}><Trash2 size={15}/></button>
                     </article>
                   ))}
                 </div>
                 <div className="cart-assurance"><span><Check size={15} aria-hidden="true"/> Hasat lotu izlenebilirliği</span><span><Check size={15} aria-hidden="true"/> Güvenli paketleme</span></div>
-                <div className="cart-total"><span>Ara toplam<small>Kargo ödeme adımında hesaplanır</small></span><strong>{formatAmount(total, currency)}</strong></div>
-                {currency !== "TRY" && (
+                <div className="cart-total"><span>Ara toplam<small>Kargo ödeme adımında hesaplanır</small></span><strong>{formatAmount(total, totalCurrency)}</strong></div>
+                {currency !== "TRY" && !pricedInCurrency && (
+                  <p className="cart-currency-note">{missingCurrencyNote(currency)} Siparişler Türk lirası ile kaydedilir.</p>
+                )}
+                {currency !== "TRY" && pricedInCurrency && (
                   <p className="cart-currency-note">Siparişler Türk lirası ile kaydedilir ve tahsil edilir: <b>{formatAmount(totalTry, "TRY")}</b>. {currency} tutarları bilgilendirme amaçlıdır.</p>
                 )}
                 {!checkout ? (
