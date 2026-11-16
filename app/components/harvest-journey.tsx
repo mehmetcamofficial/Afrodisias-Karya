@@ -55,17 +55,31 @@ export function HarvestTimeline({ stages }: { stages: HarvestStage[] }) {
   const [active, setActive] = useState(0);
   const refs = useRef<Array<HTMLElement | null>>([]);
   useEffect(() => {
-    // The active stage is the last one whose top has passed the reading line (45% of the viewport);
-    // recomputed whenever a stage crosses that line, so short stages and anchor jumps resolve correctly.
+    // The active stage is the last one whose top has passed the reading line. The line sits just below
+    // the stages' scroll-margin-top (110px), capped at 35% of the viewport: a rail jump lands the target
+    // stage's top at 110px, and a following SHORT stage can never already be above the line (at 45% of a
+    // 900px viewport it could — the rail then highlighted the next stage).
     const pick = () => {
-      const line = window.innerHeight * 0.45;
+      const line = Math.min(window.innerHeight * 0.35, 180);
       let current = 0;
       refs.current.forEach((el, i) => { if (el && el.getBoundingClientRect().top <= line) current = i; });
       setActive(current);
     };
-    const io = new IntersectionObserver(pick, { rootMargin: "-45% 0px -54% 0px" });
-    refs.current.forEach((el) => el && io.observe(el));
-    return () => io.disconnect();
+    // Recomputed on every (rAF-coalesced) scroll and on hash jumps, so the result always reflects the
+    // FINAL scroll position. A thin IntersectionObserver band could miss the resting position after a
+    // fast anchor jump under load and leave aria-current on the previous stage.
+    let frame = 0;
+    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(pick); };
+    pick();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    window.addEventListener("hashchange", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("hashchange", schedule);
+    };
   }, []);
   return (
     <section className="harvest-timeline" aria-labelledby="harvest-timeline-title">
