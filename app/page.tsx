@@ -2,44 +2,61 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { publishedPosts } from "../lib/blog";
-import { groveZones } from "../lib/site-content";
+import { formatPrice, type Product } from "../lib/products";
+import { getLiveProducts } from "../lib/live-products";
+import { isProductionShowcase } from "../lib/showcase-mode";
 import { BrandFooter, BrandHeader } from "./components/site-shell";
 import { HeroFilm } from "./components/hero-film";
-import { JournalCard, resolveJournalCover } from "./components/journal-card";
+import { JournalCard } from "./components/journal-card";
+import { HomeFilmstrip, type FilmstripStage } from "./components/home-filmstrip";
+import { GroveJourney, type JourneyStep } from "./components/story-scroller";
 import { Reveal } from "./components/reveal";
 import { jsonLdScript, organizationJsonLd } from "../lib/structured-data";
+import "./components/home-sections.css";
 
 export const metadata = { alternates: { canonical: "/" } };
+// Prices and live status come from the catalogue at request time (never baked into the build).
+export const dynamic = "force-dynamic";
 
-/**
- * Every photograph appears once on this page. Product drawings are labelled
- * as representative illustrations wherever they appear.
- */
-const collections = [
-  { href: "/magaza?kategori=glass", kicker: "01 · Cam seri", title: "Erken Hasat", copy: "250, 500 ve 750 ml koyu cam şişeler.", image: { src: "/altin-dal-bottle-collection.webp", alt: "Altın Dal koyu cam şişe serisi mermer kaide üzerinde", w: 1448, h: 1086 } },
-  { href: "/magaza?kategori=luxury", kicker: "02 · Özel seri", title: "Hediye & Reserve", copy: "Kutulu Special Reserve ve tadım seti.", image: { src: "/altin-dal-gift-box.webp", alt: "Açık Altın Dal hediye kutusunda şişe ve tadım fincanı", w: 1448, h: 1086 } },
-  { href: "/magaza?kategori=tin", kicker: "03 · Aile boyu", title: "Mat Teneke", copy: "3 ve 5 litrelik mutfak boyları.", image: { src: "/products/concepts/tin-5l.webp", alt: "5 litrelik mat zeytin yeşili teneke — yapay zekâyla oluşturulmuş temsili ambalaj tasarımı", w: 1122, h: 1402 }, illustration: true },
-  { href: "/magaza?kategori=pantry", kicker: "04 · Kiler", title: "Ataeymir Lezzetleri", copy: "Zeytin, zeytin ezmesi ve zeytinyağlı sabun.", image: { src: "/products/concepts/green-olive.webp", alt: "Cam kavanozda kırma yeşil zeytin — yapay zekâyla oluşturulmuş temsili ambalaj tasarımı", w: 1122, h: 1402 }, illustration: true },
-];
-
-const process = [
-  ["01", "Mevsim", "Meyvenin rengi, sertliği ve aromatik gelişimi parsel bazında izlenir."],
-  ["02", "Elle toplama", "Zeytinler mevsiminde, zedelenmeyi azaltan yöntemlerle toplanır."],
-  ["03", "Sıkım", "Düşük sıcaklık ve kontrollü oksijen temasıyla soğuk sıkım yapılır."],
-  ["04", "Şişeleme", "Her şişe hasat tarihi, parsel ve analiz bilgisiyle bir lota bağlanır."],
+/** The three packaging families of the vitrine. Each maps to one catalogue product so name, size and price always match. */
+const vitrine = [
+  { id: "glass-500", family: "Cam şişe", image: "/collection/scene/scene-bottle.webp", w: 488, h: 1532, series: "glass",
+    note: "Temsili görsel; ürün fotoğrafı olarak doğrulanmadı." },
+  { id: "tin-3l", family: "Mat teneke", image: "/collection/scene/scene-tin.webp", w: 640, h: 785, series: "tin",
+    note: "Yapay zekâyla hazırlanmış temsili ambalaj tasarımı." },
+  { id: "reserve-500", family: "Hediye kutusu", image: "/collection/scene/scene-giftbox.webp", w: 820, h: 979, series: "luxury",
+    note: "Temsili görsel; nihai kutu tasarımı onay bekliyor." },
 ] as const;
 
-export default function Home() {
+const filmstrip: FilmstripStage[] = [
+  { id: "toprak", label: "Toprak", title: "Taşlı vadide yaşlı ağaçlar", text: "Her ağaç ve her parsel kayıt altına alınır.", image: "/pages/harvest-tree.webp", alt: "Gün ışığında yaşlı zeytin ağaçları — sinematik canlandırma", href: "/hasat#asama-1" },
+  { id: "hasat", label: "Hasat", title: "Meyveyi dinlemek", text: "Renk, sertlik ve aroma parsel bazında izlenir.", image: "/pages/harvest-season.webp", alt: "Dalda olgunlaşan yeşil zeytinler — sinematik canlandırma", href: "/hasat#asama-2" },
+  { id: "toplama", label: "Toplama", title: "Elle, zedelemeden", text: "Kasalar bekletilmeden sıkım noktasına taşınır.", image: "/pages/harvest-picking.webp", alt: "Daldan elle toplanan zeytinler — sinematik canlandırma", href: "/hasat#asama-3" },
+  { id: "sikim", label: "Sıkım", title: "Soğuk sıkım", text: "Düşük sıcaklık ve kontrollü oksijen teması.", image: "/pages/harvest-pressing.webp", alt: "İnce bir akışla dökülen zeytinyağı — sinematik canlandırma", href: "/hasat#asama-4" },
+  { id: "sofra", label: "Sofra", title: "Sofrada üç ifade", text: "Cam şişe, mat teneke ve hediye kutusu.", image: "/pages/harvest-table.webp", alt: "Taş kâsede zeytinyağı — sinematik canlandırma", href: "/hasat#asama-6" },
+];
+
+const routes: JourneyStep[] = [
+  { id: "tarih", label: "Kültürel miras", title: "Aphrodisias’ı keşfet", text: "Antik kentin zanaat ve mermer mirasına kültürel bir pencereden bakın.", image: "/pages/route-heritage.webp", alt: "Aphrodisias tetrapylonunun kemerleri — editoryal görsel", href: "/deneyim#rota-tarih", cta: "Kültürel miras rotası" },
+  { id: "hasat", label: "Zeytinlik", title: "Toprağın ritmini izle", text: "Meyvenin bahçeden şişeye uzanan yolunu öğrenin.", image: "/pages/route-grove.webp", alt: "Gün doğumunda yaşlı zeytin ağaçları — sinematik canlandırma", href: "/deneyim#rota-hasat", cta: "Zeytinlik rotası" },
+  { id: "tadim", label: "Tadım", title: "Sofraya yaklaş", text: "Aromaları, yemek eşleşmelerini ve Ege tariflerini keşfedin.", image: "/pages/route-table.webp", alt: "Taş kâseye dökülen zeytinyağı — sinematik canlandırma", href: "/deneyim#rota-tadim", cta: "Tadım rotası" },
+];
+
+/** Values stated only as far as the site can show them; each links to its evidence. No certificates, awards or lab values. */
+const values = [
+  { title: "Tek köken", text: "Ataeymir · Karacasu’daki aile zeytinliği; Aphrodisias ile aynı vadi.", proof: { href: "/hikayemiz", label: "Hikâyemiz" } },
+  { title: "Lot bazında izlenebilirlik", text: "Her şişe hasat tarihi, parsel ve analiz bilgisiyle bir lota bağlanır. Lot sayfası şu an örnek bir kayıtla gösterilir.", proof: { href: "/traceability/26-004", label: "Örnek lot kaydı" } },
+  { title: "Soğuk sıkım", text: "Mevsiminde elle toplama, bekletmeden taşıma ve düşük sıcaklıkta sıkım.", proof: { href: "/hasat", label: "Hasat protokolü" } },
+  { title: "Açık bilgi", text: "Görsellerin türü yazılır; fiyat ve stok yalnızca doğrulanmış ürünlerde gösterilir.", proof: { href: "/magaza", label: "Mağaza" } },
+];
+
+export default async function Home() {
   const journal = publishedPosts.slice(0, 3);
-  // Photographs already used above on this page; a journal card whose cover
-  // would repeat one (or repeat another card) shows its typographic cover.
-  const usedPhotos = new Set(["/altin-dal-bottle-collection.webp", "/altin-dal-gift-box.webp"]);
-  const journalCards = journal.map((post) => {
-    const src = resolveJournalCover(post.category, post)?.src;
-    const graphic = !src || usedPhotos.has(src);
-    if (src) usedPhotos.add(src);
-    return { post, graphic };
-  });
+  const catalogue = await getLiveProducts().catch(() => [] as Product[]);
+  const showcase = isProductionShowcase();
+  const byId = new Map(catalogue.map((p) => [p.id, p]));
+  // Typographic covers on the homepage: no third-party (Wikimedia) image requests on the landing page.
+  const journalCards = journal.map((post) => ({ post, graphic: true }));
   return (
     <div className="brand-site landing-site home-editorial">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(organizationJsonLd())} />
@@ -61,103 +78,82 @@ export default function Home() {
           </article>
         </HeroFilm>
 
-        {/* 2 · Brand story */}
-        <section className="home-story" aria-labelledby="story-title">
-          <Reveal className="home-story-lead">
-            <p className="eyebrow">Marka hikâyesi</p>
-            <h2 id="story-title">Bir aile bahçesinden, <em>kökeni görünür</em> bir markaya.</h2>
-          </Reveal>
-          <Reveal className="home-story-body">
-            <svg className="home-arch" viewBox="0 0 240 200" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.2">
-              <path d="M20 196V92a100 100 0 0 1 200 0v104" /><path d="M48 196V96a72 72 0 0 1 144 0v100" />
-              <path d="M8 196h224M20 92h200" /><path d="M70 92v104M170 92v104" />
-            </svg>
+        {/* A · Origin: two-photograph editorial composition */}
+        <section className="home-origin" aria-labelledby="origin-title">
+          <figure className="home-origin-main"><Image src="/pages/story-valley.webp" alt="Ataeymir yakınlarında vadi ve zeytinlik — sinematik canlandırma" fill sizes="(max-width: 900px) 100vw, 58vw" /></figure>
+          <figure className="home-origin-inset"><Image src="/pages/story-aphrodisias.webp" alt="Aphrodisias tetrapylonunun sütunları — editoryal görsel" fill sizes="(max-width: 900px) 60vw, 24vw" /></figure>
+          <Reveal className="home-origin-copy">
+            <p className="eyebrow">Köken</p>
+            <h2 id="origin-title">Aynı vadide,<br /><em>antik bir kentle.</em></h2>
             <p>Altın Dal, Aydın’ın Karacasu ilçesine bağlı Ataeymir’deki aile zeytinliğinden doğdu. Bahçe, Aphrodisias antik kentiyle aynı vadiyi paylaşır.</p>
-            <p>Antik kentin zanaat ve ölçü fikrini bir dekor olarak değil, üretim yaklaşımı olarak yorumluyoruz: az mesafe, açık köken ve her şişede izlenebilir bir lot.</p>
-            <dl className="home-facts">
-              <div><dt>Köken</dt><dd>Ataeymir · Karacasu</dd></div>
-              <div><dt>Coğrafya</dt><dd>Aphrodisias vadisi</dd></div>
-              <div><dt>Yaklaşım</dt><dd>Tek köken · lot takibi</dd></div>
-            </dl>
+            <p>Antik kentin zanaat ve ölçü fikrini dekor olarak değil, üretim yaklaşımı olarak yorumluyoruz: az mesafe, açık köken, izlenebilir lot.</p>
             <Link className="text-link" href="/hikayemiz">Hikâyemizi okuyun <ArrowRight size={16} aria-hidden="true" /></Link>
           </Reveal>
         </section>
 
-        {/* 3 · Collections */}
-        <section className="home-collections" aria-labelledby="collections-title">
-          <header className="home-section-head">
-            <p className="eyebrow">Koleksiyonlar</p>
-            <h2 id="collections-title">Tek toprak, <em>dört ifade.</em></h2>
-            <Link className="text-link" href="/magaza">Tüm ürünler <ArrowRight size={16} aria-hidden="true" /></Link>
+        {/* B · Collection vitrine: three families on one travertine stage, names/sizes/prices from the catalogue */}
+        <section className="home-vitrine" aria-labelledby="vitrine-title">
+          <header>
+            <p className="eyebrow">Koleksiyon</p>
+            <h2 id="vitrine-title">Bir toprak, <em>üç ifade.</em></h2>
+            <Link className="text-link" href="/koleksiyon">Koleksiyon sahnesine girin <ArrowRight size={16} aria-hidden="true" /></Link>
           </header>
-          <div className="collection-tiles">
-            {collections.map((item) => (
-              <Link key={item.href} href={item.href} className={`collection-tile${item.illustration ? " is-illustration" : ""}`}>
-                <span className="collection-tile-media">
-                  <Image src={item.image.src} alt={item.image.alt} width={item.image.w} height={item.image.h} sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 25vw" />
-                  {item.illustration && <i className="illustration-badge">AI konsept tasarım</i>}
-                </span>
-                <small>{item.kicker}</small>
-                <b>{item.title}</b>
-                <span>{item.copy}</span>
-              </Link>
-            ))}
-          </div>
+          <ul className="home-vitrine-stage">
+            {vitrine.map((item) => {
+              const product = byId.get(item.id);
+              if (!product) return null;
+              const live = !showcase && product.stock > 0 && Object.keys(product.prices).length > 0;
+              const href = live ? `/urun/${product.id}` : `/koleksiyon#seri-${item.series}`;
+              return <li key={item.id} className={`home-vitrine-item home-vitrine-${item.series}`}>
+                <Link href={href}>
+                  <span className="home-vitrine-media"><Image src={item.image} alt={`${product.name} — ${item.note}`} width={item.w} height={item.h} sizes="(max-width: 700px) 60vw, 22vw" /></span>
+                  <span className="home-vitrine-plinth" aria-hidden="true" />
+                  <small>{item.family} · {product.size}</small>
+                  <b>{product.name}</b>
+                  <span className="home-vitrine-price">{live ? formatPrice(product, "TRY") : "Satış henüz açık değil"}</span>
+                  <i>{live ? "Ürünü incele" : "Seriyi incele"} <ArrowRight size={14} aria-hidden="true" /></i>
+                </Link>
+                <p className="home-vitrine-note">{item.note}</p>
+              </li>;
+            })}
+          </ul>
+          <nav className="home-vitrine-more" aria-label="Diğer seriler">
+            <Link href="/magaza?kategori=pantry#urunler">Ataeymir lezzetleri</Link>
+            <Link href="/magaza?kategori=subscription#urunler">Olive Club ve deneyim</Link>
+            <Link href="/magaza#urunler">Tüm ürünler <ArrowRight size={14} aria-hidden="true" /></Link>
+          </nav>
         </section>
 
-        {/* 4 · The grove */}
-        <section className="home-grove" aria-labelledby="grove-title">
-          <header className="home-section-head">
-            <p className="eyebrow">Zeytinlik</p>
-            <h2 id="grove-title">Üç parsel, <em>üç karakter.</em></h2>
-            <p className="home-section-lead">Aynı bahçede bile yamaç, rüzgâr ve toprak meyveyi farklı olgunlaştırır. Hasat kararları bu yüzden parsel parsel verilir.</p>
+        {/* C · Grove to table: native horizontal rail */}
+        <section className="home-journey" aria-labelledby="journey-home-title">
+          <header>
+            <p className="eyebrow">Topraktan sofraya</p>
+            <h2 id="journey-home-title">Beş adım, <em>tek özen.</em></h2>
+            <p>Hasattan şişeye her aşama bir sonrakinin kalitesini belirler. Bir aşamayı seçin, Hasat sayfasında ayrıntısını okuyun.</p>
           </header>
-          <ol className="grove-parcels">
-            {groveZones.map((zone, index) => (
-              <li key={zone.id}>
-                <span className="parcel-index">{String(index + 1).padStart(2, "0")}</span>
-                <h3>{zone.name}</h3>
-                <p>{zone.aspect}</p>
-                <small>{zone.character}</small>
-              </li>
-            ))}
+          <HomeFilmstrip stages={filmstrip} />
+        </section>
+
+        {/* D · Experience: three routes into /deneyim */}
+        <GroveJourney steps={routes} eyebrow="DENEYİM" heading="Üç rotadan, bir coğrafya." label="Deneyim rotaları" />
+
+        {/* E · Values, each with its evidence */}
+        <section className="home-values" aria-labelledby="values-title">
+          <header>
+            <p className="eyebrow">Yaklaşımımız</p>
+            <h2 id="values-title">Söylediğimizi <em>gösterebildiğimiz kadar.</em></h2>
+          </header>
+          <ol>
+            {values.map((v, i) => <li key={v.title}>
+              <span>{String(i + 1).padStart(2, "0")}</span>
+              <h3>{v.title}</h3>
+              <p>{v.text}</p>
+              <Link href={v.proof.href}>{v.proof.label} <ArrowRight size={14} aria-hidden="true" /></Link>
+            </li>)}
           </ol>
-          <Link className="cta cta-ghost" href="/deneyim">Toprağı yürüyün <ArrowRight size={16} aria-hidden="true" /></Link>
         </section>
 
-        {/* 5 · Production */}
-        <section className="home-process" aria-labelledby="process-title">
-          <header className="home-section-head">
-            <p className="eyebrow">Üretim</p>
-            <h2 id="process-title">Meyveden şişeye, <em>aynı özenle.</em></h2>
-          </header>
-          <ol className="process-steps">
-            {process.map(([number, title, copy]) => (
-              <li key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p></li>
-            ))}
-          </ol>
-          <div className="home-process-links">
-            <Link className="text-link" href="/hasat">Hasat yaklaşımımız <ArrowRight size={16} aria-hidden="true" /></Link>
-            <Link className="text-link" href="/traceability/26-004">Örnek lot kaydı <ArrowRight size={16} aria-hidden="true" /></Link>
-          </div>
-        </section>
-
-        {/* 6 · Olive Club */}
-        <section className="home-club" aria-labelledby="club-title">
-          <div className="home-club-media">
-            <Image src="/products/concepts/olive-club.webp" alt="İki adet 500 ml teneke içeren Olive Club üyelik kutusu tasarımı — yapay zekâyla oluşturulmuş temsili ambalaj tasarımı" width={1122} height={1402} sizes="(max-width: 900px) 100vw, 45vw" />
-            <i className="illustration-badge">AI konsept tasarım</i>
-          </div>
-          <div className="home-club-copy">
-            <p className="eyebrow">Olive Club</p>
-            <h2 id="club-title">Hasada <em>daha yakın</em> olun.</h2>
-            <p>Düzenli gönderimler, üyelere özel hasat notları ve sahiplenebileceğiniz bir zeytin ağacı üzerine çalışıyoruz.</p>
-            <p className="home-club-status"><b>Durum:</b> Üyelik programı hazırlık aşamasında; henüz başvuru alınmıyor ve ödeme yapılmıyor.</p>
-            <Link className="cta cta-primary" href="/olive-club">Programı inceleyin <ArrowRight size={16} aria-hidden="true" /></Link>
-          </div>
-        </section>
-
-        {/* 7 · Journal */}
+        {/* Journal */}
         <section className="home-journal" aria-labelledby="journal-title">
           <header className="home-section-head">
             <p className="eyebrow">Altın Dal Günlüğü</p>
@@ -167,10 +163,19 @@ export default function Home() {
           <div className="home-journal-grid">{journalCards.map(({ post, graphic }) => <JournalCard key={post.slug} post={post} graphic={graphic} />)}</div>
         </section>
 
-        <section className="home-closing" aria-labelledby="closing-title">
-          <p className="eyebrow">Altın Dal · Aphrodisias Estate</p>
-          <h2 id="closing-title">Bu topraktan. <em>Sofranıza.</em></h2>
-          <Link className="cta cta-primary" href="/koleksiyon">Koleksiyonu keşfedin <ArrowRight size={16} aria-hidden="true" /></Link>
+        {/* F · Closing */}
+        <section className="home-finale" aria-labelledby="closing-title">
+          <Image className="home-finale-image" src="/pages/finale-bottle.webp" alt="" fill sizes="100vw" />
+          <div className="home-finale-copy">
+            <p className="eyebrow">Altın Dal · Aphrodisias Estate</p>
+            <h2 id="closing-title">Bu topraktan.<br /><em>Sofranıza.</em></h2>
+            <nav aria-label="Son adım">
+              <Link className="cta cta-primary" href="/koleksiyon">Koleksiyonu keşfedin <ArrowRight size={16} aria-hidden="true" /></Link>
+              <Link className="cta cta-ghost" href="/magaza">Mağazaya gidin <ArrowRight size={16} aria-hidden="true" /></Link>
+            </nav>
+            <p className="home-finale-club"><Link href="/olive-club">Olive Club</Link> hazırlık aşamasında; henüz başvuru alınmıyor ve ödeme yapılmıyor.</p>
+          </div>
+          <p className="home-finale-note">Hareketli ve sabit görüntülerin bir kısmı sinematik canlandırmadır.</p>
         </section>
       </main>
       <BrandFooter />

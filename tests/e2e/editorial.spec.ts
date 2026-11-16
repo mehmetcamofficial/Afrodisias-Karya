@@ -9,11 +9,12 @@ test("homepage uses each photograph only once and labels drawings", async ({ pag
   const photos = sources.filter((src) => !src.includes("/products/concepts/"));
   expect(photos.length).toBeGreaterThan(0);
   expect(new Set(photos).size, `duplicate photos: ${photos.join(", ")}`).toBe(photos.length);
-  for (const section of ["Marka hikâyesi", "Koleksiyonlar", "Zeytinlik", "Üretim", "Olive Club", "Altın Dal Günlüğü"]) {
+  for (const section of ["Köken", "Koleksiyon", "Topraktan sofraya", "Yaklaşımımız", "Altın Dal Günlüğü"]) {
     await expect(page.locator(".eyebrow", { hasText: section }).first()).toBeAttached();
   }
-  await expect(page.locator(".collection-tile.is-illustration .illustration-badge")).toHaveCount(2);
-  await expect(page.locator(".home-club-status")).toContainText("henüz başvuru alınmıyor");
+  // Every vitrine product states what its image is; Olive Club's status stays honest.
+  await expect(page.locator(".home-vitrine-note")).toHaveCount(3);
+  await expect(page.locator(".home-finale-club")).toContainText("henüz başvuru alınmıyor");
 });
 
 test("store category filter is driven by and written to the URL", async ({ page }) => {

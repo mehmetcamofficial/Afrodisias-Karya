@@ -17,3 +17,6 @@ ffmpeg -loglevel error -y -i public/hero-tetrapylon-grove.webp -vf "crop=760:941
 # Hasat loop: 10 s, 960 px, muted, seamless enough for a background (fades are in CSS).
 ffmpeg -loglevel error -y -i "$src/altin-dal-film-02.mp4" -an -vf "scale=960:-2,fps=24" -c:v libvpx-vp9 -crf 38 -b:v 0 -row-mt 1 -cpu-used 2 -g 48 public/video/harvest-loop.webm
 ffmpeg -loglevel error -y -i "$src/altin-dal-film-02.mp4" -an -vf "scale=960:-2,fps=24" -c:v libx264 -preset slow -crf 27 -pix_fmt yuv420p -g 48 -movflags +faststart public/video/harvest-loop.mp4
+
+# Homepage finale (Faz 12B)
+ffmpeg -loglevel error -y -ss 0.5 -i "$src/altin-dal-film-04.mp4" -frames:v 1 -vf "scale=1280:-1" -c:v libwebp -quality 82 "$out/finale-bottle.webp"
