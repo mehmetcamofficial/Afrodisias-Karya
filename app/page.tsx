@@ -2,12 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { publishedPosts } from "../lib/blog";
-import { formatPrice, type Product } from "../lib/products";
+import { type Product } from "../lib/products";
 import { getLiveProducts } from "../lib/live-products";
 import { isProductionShowcase } from "../lib/showcase-mode";
 import { BrandFooter, BrandHeader } from "./components/site-shell";
 import { HeroFilm } from "./components/hero-film";
 import { JournalCard } from "./components/journal-card";
+import { HomeVitrine } from "./components/home-vitrine";
+import { resolveVitrine } from "../lib/home-vitrine";
 import { HomeFilmstrip, type FilmstripStage } from "./components/home-filmstrip";
 import { GroveJourney, type JourneyStep } from "./components/story-scroller";
 import { Reveal } from "./components/reveal";
@@ -17,16 +19,6 @@ import "./components/home-sections.css";
 export const metadata = { alternates: { canonical: "/" } };
 // Prices and live status come from the catalogue at request time (never baked into the build).
 export const dynamic = "force-dynamic";
-
-/** The three packaging families of the vitrine. Each maps to one catalogue product so name, size and price always match. */
-const vitrine = [
-  { id: "glass-500", family: "Cam şişe", image: "/collection/scene/scene-bottle.webp", w: 488, h: 1532, series: "glass",
-    note: "Temsili görsel; ürün fotoğrafı olarak doğrulanmadı." },
-  { id: "tin-3l", family: "Mat teneke", image: "/collection/scene/scene-tin.webp", w: 640, h: 785, series: "tin",
-    note: "Yapay zekâyla hazırlanmış temsili ambalaj tasarımı." },
-  { id: "reserve-500", family: "Hediye kutusu", image: "/collection/scene/scene-giftbox.webp", w: 820, h: 979, series: "luxury",
-    note: "Temsili görsel; nihai kutu tasarımı onay bekliyor." },
-] as const;
 
 const filmstrip: FilmstripStage[] = [
   { id: "toprak", label: "Toprak", title: "Taşlı vadide yaşlı ağaçlar", text: "Her ağaç ve her parsel kayıt altına alınır.", image: "/pages/harvest-tree.webp", alt: "Gün ışığında yaşlı zeytin ağaçları — sinematik canlandırma", href: "/hasat#asama-1" },
@@ -54,7 +46,6 @@ export default async function Home() {
   const journal = publishedPosts.slice(0, 3);
   const catalogue = await getLiveProducts().catch(() => [] as Product[]);
   const showcase = isProductionShowcase();
-  const byId = new Map(catalogue.map((p) => [p.id, p]));
   // Typographic covers on the homepage: no third-party (Wikimedia) image requests on the landing page.
   const journalCards = journal.map((post) => ({ post, graphic: true }));
   return (
@@ -91,38 +82,8 @@ export default async function Home() {
           </Reveal>
         </section>
 
-        {/* B · Collection vitrine: three families on one travertine stage, names/sizes/prices from the catalogue */}
-        <section className="home-vitrine" aria-labelledby="vitrine-title">
-          <header>
-            <p className="eyebrow">Koleksiyon</p>
-            <h2 id="vitrine-title">Bir toprak, <em>üç ifade.</em></h2>
-            <Link className="text-link" href="/koleksiyon">Koleksiyon sahnesine girin <ArrowRight size={16} aria-hidden="true" /></Link>
-          </header>
-          <ul className="home-vitrine-stage">
-            {vitrine.map((item) => {
-              const product = byId.get(item.id);
-              if (!product) return null;
-              const live = !showcase && product.stock > 0 && Object.keys(product.prices).length > 0;
-              const href = live ? `/urun/${product.id}` : `/koleksiyon#seri-${item.series}`;
-              return <li key={item.id} className={`home-vitrine-item home-vitrine-${item.series}`}>
-                <Link href={href}>
-                  <span className="home-vitrine-media"><Image src={item.image} alt={`${product.name} — ${item.note}`} width={item.w} height={item.h} sizes="(max-width: 700px) 60vw, 22vw" /></span>
-                  <span className="home-vitrine-plinth" aria-hidden="true" />
-                  <small>{item.family} · {product.size}</small>
-                  <b>{product.name}</b>
-                  <span className="home-vitrine-price">{live ? formatPrice(product, "TRY") : "Satış henüz açık değil"}</span>
-                  <i>{live ? "Ürünü incele" : "Seriyi incele"} <ArrowRight size={14} aria-hidden="true" /></i>
-                </Link>
-                <p className="home-vitrine-note">{item.note}</p>
-              </li>;
-            })}
-          </ul>
-          <nav className="home-vitrine-more" aria-label="Diğer seriler">
-            <Link href="/magaza?kategori=pantry#urunler">Ataeymir lezzetleri</Link>
-            <Link href="/magaza?kategori=subscription#urunler">Olive Club ve deneyim</Link>
-            <Link href="/magaza#urunler">Tüm ürünler <ArrowRight size={14} aria-hidden="true" /></Link>
-          </nav>
-        </section>
+        {/* B · Collection vitrine: one featured family and two companions, resolved against the live catalogue */}
+        <HomeVitrine entries={resolveVitrine(catalogue, showcase)} />
 
         {/* C · Grove to table: native horizontal rail */}
         <section className="home-journey" aria-labelledby="journey-home-title">

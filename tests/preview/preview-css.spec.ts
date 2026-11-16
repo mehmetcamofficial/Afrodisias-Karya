@@ -29,3 +29,27 @@ test("/deneyim on Preview", async ({ page }, testInfo) => {
   expect(r.tails).toEqual(["1", "1", "1"]);
   expect(await page.locator(".experience-explorer-layout").evaluate((el) => getComputedStyle(el).display)).toBe("grid");
 });
+
+test("/ vitrine on Preview: three families with loaded images, honest purchase state, working links", async ({ page }, testInfo) => {
+  await page.goto("/", { waitUntil: "load" });
+  const vitrine = page.locator(".home-vitrine");
+  await vitrine.scrollIntoViewIfNeeded();
+  const items = vitrine.locator(".home-vitrine-item");
+  await expect(items).toHaveCount(3);
+  for (const item of await items.all()) {
+    const img = item.locator("img");
+    await img.scrollIntoViewIfNeeded();
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth), { timeout: 15_000 }).toBeGreaterThan(0);
+    await expect(item.locator("b")).not.toBeEmpty();
+    const state = await item.getAttribute("data-state");
+    const price = (await item.locator(".home-vitrine-price").textContent()) ?? "";
+    // A purchase action and a price appear together, and only for a live catalogue product.
+    if (state === "live") expect(price).toMatch(/₺/); else expect(price).not.toMatch(/₺/);
+    expect(await item.locator(".home-vitrine-action.is-buy").count()).toBe(state === "live" ? 1 : 0);
+  }
+  console.log(`[${testInfo.project.name}] vitrine states ${JSON.stringify(await items.evaluateAll((els) => els.map((e) => `${e.querySelector("b")?.textContent}:${e.getAttribute("data-state")}:${e.querySelector("a")?.getAttribute("href")}`)))}`);
+  await testInfo.attach("home vitrine", { body: await vitrine.screenshot(), contentType: "image/png" });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+  for (const href of await vitrine.locator("a").evaluateAll((as) => [...new Set(as.map((a) => a.getAttribute("href")!.split("#")[0]))]))
+    expect((await page.request.get(href)).status(), href).toBe(200);
+});
