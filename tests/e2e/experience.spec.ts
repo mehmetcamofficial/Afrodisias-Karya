@@ -41,8 +41,9 @@ test.describe("immersive navigation and store", () => {
     const context = await browser.newContext({ reducedMotion: "reduce" });
     const page = await context.newPage();
     await page.goto("/");
-    const name = await page.locator(".home-club-media img").evaluate((img) => getComputedStyle(img).animationName);
-    expect(name).toBe("none");
+    const motion = await page.locator(".home-vitrine-media img").first().evaluate((img) => ({ animation: getComputedStyle(img).animationName, transition: parseFloat(getComputedStyle(img).transitionDuration) }));
+    expect(motion.animation).toBe("none");
+    expect(motion.transition).toBeLessThan(0.001); // effectively off
     await context.close();
   });
 });

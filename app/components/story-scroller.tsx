@@ -49,7 +49,7 @@ export function StoryScroller({ chapters }: { chapters: StoryChapter[] }) {
 export type JourneyStep = { id: string; label: string; title: string; text: string; image: string; alt: string; href: string; cta: string };
 
 /** "Zeytinlikten sofraya": a keyboard-operable tablist (arrow keys) whose panel crossfades image and copy. */
-export function GroveJourney({ steps, heading }: { steps: JourneyStep[]; heading: string }) {
+export function GroveJourney({ steps, heading, eyebrow = "ZEYTİNLİKTEN SOFRAYA", label = "Yolculuğun aşamaları" }: { steps: JourneyStep[]; heading: string; eyebrow?: string; label?: string }) {
   const [active, setActive] = useState(0);
   const tabs = useRef<Array<HTMLButtonElement | null>>([]);
   const onKey = (event: React.KeyboardEvent) => {
@@ -63,8 +63,8 @@ export function GroveJourney({ steps, heading }: { steps: JourneyStep[]; heading
   const step = steps[active];
   return (
     <section className="grove-journey" aria-labelledby="journey-title">
-      <header><p className="story-eyebrow">ZEYTİNLİKTEN SOFRAYA</p><h2 id="journey-title">{heading}</h2></header>
-      <div className="grove-journey-rail" role="tablist" aria-label="Yolculuğun aşamaları" onKeyDown={onKey}>
+      <header><p className="story-eyebrow">{eyebrow}</p><h2 id="journey-title">{heading}</h2></header>
+      <div className="grove-journey-rail" role="tablist" aria-label={label} onKeyDown={onKey} style={{ "--n": steps.length } as React.CSSProperties}>
         {steps.map((s, i) => (
           <button key={s.id} ref={(el) => { tabs.current[i] = el; }} role="tab" id={`journey-tab-${s.id}`} aria-selected={i === active} aria-controls="journey-panel"
             tabIndex={i === active ? 0 : -1} className={i === active ? "is-active" : i < active ? "is-done" : ""} onClick={() => setActive(i)}>

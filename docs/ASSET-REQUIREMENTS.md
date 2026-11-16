@@ -96,3 +96,26 @@ only (no generated pixels) and are rebuilt with
 When real packshots arrive (spec above: 2000 px, travertine/ivory background,
 consistent light), replace the three inputs and rerun the script. Use the same
 camera height for all three so the set reads as one photograph.
+
+## Page media (Faz 12 / 12B, 2026-11-16)
+
+All stills below are frames from the owner's four cinematic films (`media-src/films/`, not deployed) or crops
+of the editorial Aphrodisias photo, built by `scripts/build-page-media.sh`. **None is documentary footage of
+the Altın Dal grove**; every page that uses them says so.
+
+| File | Source | Used on |
+|---|---|---|
+| `pages/story-valley.webp` | film-01 @0.5 s (valley at dawn) | Home (origin), Hikâyemiz |
+| `pages/story-aphrodisias.webp` | crop of `hero-tetrapylon-grove.webp` (columns) | Home (origin inset), Hikâyemiz |
+| `pages/story-grove.webp`, `story-crate.webp` | film-01 @6.5 s, film-02 @8.5 s | Hikâyemiz |
+| `pages/route-heritage/grove/table.webp` | tetrapylon crop, film-01 @4.5 s, film-03 @6.5 s | Home (experience), Deneyim |
+| `pages/harvest-*.webp` (7) | films 01–04 | Home (grove-to-table), Hasat, Hikâyemiz |
+| `pages/finale-bottle.webp` | film-04 @0.5 s (bottle on travertine) | Home (finale) |
+| `video/harvest-loop.webm/.mp4` | film-02, 10 s, muted | Hasat hero (not under reduced motion / Save-Data) |
+| `collection/scene/scene-*.webp` | masked cut-outs (see Faz 10) | Koleksiyon scene, Home vitrine, Mağaza doors |
+
+### Still missing (owner to supply)
+- Real packshots of the 500 ml bottle, 3 L / 5 L tins and the Special Reserve box (the vitrine and store doors
+  use representative images and say so).
+- Documentary photos of the grove, harvest and pressing, to replace cinematic frames on Hikâyemiz, Hasat and Home.
+- Any certificate or lab report before quality claims beyond the existing protocol text can be shown.
