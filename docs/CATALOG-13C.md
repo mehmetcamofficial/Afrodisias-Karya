@@ -109,3 +109,22 @@ Hiçbiri sistemde yok; uydurulmayacak.
 5. Her ürün için **gerçek ürün fotoğrafı**: kısa kenarı ≥ 800 px, panelden yüklenip owner tarafından onaylanmış.
 6. TR (ve isteniyorsa EN) açıklama, köken, içerik, kullanım ve saklama metinleri.
 7. Ödeme sağlayıcısı (iyzico) kimlik bilgileri. Sipariş akışı TL ve TR ile sınırlı kalır.
+
+## 13C kapanışı — yetki ve oturum güvenliği
+
+| Kontrol | Sonuç | Kanıt |
+|---|---|---|
+| Bütün admin API'leri (glob ile bulunan her handler ve metot), Clerk ile doğrulanmış ama rolü olmayan kullanıcıyı reddediyor | PASS | `tests/unit/preview-admin-routes.test.ts`: 403, veriye erişmeden |
+| `/admin/urunler` sayfası, ürün verisi yüklenmeden önce erişimi reddediyor | PASS | Aynı test (`AdminForbidden`, `loadAdminSnapshot` çağrılmıyor) |
+| `ADMIN_EMAILS` listesinde olup e-postası doğrulanmamış hesap | PASS | `tests/unit/preview-admin-escalation.test.ts`: 403, rol sorgusu bile yapılmıyor |
+| Benzer görünen e-postalar (`…test.evil.io`, `+x`, ön ek, eksik harf) | PASS | 403 |
+| Taklit `oai-authenticated-*` başlıkları (Vercel) | PASS | Oturum yokken 401, yabancı kullanıcıyla 403 |
+| Production Clerk anahtarları (`pk_live` / `sk_live`) Preview admin'i açamıyor | PASS | 401; `auth()` hiç çağrılmıyor |
+| Production ortamı | PASS | Listedeki doğrulanmış owner bile 401 alıyor |
+| `admin_users` tablosundaki "owner" satırı yetki vermiyor | PASS | Owner yalnızca `ADMIN_EMAILS` listesinden geliyor |
+| Editor kendi rolünü yükseltemiyor; API yeni owner oluşturamıyor | PASS | Editor 403; owner'ın kendisi bile 400 alıyor |
+| Clerk kimliği ile oturum kimliği uyuşmuyor | PASS | `preview-admin-routes.test.ts` |
+| Rol tablosu: bilinmeyen, benzer görünen ve devre dışı hesaplar | PASS | `tests/integration/admin-roles.test.ts`: rol yok |
+| Owner satırı CMS üzerinden değiştirilemiyor veya düşürülemiyor; rol değişiklikleri audit'leniyor | PASS | Aynı test |
+| Fiyat ve fotoğraf onayı, onaylayan kişiyi değiştirilemez (append-only) audit'e yazıyor | PASS | Aynı test; `UPDATE` ve `DELETE` reddediliyor |
+| Gerçek Clerk Development test hesabıyla Preview kabulü | **BLOCKED** | Bu oturumda tarayıcı yok ve `vercel.app` erişilemez. CI'da otomatikleştirmek için `@clerk/testing` paketi, Development `CLERK_SECRET_KEY` değerinin GitHub secret olarak eklenmesi ve bir test kullanıcısı gerekiyor; sahibin onayına bağlı. |
