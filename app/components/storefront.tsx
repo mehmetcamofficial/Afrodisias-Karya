@@ -12,7 +12,39 @@ import { ProductVisual, productImageNote } from "./product-visual";
 
 const CATEGORIES = Object.keys(categoryLabels) as ProductCategory[];
 
-export function Storefront({ products, showcase = false, initialCategory = "all", initialQuery = "", initialSort = "featured" }: { products: Product[]; showcase?: boolean; initialCategory?: ProductCategory | "all"; initialQuery?: string; initialSort?: Sort }) {
+export type PreviewItem = { product: Product; href: string };
+
+/**
+ * Editorial previews (not on sale): name, size, image honesty note and a link to the
+ * collection series. Never a price, a stock figure or a purchase action.
+ */
+export function StorePreviews({ items }: { items: PreviewItem[] }) {
+  if (!items.length) return null;
+  return (
+    <section className="store-previews" aria-labelledby="store-previews-title">
+      <header>
+        <p className="eyebrow">Koleksiyondan</p>
+        <h2 id="store-previews-title">Yakında mağazada</h2>
+        <p>Bu ürünler henüz satışa açılmadı. Fiyat ve stok, ticari onaydan sonra burada yayımlanır.</p>
+      </header>
+      <ul className="store-preview-grid">
+        {items.map(({ product, href }) => (
+          <li key={product.id} className="store-preview-card" data-state="preview">
+            <Link href={href} aria-label={`${product.name} — koleksiyonda incele`}>
+              <span className="store-preview-media"><ProductVisual product={product} sizes="(max-width: 700px) 50vw, 25vw" /></span>
+              <small>{categoryLabels[product.category]} · {product.size}</small>
+              <b>{product.name}</b>
+              <span className="store-preview-status">Satış henüz açık değil</span>
+              {productImageNote(product) && <span className="store-preview-note">{productImageNote(product)}</span>}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+export function Storefront({ products, previews = [], showcase = false, initialCategory = "all", initialQuery = "", initialSort = "featured" }: { products: Product[]; previews?: PreviewItem[]; showcase?: boolean; initialCategory?: ProductCategory | "all"; initialQuery?: string; initialSort?: Sort }) {
   const { currency, setCurrency, add } = useCart();
   const [query, setQuery] = useState(initialQuery);
   const [activeCategory, setActiveCategory] = useState<ProductCategory | "all">(initialCategory);
@@ -46,12 +78,15 @@ export function Storefront({ products, showcase = false, initialCategory = "all"
 
   if (products.length === 0) {
     return (
-      <section className="shop-empty shop-catalog-empty" role="status">
-        <Search aria-hidden="true"/>
-        <h2>Mağaza hazırlanıyor</h2>
-        <p>Fiyatı ve stoku doğrulanmış ürünler yayımlandığında burada görünecek. Bu arada koleksiyonu ve hikâyemizi keşfedebilirsiniz.</p>
-        <Link href="/koleksiyon">Koleksiyonu keşfedin</Link>
-      </section>
+      <>
+        <section className="shop-empty shop-catalog-empty" role="status">
+          <Search aria-hidden="true"/>
+          <h2>Mağaza hazırlanıyor</h2>
+          <p>Fiyatı ve stoku doğrulanmış ürünler yayımlandığında burada görünecek. Bu arada koleksiyonu ve hikâyemizi keşfedebilirsiniz.</p>
+          <Link href="/koleksiyon">Koleksiyonu keşfedin</Link>
+        </section>
+        <StorePreviews items={previews} />
+      </>
     );
   }
 
@@ -94,6 +129,7 @@ export function Storefront({ products, showcase = false, initialCategory = "all"
           ))}
         </section>
       )}
+      <StorePreviews items={previews} />
     </>
   );
 }

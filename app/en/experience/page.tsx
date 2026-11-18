@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getLiveProducts } from "../../../lib/live-products";
+import { getCatalogue, publishedProducts } from "../../../lib/catalog";
 import { publishedCollections, publishedExperience } from "../../../lib/showcase-db";
 import { BrandShell } from "../../components/site-shell";
 import { ExperienceSections } from "../../components/showcase";
@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default async function Page() {
-  const [sections, collections, live] = await Promise.all([publishedExperience(), publishedCollections(), getLiveProducts()]);
+  const [sections, collections, live] = await Promise.all([publishedExperience(), publishedCollections(), getCatalogue().then(publishedProducts)]);
   const english = sections.filter((s) => s.en.title);
   return (
     <BrandShell>

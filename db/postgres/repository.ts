@@ -12,6 +12,10 @@ export type ProductRow = {
   /** 0007: business-set EUR/USD prices in cents; null = not sold in that currency. */
   priceEurCents?: number | null; priceUsdCents?: number | null;
   sizeFamily?: string | null; shipsTo?: string[];
+  /** Public catalogue only (listProducts): structured packaging, TR/EN content and the first APPROVED photo. */
+  packaging?: string | null; netVolumeMl?: number | null; netWeightG?: number | null;
+  content?: Record<string, { name: string; description: string; origin: string; ingredients: string; usage: string; storage: string }> | null;
+  photo?: { src: string; altTr: string; altEn: string } | null;
 };
 export type OrderRow = {
   id: string; customerName: string; email: string; totalKurus: number;
@@ -30,7 +34,16 @@ export async function listProducts(db: SqlDriver): Promise<ProductRow[]> {
             CASE WHEN product_price_approved(products,'TRY') THEN price_kurus ELSE 0 END AS "priceKurus",
             CASE WHEN product_price_approved(products,'EUR') THEN price_eur_cents END AS "priceEurCents",
             CASE WHEN product_price_approved(products,'USD') THEN price_usd_cents END AS "priceUsdCents",
-            size_family AS "sizeFamily",ships_to AS "shipsTo",stock,active
+            size_family AS "sizeFamily",ships_to AS "shipsTo",stock,active,
+            packaging, net_volume_ml AS "netVolumeMl", net_weight_g AS "netWeightG",
+            (SELECT jsonb_object_agg(t.locale, jsonb_build_object('name', t.name, 'description', t.description, 'origin', t.origin,
+                      'ingredients', t.ingredients, 'usage', t.usage, 'storage', t.storage))
+               FROM product_translations t WHERE t.product_id = products.id) AS content,
+            (SELECT jsonb_build_object('src', m.url, 'altTr', m.alt_tr, 'altEn', m.alt_en)
+               FROM product_media pm JOIN media_assets m ON m.id = pm.media_id
+              WHERE pm.product_id = products.id AND m.kind = 'image' AND m.approved_at IS NOT NULL
+                AND (m.truth = 'photo' OR (m.truth = 'editorial' AND products.packaging IN ('subscription','experience')))
+              ORDER BY pm.position, m.id LIMIT 1) AS photo
        FROM products WHERE active=true ORDER BY name`
   );
   return result.rows;

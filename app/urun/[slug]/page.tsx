@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { publishedPosts } from "../../../lib/blog";
-import { getLiveProducts } from "../../../lib/live-products";
+import { catalogueEntry, getCatalogue, publishedProducts, previewEntries, type Catalogue } from "../../../lib/catalog";
 import { categoryLabels, packagingLabels, sizeSiblings, storageGuidance, type Product } from "../../../lib/products";
-import { isProductionShowcase } from "../../../lib/showcase-mode";
 import { breadcrumbJsonLd, jsonLdScript, productJsonLd } from "../../../lib/structured-data";
 import { BrandShell } from "../../components/site-shell";
 import { ProductDetailClient } from "../../components/product-detail-client";
@@ -16,8 +15,9 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const product = (await getLiveProducts()).find((item) => item.id === slug);
-  if (!product) return {};
+  const entry = catalogueEntry(await getCatalogue(), slug);
+  if (!entry) return {};
+  const product = entry.product;
   const description = `${product.name} (${product.size}) — ${product.note}. Ataeymir, Karacasu.`;
   return {
     title: product.name,
@@ -40,14 +40,28 @@ function relatedProducts(product: Product, all: Product[]) {
   }).slice(0, 3);
 }
 
+/** Pages exist for published products; previews send visitors to their collection series (never a 404). */
+const pageProducts = (cat: Catalogue) => cat.showcase ? previewEntries(cat).map((e) => e.product) : publishedProducts(cat);
+
+const PACKAGING_TR: Record<string, string> = {
+  glass_bottle: "Koyu renkli cam şişe", tin: "Mat teneke", gift_box: "Hediye kutusu", jar: "Cam kavanoz", pouch: "Poşet",
+  box: "Kutu", set: "Set", subscription: "Abonelik gönderimi", experience: "Deneyim programı",
+};
+
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const all = await getLiveProducts();
-  const product = all.find((item) => item.id === slug);
-  if (!product) notFound();
-  const showcase = isProductionShowcase();
-  const packaging = packagingLabels[product.id];
-  const storage = storageGuidance(product);
+  const cat = await getCatalogue();
+  const entry = catalogueEntry(cat, slug);
+  if (!entry) notFound();
+  if (entry.state === "preview" && !cat.showcase) redirect(entry.href);
+  const all = pageProducts(cat);
+  const product = entry.product;
+  const showcase = cat.showcase;
+  const tr = product.content?.tr;
+  // Published database fields first; the editorial catalogue only where the database is silent.
+  const packaging = product.packaging ? PACKAGING_TR[product.packaging] : packagingLabels[product.id];
+  const storage = tr?.storage || storageGuidance(product);
+  const notStated = "Belirtilmedi";
   const related = relatedProducts(product, all);
   const sizes = sizeSiblings(product, all);
   const recipes = publishedPosts.filter((post) => post.relatedProductIds.includes(product.id)).slice(0, 2);
@@ -55,7 +69,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <BrandShell>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript([
-        ...(showcase ? [] : [productJsonLd(product)]),
+        ...(entry.state === "preview" ? [] : [productJsonLd(product)]),
         breadcrumbJsonLd([{ name: "Ana sayfa", path: "/" }, { name: "Mağaza", path: "/magaza" }, { name: product.name, path: `/urun/${product.id}` }]),
       ])} />
       <nav className="breadcrumbs" aria-label="Sayfa konumu">
@@ -70,7 +84,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <p>ALTIN DAL · {categoryLabels[product.category].toLocaleUpperCase("tr-TR")}</p>
           <h1>{product.name}</h1>
           <span>{product.size} · Ataeymir, Karacasu</span>
-          <p>{product.note}.</p>
+          <p>{tr?.description || `${product.note}.`}</p>
           {sizes.length > 1 && (
             <nav className="size-switcher" aria-label="Boy seçenekleri">
               <span>Boy</span>
@@ -89,6 +103,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <dl>
                 <div><dt>Hacim / miktar</dt><dd>{product.size}</dd></div>
                 <div><dt>Ambalaj</dt><dd>{packaging ?? "Ambalaj bilgisi doğrulanıyor"}</dd></div>
+                {(product.netVolumeMl || product.netWeightG) && <div><dt>Net miktar</dt><dd>{product.netVolumeMl ? `${product.netVolumeMl} ml` : `${product.netWeightG} g`}</dd></div>}
+                <div><dt>İçerik</dt><dd>{tr?.ingredients || notStated}</dd></div>
                 <div><dt>Lot</dt><dd>{product.lot ?? "Şişelemede atanacak"}</dd></div>
                 <div><dt>Görsel</dt><dd>{product.image?.kind === "variant" ? "Ürün fotoğrafı" : product.image?.kind === "range" ? "Seri fotoğrafı" : product.image?.kind === "editorial" ? "Atmosfer görseli" : product.image?.kind === "concept" ? "AI ile oluşturulmuş konsept tasarım" : "Görsel yok"}</dd></div>
               </dl>
@@ -99,9 +115,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <p>{storage}</p>
               </details>
             )}
+            {tr?.usage && (
+              <details>
+                <summary>Kullanım</summary>
+                <p>{tr.usage}</p>
+              </details>
+            )}
             <details>
               <summary>Köken</summary>
-              <p>Ataeymir, Karacasu (Aydın) — Aphrodisias antik kentiyle aynı vadideki aile zeytinliği. Lot bazlı analiz bilgileri lot sayfalarında yayımlanır.</p>
+              <p>{tr?.origin || "Ataeymir, Karacasu (Aydın) — Aphrodisias antik kentiyle aynı vadideki aile zeytinliği."} Lot bazlı analiz bilgileri lot sayfalarında yayımlanır.</p>
               <Link className="text-link" href="/traceability/26-004">Örnek lot kaydını görün <ArrowRight size={14} aria-hidden="true" /></Link>
             </details>
             <details>

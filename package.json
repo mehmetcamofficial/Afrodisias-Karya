@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.10.2",
+    "@clerk/testing": "2.2.54",
     "@cloudflare/vite-plugin": "1.37.1",
     "@cloudflare/workers-types": "4.20260515.1",
     "@playwright/test": "1.63.0",

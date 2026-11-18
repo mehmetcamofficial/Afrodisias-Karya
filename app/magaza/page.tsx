@@ -5,8 +5,7 @@ import { BrandShell } from "../components/site-shell";
 import { Storefront } from "../components/storefront";
 import { isCategory, type ProductCategory } from "../../lib/products";
 import { isSort } from "../../lib/store-query";
-import { getLiveProducts } from "../../lib/live-products";
-import { isProductionShowcase } from "../../lib/showcase-mode";
+import { getCatalogue, previewEntries, publishedProducts } from "../../lib/catalog";
 import "../components/editorial-pages.css";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Mağaza", description: "Altın Dal cam seri zeytinyağları, özel seri kutular, mat teneke aile boyları ve Ataeymir lezzetleri.", alternates: { canonical: "/magaza" } };
@@ -20,7 +19,10 @@ const doors: Array<{ category: ProductCategory; image: string; title: string }> 
 
 export default async function StorePage({ searchParams }: { searchParams: Promise<{ kategori?: string; q?: string; siralama?: string }> }) {
   const { kategori, q, siralama } = await searchParams;
-  const products = await getLiveProducts();
+  const cat = await getCatalogue();
+  // Showcase: the presentation grid ("Yakında"). Otherwise: published products for sale + editorial previews apart.
+  const products = cat.showcase ? previewEntries(cat).map((e) => e.product) : publishedProducts(cat);
+  const previews = cat.showcase ? [] : previewEntries(cat).map((e) => ({ product: e.product, href: e.href }));
   const count = (category: ProductCategory) => products.filter((product) => product.category === category).length;
   const liveDoors = doors.filter((door) => count(door.category) > 0);
   return <BrandShell>
@@ -39,6 +41,6 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
       </nav>}
       <p className="store-showcase-note">Vitrin görselleri temsilidir; ürün fotoğrafı olarak doğrulanmamıştır.</p>
     </section>
-    <div className="store-page" id="urunler"><Storefront key={isCategory(kategori) ? kategori : "all"} products={products} showcase={isProductionShowcase()} initialCategory={isCategory(kategori) ? kategori : "all"} initialQuery={typeof q === "string" ? q.slice(0, 80) : ""} initialSort={isSort(siralama) ? siralama : "featured"} /></div>
+    <div className="store-page" id="urunler"><Storefront key={isCategory(kategori) ? kategori : "all"} products={products} previews={previews} showcase={cat.showcase} initialCategory={isCategory(kategori) ? kategori : "all"} initialQuery={typeof q === "string" ? q.slice(0, 80) : ""} initialSort={isSort(siralama) ? siralama : "featured"} /></div>
   </BrandShell>;
 }

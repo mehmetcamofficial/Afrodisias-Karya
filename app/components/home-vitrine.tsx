@@ -24,7 +24,7 @@ export function HomeVitrine({ entries }: { entries: VitrineEntry[] }) {
           <li key={e.id} className={`home-vitrine-item home-vitrine-${e.series}${i === 0 ? " is-featured" : ""}`} data-state={e.live ? "live" : e.published ? "published" : "preview"}>
             <Link href={e.href} aria-describedby={`vitrine-note-${e.id}`}>
               <span className="home-vitrine-media">
-                <Image src={e.image} alt={`${e.product.name} — temsili ambalaj görseli`} width={e.w} height={e.h}
+                <Image src={e.image} alt={e.note.startsWith("Onaylı") ? e.product.name : `${e.product.name} — temsili ambalaj görseli`} width={e.w} height={e.h}
                   sizes={i === 0 ? "(max-width: 700px) 46vw, 18vw" : "(max-width: 700px) 30vw, 12vw"} />
                 <span className="home-vitrine-plinth" aria-hidden="true" />
               </span>

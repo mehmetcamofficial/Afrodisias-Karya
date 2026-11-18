@@ -146,6 +146,25 @@ run("Faz 13C product CMS against real PostgreSQL", () => {
     expect((await pool.query("SELECT currency FROM orders WHERE id = 'o13c'")).rows[0].currency).toBe("TRY");
   });
 
+  it("13D: the public catalogue exposes only published rows, their approved photo and their database content", async () => {
+    await createCmsProduct(db, input({
+      tr: { name: "Test 13C", description: "Yayın açıklaması", seoTitle: "", seoDescription: "", origin: "Ataeymir", ingredients: "", usage: "Salata", storage: "" },
+    }), owner, 1000);
+    await attachMedia(pool, "p13c", "concept", "m-c13d");
+    await attachMedia(pool, "p13c", "photo", "m-p13d-pending", false);
+    await approveProductPrice(db, "p13c", 1, "TRY", 99000, owner, 1100);
+    // A draft (with content and media) is not public at all.
+    expect((await listProducts(db)).map((r) => r.id)).toEqual([]);
+    await attachMedia(pool, "p13c", "photo", "m-p13d-ok");
+    const v = await toApproved("p13c");
+    await transitionCmsProduct(db, "p13c", v, "publish", owner, "", 3000);
+    const [row] = await listProducts(db);
+    expect(row).toMatchObject({ id: "p13c", priceKurus: 99000, packaging: "glass_bottle", netVolumeMl: 500,
+      content: { tr: { description: "Yayın açıklaması", origin: "Ataeymir", usage: "Salata" } } });
+    // Only the APPROVED photo — never the concept or the pending one.
+    expect(row.photo).toEqual({ src: "/test/m-p13d-ok.webp", altTr: "", altEn: "" });
+  });
+
   it("migration 0008 is idempotent and its rollback is safe: up → up → down → up; rollback refuses to drop approvals", async () => {
     const up = readFileSync("db/postgres/0008_product_cms.sql", "utf8");
     const down = readFileSync("db/postgres/0008_product_cms.down.sql", "utf8");

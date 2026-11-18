@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { BrandShell } from "../components/site-shell";
 import Image from "next/image";
 import { ExperienceExplorer } from "../components/experience-explorer";
-import { getLiveProducts } from "../../lib/live-products";
+import { getCatalogue, publishedProducts } from "../../lib/catalog";
 import { publishedCollections, publishedExperience } from "../../lib/showcase-db";
 import { ExperienceSections } from "../components/showcase";
 
@@ -22,7 +22,7 @@ const routes = [
 ];
 
 export default async function ExperiencePage() {
-  const [sections, collections, live] = await Promise.all([publishedExperience(), publishedCollections(), getLiveProducts()]);
+  const [sections, collections, live] = await Promise.all([publishedExperience(), publishedCollections(), getCatalogue().then(publishedProducts)]);
   return <BrandShell>
     <section className="route-hero-panels" aria-labelledby="experience-title">
       <div className="route-hero-copy">

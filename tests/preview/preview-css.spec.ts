@@ -87,3 +87,31 @@ test("13C on Preview: admin product APIs are closed to anonymous callers and the
     expect(status, name).toBe(expected);
   }
 });
+
+test("13D on Preview: 13 drafts are editorial previews everywhere — never priced, stocked or purchasable", async ({ page, request }, testInfo) => {
+  // Read-only GETs. Preview has no published product, so every catalogue surface must show previews only.
+  await page.goto("/magaza", { waitUntil: "load" });
+  await expect(page.locator(".product-card")).toHaveCount(0);
+  const previews = page.locator(".store-preview-card");
+  await expect(previews).toHaveCount(13);
+  await expect(page.getByRole("button", { name: /Sepete ekle/ })).toHaveCount(0);
+  expect(await previews.evaluateAll((els) => els.filter((e) => /[₺$€]\s?\d|\d+\s?adet/.test(e.textContent ?? "")).length)).toBe(0);
+  for (const href of await previews.locator("a").evaluateAll((as) => as.map((a) => a.getAttribute("href")!))) expect(href).toMatch(/^\/koleksiyon#seri-/);
+
+  await page.goto("/koleksiyon", { waitUntil: "load" });
+  const cards = page.locator(".collection-series-card");
+  await expect(cards).toHaveCount(13);
+  expect(await cards.evaluateAll((els) => els.filter((e) => e.getAttribute("data-state") !== "preview").length)).toBe(0);
+  expect(await cards.evaluateAll((els) => els.filter((e) => /[₺$€]\s?\d/.test(e.textContent ?? "")).length)).toBe(0);
+
+  // A draft's product URL leads to its collection series instead of a 404.
+  const res = await page.goto("/urun/glass-500", { waitUntil: "load" });
+  console.log(`[${testInfo.project.name}] /urun/glass-500 → ${page.url()} (${res?.status()})`);
+  expect(new URL(page.url()).pathname).toBe("/koleksiyon");
+  expect(res?.status()).toBe(200);
+
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  expect(sitemap).not.toMatch(/\/urun\//);
+  await page.goto("/", { waitUntil: "load" });
+  await expect(page.locator(".home-vitrine-item[data-state='preview']")).toHaveCount(3);
+});

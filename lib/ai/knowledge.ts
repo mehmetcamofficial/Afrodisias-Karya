@@ -18,10 +18,13 @@ const general: Source[] = [
 export const knowledge: Source[] = [
   ...faqs.map((faq, index) => ({ id: `faq-${index + 1}`, title: faq.q, text: faq.a, href: faq.link?.href })),
   ...products.map((product) => ({
-    id: `product-${product.id}`, title: product.name, href: `/urun/${product.id}`,
+    // Static knowledge cannot know what is on sale: always link the collection series (never a draft's 404)
+    // and never state a price or stock figure.
+    id: `product-${product.id}`, title: product.name, href: `/koleksiyon#seri-${product.category}`,
     text: [`${product.name} — ${categoryLabels[product.category]}, ${product.size}.`, product.note,
       packagingLabels[product.id] ? `Ambalaj: ${packagingLabels[product.id]}.` : "Ambalaj henüz doğrulanmadı.",
-      storageGuidance(product) ?? "", product.image?.kind === "concept" ? "Görsel, yapay zekâyla hazırlanmış temsili ambalaj tasarımıdır." : ""].filter(Boolean).join(" "),
+      storageGuidance(product) ?? "", product.image?.kind === "concept" ? "Görsel, yapay zekâyla hazırlanmış temsili ambalaj tasarımıdır." : "",
+      "Satış durumu, fiyat ve stok bilgisi yalnızca mağaza sayfasında gösterilir."].filter(Boolean).join(" "),
   })),
   ...general,
 ];

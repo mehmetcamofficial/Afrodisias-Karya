@@ -1,4 +1,4 @@
-import type { Product } from "./products";
+import { priceFor, type Product } from "./products";
 import { BRAND, SITE_URL } from "./site";
 
 /**
@@ -10,16 +10,17 @@ export function productJsonLd(product: Product) {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.note,
+    description: product.content?.tr?.description || product.note,
     url: `${SITE_URL}/urun/${product.id}`,
     brand: { "@type": "Brand", name: BRAND.name },
     // Only an image of this exact variant is a truthful product image.
     ...(product.image?.kind === "variant" ? { image: `${SITE_URL}${product.image.src}` } : {}),
-    ...(typeof product.prices.TRY === "number"
+    // An Offer only for a real, approved TRY price (> 0). Previews and unapproved prices never get one.
+    ...(priceFor(product, "TRY") !== null
       ? {
           offers: {
             "@type": "Offer",
-            price: product.prices.TRY.toFixed(2),
+            price: priceFor(product, "TRY")!.toFixed(2),
             priceCurrency: "TRY",
             availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             url: `${SITE_URL}/urun/${product.id}`,

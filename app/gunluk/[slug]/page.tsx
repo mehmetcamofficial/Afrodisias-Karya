@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { categorySlugs, getPost, publishedPosts, readMinutes, relatedPosts } from "../../../lib/blog";
 import { cmsPostBySlug } from "../../../lib/blog-db";
-import { products } from "../../../lib/products";
+import { getCatalogue } from "../../../lib/catalog";
 import { SITE_URL } from "../../../lib/site";
 import { breadcrumbJsonLd, jsonLdScript } from "../../../lib/structured-data";
 import { BrandShell } from "../../components/site-shell";
@@ -37,7 +37,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const post = await findPost(slug);
   if (!post) notFound();
   const related = relatedPosts(post);
-  const mentioned = products.filter((product) => post.relatedProductIds.includes(product.id));
+  // Same catalogue rules as the store: a preview links to its collection series (never a 404) and is never shown as for sale.
+  const mentioned = (await getCatalogue()).entries.filter((e) => post.relatedProductIds.includes(e.id));
   const articleLd = {
     "@context": "https://schema.org", "@type": "Article", headline: post.title, description: post.seoDescription ?? post.excerpt,
     datePublished: post.isoDate, author: { "@type": "Organization", name: post.author }, articleSection: post.category,
@@ -68,7 +69,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {mentioned.length > 0 && (
             <aside className="article-products" aria-label="Yazıda geçen ürünler">
               <p className="eyebrow">Yazıda geçen ürünler</p>
-              <ul>{mentioned.map((product) => <li key={product.id}><Link href={`/urun/${product.id}`}>{product.name}</Link> <span>{product.size}</span></li>)}</ul>
+              <ul>{mentioned.map(({ product, href, state }) => <li key={product.id} data-state={state}><Link href={href}>{product.name}</Link> <span>{product.size}{state === "preview" ? " · Satış henüz açık değil" : state === "soldout" ? " · Tükendi" : ""}</span></li>)}</ul>
             </aside>
           )}
           <Link href="/gunluk"><ArrowLeft size={16} aria-hidden="true" /> Günlüğe dön</Link>

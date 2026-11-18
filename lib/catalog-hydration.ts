@@ -24,7 +24,13 @@ export function hydrateProducts(rows: ProductRow[]): Product[] {
       stock: row.stock,
       shipsTo: row.shipsTo ?? ["TR"],
       ...(row.sizeFamily ? { sizeFamily: row.sizeFamily } : {}),
+      ...(row.packaging ? { packaging: row.packaging } : {}),
+      ...(row.netVolumeMl ? { netVolumeMl: row.netVolumeMl } : {}),
+      ...(row.netWeightG ? { netWeightG: row.netWeightG } : {}),
+      ...(row.content ? { content: row.content } : {}),
       ...(presentation ? { lot: presentation.lot, badge: presentation.badge, image: presentation.image } : {}),
+      // An owner-APPROVED photo of this product outranks every editorial/concept image.
+      ...(row.photo ? { image: { src: row.photo.src, alt: row.photo.altTr || row.name, kind: "variant" as const } } : {}),
     };
   });
 }

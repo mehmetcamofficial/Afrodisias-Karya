@@ -1,0 +1,63 @@
+name: Clerk Preview authorization (real Development session)
+# Signs in to the real Vercel Preview with a Clerk DEVELOPMENT test account that is NOT an admin and
+# checks that /admin/urunler and every admin API refuse it server-side. Read-only: every call is refused
+# before any write.
+#
+# Secrets live ONLY in the `clerk-preview-tests` GitHub environment, so no other job can read them:
+#   CLERK_TEST_PUBLISHABLE_KEY  pk_test_… of the Development instance the Preview uses
+#   CLERK_TEST_SECRET_KEY       sk_test_… of that same Development instance
+#   CLERK_TEST_OUTSIDER_EMAIL   a Clerk test address (name+clerk_test@domain) that is NOT in ADMIN_EMAILS
+# The job runs only when the repository variable CLERK_PREVIEW_AUTH_ENABLED is "true". Until then it is
+# SKIPPED (never green), so a missing setup can never be mistaken for a pass.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: read
+  pull-requests: read
+
+jobs:
+  outsider:
+    if: vars.CLERK_PREVIEW_AUTH_ENABLED == 'true' && (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository)
+    environment: clerk-preview-tests
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse anything but Development keys
+        shell: bash
+        env:
+          PK: ${{ secrets.CLERK_TEST_PUBLISHABLE_KEY }}
+          SK: ${{ secrets.CLERK_TEST_SECRET_KEY }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          [[ "$PK" == pk_test_* && "$SK" == sk_test_* ]] || { echo "::error::Clerk Development keys (pk_test_/sk_test_) required; Production keys are never used."; exit 1; }
+          [[ -n "$BYPASS" ]] || { echo "::error::VERCEL_AUTOMATION_BYPASS_SECRET is required to reach the protected Preview."; exit 1; }
+      - name: Wait for this commit's Preview and resolve its URL
+        id: url
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR: ${{ github.event.pull_request.number }}
+        run: echo "preview=$(node scripts/ci/resolve-preview-url.mjs)" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Outsider is refused by the admin page and every admin API
+        run: pnpm exec playwright test -c playwright.clerk.config.ts
+        env:
+          PREVIEW_URL: ${{ steps.url.outputs.preview }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_TEST_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_TEST_SECRET_KEY }}
+          CLERK_TEST_OUTSIDER_EMAIL: ${{ secrets.CLERK_TEST_OUTSIDER_EMAIL }}
+          HOME: /root

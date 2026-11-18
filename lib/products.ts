@@ -36,7 +36,14 @@ export type Product = {
   sizeFamily?: string;
   /** ISO country codes the product may ship to (DB `ships_to`, default TR). */
   shipsTo?: string[];
+  /** Published database fields (0007/0008). Absent on editorial previews — never guessed. */
+  packaging?: string;
+  netVolumeMl?: number;
+  netWeightG?: number;
+  content?: Partial<Record<"tr" | "en", ProductContent>>;
 };
+
+export type ProductContent = { name: string; description: string; origin: string; ingredients: string; usage: string; storage: string };
 
 const GLASS_RANGE: ProductImage = { src: "/altin-dal-bottle-collection.webp", alt: "Altın Dal koyu cam şişe serisi mermer kaide üzerinde", kind: "range" };
 const GIFT_BOX: ProductImage = { src: "/altin-dal-gift-box.webp", alt: "Altın Dal hediye kutusu", kind: "range" };
