@@ -2,7 +2,7 @@ import type { CmsCollection, CmsExperienceSection } from "../db/postgres/showcas
 
 /**
  * E2E-ONLY content. Loaded solely when the Vite test build defines
- * __ALTINDAL_E2E_FIXTURE__ (see lib/live-products.ts); Next/Vercel builds never
+ * __ALTINDAL_E2E_FIXTURE__ (see lib/catalog.ts); Next/Vercel builds never
  * see it. Titles say "Test" so it can never be mistaken for real copy.
  */
 export const fixtureCollections: CmsCollection[] = [{

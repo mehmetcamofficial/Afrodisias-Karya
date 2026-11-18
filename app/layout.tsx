@@ -8,7 +8,7 @@ import { PageTransition } from "./components/page-transition";
 import { SITE_URL } from "../lib/site";
 import { HelpWidget } from "./components/help-widget";
 import { contactConfig } from "../lib/contact-config";
-import { getLiveProducts } from "../lib/live-products";
+import { getCatalogue, publishedProducts } from "../lib/catalog";
 import { isProductionShowcase } from "../lib/showcase-mode";
 
 export const metadata: Metadata = {
@@ -39,7 +39,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const inventory = await getLiveProducts().catch(() => []);
+  // Cart restore: published products only; a preview can never enter the cart.
+  const inventory = publishedProducts(await getCatalogue());
   return (
     <html lang="tr">
       <head>

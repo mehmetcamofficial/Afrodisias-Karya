@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { blogCategories, categorySlugs, publishedPosts } from "../lib/blog";
-import { getLiveProducts } from "../lib/live-products";
+import { getCatalogue, publishedProducts } from "../lib/catalog";
 import { SITE_URL } from "../lib/site";
 
 // Only request active Neon products at request time. Do not prerender in CI
@@ -11,7 +11,8 @@ const STATIC_ROUTES = ["", "/koleksiyon", "/magaza", "/hikayemiz", "/hasat", "/d
 
 /** Canonical (non-redirecting) public URLs only. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await getLiveProducts();
+  // Published products only: previews (drafts) and the showcase presentation pages are never listed.
+  const products = publishedProducts(await getCatalogue());
   return [
     ...STATIC_ROUTES.map((path) => ({ url: `${SITE_URL}${path || "/"}` })),
     ...products.map((product) => ({ url: `${SITE_URL}/urun/${product.id}` })),

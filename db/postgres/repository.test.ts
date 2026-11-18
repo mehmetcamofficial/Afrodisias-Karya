@@ -11,14 +11,18 @@ describe("PostgreSQL repository contract", () => {
     expect(query.mock.calls[0][1]).toContain("'); DROP TABLE orders;--");
   });
 
-  it("preserves inactive draft state on product upsert", async () => {
+  it("legacy create inserts a new inactive draft only and never overwrites an existing product", async () => {
     const query = vi.fn(async (_sql: string, _params?: readonly unknown[]) => ({ rows: [], rowCount: 1 }));
-    await upsertProduct({ query } as unknown as SqlDriver, {
+    expect(await upsertProduct({ query } as unknown as SqlDriver, {
       id: "draft-1", name: "Draft", type: "glass", size: "250 ml", note: "",
-      priceKurus: 12300, stock: 0, active: false,
-    }, 456);
-    expect(query.mock.calls[0][0]).toContain("active=excluded.active");
-    expect(query.mock.calls[0][1]).toContain(false);
+      priceKurus: 12300, stock: 9, active: true,
+    }, 456)).toBe(true);
+    const sql = query.mock.calls[0][0];
+    expect(sql).toContain("ON CONFLICT(id) DO NOTHING");
+    expect(sql).toContain("0,false,$7,'draft'"); // stock 0, inactive, draft regardless of input
+    expect(sql).not.toContain("DO UPDATE");
+    query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+    expect(await upsertProduct({ query } as unknown as SqlDriver, { id: "glass-500", name: "x", type: "", size: "", note: "", priceKurus: 1, stock: 0, active: false }, 1)).toBe(false);
   });
 
   it("allows admins to read drafts separately from the public inventory", async () => {
@@ -36,7 +40,10 @@ describe("PostgreSQL repository contract", () => {
     const result = await publishReviewedProduct({ query } as unknown as SqlDriver,
       { id: "glass-250", expectedPriceKurus: 55000, approvedStock: 4, actorUserId: "user_1", actorEmail: "a@example.test" }, 1234);
     expect(result).toBe(true);
-    expect(query.mock.calls[0][0]).toContain("active=false AND price_kurus=$2");
+    expect(query.mock.calls[0][0]).toContain("status='approved' AND price_kurus=$2 AND stock=$3");
+    expect(query.mock.calls[0][0]).toContain("cardinality(product_publish_blockers(products)) = 0");
+    expect(query.mock.calls[0][0]).not.toMatch(/status IN \('draft'/);
+    expect(query.mock.calls[0][0]).toContain("INSERT INTO audit_logs");
     expect(query.mock.calls[0][0]).toContain("INSERT INTO product_publish_audit");
     expect(query.mock.calls[0][1]).toEqual(["glass-250", 55000, 4, 1234, "user_1", "a@example.test"]);
   });

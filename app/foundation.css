@@ -322,3 +322,23 @@
 
 /* Parse sentinel: if this is not applied, the browser dropped the end of this stylesheet (see tests/e2e/visual-smoke.spec.ts). */
 :root { --css-tail-foundation: 1; }
+
+/* Faz 13D — store previews: editorial products not on sale (no price, stock or purchase). */
+.store-previews { margin: clamp(48px, 6vw, 88px) 0 0; padding-top: clamp(32px, 4vw, 48px); border-top: 1px solid rgb(20 37 29 / 0.16); }
+.store-previews > header { display: grid; gap: 8px; max-width: 640px; margin-bottom: clamp(22px, 3vw, 34px); }
+.store-previews > header .eyebrow { margin: 0; font: 600 11px/1.6 var(--ad-font-ui, Arial, sans-serif); letter-spacing: 0.24em; text-transform: uppercase; color: var(--ad-gold-ink); }
+.store-previews h2 { margin: 0; font: 400 clamp(2rem, 3.6vw, 3rem)/1 "Instrument Serif", Georgia, serif; color: var(--ad-charcoal); }
+.store-previews > header p:last-child { margin: 0; font: 16px/1.6 Georgia, serif; color: #56625a; }
+.store-preview-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 20px); }
+.store-preview-card a { display: grid; gap: 6px; height: 100%; padding: 12px 12px 16px; color: inherit; background: #f8f4ec; border: 1px solid rgb(20 37 29 / 0.12); transition: border-color 0.25s ease, transform 0.35s cubic-bezier(.2,.7,.2,1); }
+.store-preview-card a:hover { border-color: rgb(115 93 46 / 0.6); transform: translateY(-2px); }
+.store-preview-card a:focus-visible { outline: 2px solid var(--ad-gold-ink); outline-offset: 3px; }
+.store-preview-media { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: #e9e1d4; margin-bottom: 6px; }
+.store-preview-media img { object-fit: cover; }
+.store-preview-card small { font: 600 10px/1.5 var(--ad-font-ui, Arial, sans-serif); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ad-gold-ink); }
+.store-preview-card b { font: 400 1.35rem/1.1 "Instrument Serif", Georgia, serif; color: var(--ad-charcoal); }
+.store-preview-status { justify-self: start; margin-top: 4px; padding: 3px 9px; font: 600 11px/1.5 var(--ad-font-ui, Arial, sans-serif); color: #5b4a24; background: #efe4c8; }
+.store-preview-note { font: 11px/1.45 var(--ad-font-ui, Arial, sans-serif); color: #6b6b62; }
+@media (max-width: 1050px) { .store-preview-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .store-preview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .store-preview-card a { padding: 8px 8px 12px; } .store-preview-card b { font-size: 1.1rem; } }
+@media (prefers-reduced-motion: reduce) { .store-preview-card a { transition: none; } .store-preview-card a:hover { transform: none; } }

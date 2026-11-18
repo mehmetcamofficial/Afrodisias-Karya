@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { getLiveProducts } from "../../lib/live-products";
-import { products as editorialProducts, categoryLabels, type Product } from "../../lib/products";
+import { getCatalogue, publishedProducts } from "../../lib/catalog";
+import { categoryLabels } from "../../lib/products";
 import { BrandShell } from "../components/site-shell";
 import { ProductVisual, productImageNote } from "../components/product-visual";
 import { CollectionCards } from "../components/showcase";
@@ -26,12 +26,10 @@ const categories = [
 
 export default async function CollectionPage() {
   // The real, approved catalogue remains authoritative for commerce.
-  const [live, curated] = await Promise.all([getLiveProducts(), publishedCollections()]);
-  const published = new Map(live.map((item) => [item.id, item]));
-  // Editorial concepts are NOT added to getLiveProducts or the order API.
-  const catalogue: Product[] = editorialProducts.map((item) => published.get(item.id) ?? {
-    ...item, prices: {}, stock: 0, badge: undefined,
-  });
+  // One catalogue (lib/catalog): published products + editorial previews (no price, stock or purchase).
+  const [cat, curated] = await Promise.all([getCatalogue(), publishedCollections()]);
+  const published = new Map(publishedProducts(cat).map((item) => [item.id, item]));
+  const catalogue = cat.entries.map((e) => e.product);
 
   return <BrandShell>
     <CollectionScene products={collectionSceneProducts(catalogue, published)}>
@@ -57,21 +55,22 @@ export default async function CollectionPage() {
       <CollectionCards collections={curated} locale="tr"/>
     </section>}
     {categories.map((group) => {
-      const items = catalogue.filter((item) => item.category === group.id);
+      const items = cat.entries.filter((e) => e.product.category === group.id);
       return <section className="collection-series" id={`seri-${group.id}`} key={group.id} aria-labelledby={`heading-${group.id}`}>
         <header><div><p className="eyebrow">{categoryLabels[group.id]}</p><h2 id={`heading-${group.id}`}>{group.title}</h2><p>{group.intro}</p></div><Link href={`/magaza?kategori=${group.id}#urunler`}>Mağaza filtresine git <ArrowRight size={17} aria-hidden="true"/></Link></header>
         <div className="collection-series-grid">
-          {items.map((product) => {
-            const isLive = published.has(product.id);
-            return <article className="collection-series-card" key={product.id}>
+          {items.map(({ product, state, href }) => {
+            const isLive = state !== "preview";
+            return <article className="collection-series-card" key={product.id} data-state={state}>
               <div className="collection-series-media"><ProductVisual product={product} sizes="(max-width: 700px) 90vw, (max-width: 1100px) 45vw, 30vw"/></div>
               <div className="collection-series-copy">
-                <small>{product.size} · {isLive ? "Yayındaki katalog" : "Koleksiyon önizlemesi"}</small>
+                <small>{product.size} · {state === "live" ? "Satışta" : state === "soldout" ? "Tükendi" : "Koleksiyon önizlemesi"}</small>
                 <h3>{product.name}</h3>
-                <p>{product.note}</p>
+                <p>{product.content?.tr?.description || product.note}</p>
                 {productImageNote(product) && <p className="collection-image-note">{productImageNote(product)}</p>}
-                {isLive ? <Link href={`/urun/${product.id}`}>Ürün detayını incele <ArrowRight size={16} aria-hidden="true"/></Link> :
-                  <span className="collection-pending">Henüz satışa veya ürün detayına açılmadı</span>}
+                {isLive ? <Link href={href}>Ürün detayını incele <ArrowRight size={16} aria-hidden="true"/></Link>
+                  : cat.showcase ? <Link href={href}>Ürün tanıtımını incele <ArrowRight size={16} aria-hidden="true"/></Link>
+                  : <span className="collection-pending">Satış henüz açık değil</span>}
               </div>
             </article>;
           })}

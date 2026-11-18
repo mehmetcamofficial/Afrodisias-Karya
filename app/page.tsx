@@ -2,9 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { publishedPosts } from "../lib/blog";
-import { type Product } from "../lib/products";
-import { getLiveProducts } from "../lib/live-products";
-import { isProductionShowcase } from "../lib/showcase-mode";
+import { getCatalogue, publishedProducts } from "../lib/catalog";
 import { BrandFooter, BrandHeader } from "./components/site-shell";
 import { HeroFilm } from "./components/hero-film";
 import { JournalCard } from "./components/journal-card";
@@ -44,8 +42,7 @@ const values = [
 
 export default async function Home() {
   const journal = publishedPosts.slice(0, 3);
-  const catalogue = await getLiveProducts().catch(() => [] as Product[]);
-  const showcase = isProductionShowcase();
+  const cat = await getCatalogue();
   // Typographic covers on the homepage: no third-party (Wikimedia) image requests on the landing page.
   const journalCards = journal.map((post) => ({ post, graphic: true }));
   return (
@@ -83,7 +80,7 @@ export default async function Home() {
         </section>
 
         {/* B · Collection vitrine: one featured family and two companions, resolved against the live catalogue */}
-        <HomeVitrine entries={resolveVitrine(catalogue, showcase)} />
+        <HomeVitrine entries={resolveVitrine(publishedProducts(cat), cat.showcase)} />
 
         {/* C · Grove to table: native horizontal rail */}
         <section className="home-journey" aria-labelledby="journey-home-title">

@@ -139,3 +139,63 @@
 .showcase-order li span { flex: 1; }
 .showcase-order button { min-width: 36px; min-height: 36px; border: 1px solid rgb(36 37 33 / 0.2); background: #fff; border-radius: 6px; cursor: pointer; }
 .showcase-media-row { display: grid; gap: 6px; padding: 10px; border: 1px dashed rgb(36 37 33 / 0.25); border-radius: 8px; margin-bottom: 8px; }
+
+/* Faz 13C — premium product CMS panels */
+.cms-readiness, .cms-prices, .cms-media, .cms-collections-panel { display: grid; gap: 12px; padding: 18px; border: 1px solid rgb(20 37 29 / 0.14); background: #fffdf8; }
+.cms-readiness header { display: grid; gap: 4px; }
+.cms-readiness h3, .cms-prices h3, .cms-media h3, .cms-collections-panel h3 { display: flex; align-items: center; gap: 8px; margin: 0; font: 600 var(--ad-text-sm) var(--ad-font-ui); letter-spacing: 0.04em; color: var(--ad-charcoal); }
+.cms-readiness p { margin: 0; font: var(--ad-text-xs) var(--ad-font-ui); color: var(--ad-muted-ink); }
+.cms-readiness { border-left: 4px solid #b4782f; }
+.cms-readiness.is-ready { border-left-color: #3c704f; }
+.cms-readiness ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 14px; }
+.cms-readiness li { display: flex; align-items: flex-start; gap: 8px; padding: 7px 9px; font: var(--ad-text-xs) var(--ad-font-ui); background: #f6f2ea; }
+.cms-readiness li span { display: grid; }
+.cms-readiness li small { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ad-muted-ink); }
+.cms-readiness li.is-ok svg { color: #3c704f; }
+.cms-readiness li.is-missing { background: #fbefe4; }
+.cms-readiness li.is-missing svg { color: #9a3f1f; }
+.cms-price-table td small { display: block; margin-top: 4px; color: var(--ad-muted-ink); }
+.cms-price-table th[scope="row"] { font: 600 var(--ad-text-sm) var(--ad-font-ui); }
+.cms-media-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.cms-media-grid li { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 10px; border: 1px solid rgb(20 37 29 / 0.12); background: #fff; }
+.cms-media-grid li[data-truth="concept"] img, .cms-media-grid li[data-truth="range"] img { outline: 2px dashed #b4782f; outline-offset: -2px; }
+.cms-media-grid img { width: 96px; height: 96px; object-fit: cover; background: #efe9de; }
+.cms-media-grid li > div { display: grid; align-content: start; gap: 5px; min-width: 0; }
+.cms-media-grid small { color: var(--ad-muted-ink); font: var(--ad-text-xs) var(--ad-font-ui); overflow-wrap: anywhere; }
+.cms-media-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.cms-segment { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 3px; border: 1px solid rgb(20 37 29 / 0.18); width: max-content; max-width: 100%; }
+.cms-segment label, .cms-segment button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px; border: 0; background: transparent; font: 500 var(--ad-text-xs) var(--ad-font-ui); cursor: pointer; }
+.cms-segment button[aria-selected="true"], .cms-segment label:has(input:checked) { background: var(--ad-charcoal, #142219); color: #fff; }
+.cms-lang .cms-segment { grid-column: 1 / -1; }
+.cms-lang-panel { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 16px; }
+.cms-lang-panel[hidden] { display: none; }
+.cms-collections-panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cms-empty { margin: 0; font: var(--ad-text-xs) var(--ad-font-ui); color: var(--ad-muted-ink); }
+@media (max-width: 700px) {
+  .cms-readiness, .cms-prices, .cms-media, .cms-collections-panel { padding: 14px 12px; }
+  .cms-readiness ul, .cms-media-grid { grid-template-columns: 1fr; }
+  .cms-price-table { display: block; }
+  .cms-price-table thead { display: none; }
+  .cms-price-table tbody, .cms-price-table tr { display: grid; }
+  .cms-price-table tr { grid-template-columns: 56px 1fr; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid rgb(20 37 29 / 0.1); }
+  .cms-price-table td { padding: 0; border: 0; }
+  .cms-price-table td:nth-child(n + 3) { grid-column: 2; }
+  .cms-form fieldset { grid-template-columns: 1fr; padding: 12px; }
+  .cms-lang-panel { grid-template-columns: 1fr; }
+}
+/* The legacy `.admin-card form { grid-template-columns: 1fr 1fr }` (globals.css) out-ranks .cms-form and
+   forced two columns — overflowing phones. CMS forms are one column of fieldsets; fieldsets may shrink. */
+.admin-card .cms-form { grid-template-columns: minmax(0, 1fr); }
+.admin-card .cms-form fieldset { min-inline-size: 0; }
+.admin-card .cms-form .cms-segment button { grid-column: auto; padding: 6px 12px; background: transparent; color: inherit; }
+.admin-card .cms-form .cms-segment button[aria-selected="true"] { background: var(--ad-charcoal, #142219); color: #fff; }
+.admin-card .cms-form .cms-segment { justify-self: start; }
+.cms-form input, .cms-form select, .cms-form textarea { min-width: 0; width: 100%; }
+@media (max-width: 700px) {
+  .cms .admin-card { padding: 18px 12px; }
+  .cms-media-grid li { grid-template-columns: 64px minmax(0, 1fr); gap: 10px; }
+  .cms-media-grid img { width: 64px; height: 64px; }
+  .cms-media-actions .admin-action { white-space: normal; text-align: left; }
+}
+.admin-card .cms-segment input[type="radio"] { position: absolute; width: 1px; height: 1px; padding: 0; margin: 0; opacity: 0; }
+.cms-segment label:has(input:focus-visible) { outline: 2px solid var(--ad-gold-ink); outline-offset: 2px; }

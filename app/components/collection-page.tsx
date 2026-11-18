@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getLiveProducts } from "../../lib/live-products";
+import { getCatalogue, publishedProducts } from "../../lib/catalog";
 import { publishedCollection } from "../../lib/showcase-db";
 import { isProductionShowcase } from "../../lib/showcase-mode";
 import { BrandShell } from "./site-shell";
@@ -26,7 +26,7 @@ export async function CollectionPage({ locale, slug, durum }: { locale: Locale; 
   const c = await publishedCollection(locale, slug);
   if (!c || (locale === "en" && !c.en.title)) notFound();
   const text = c[locale];
-  const items = resolveProducts(c.productIds, await getLiveProducts());
+  const items = resolveProducts(c.productIds, publishedProducts(await getCatalogue()));
   const base = locale === "tr" ? `/koleksiyon/${c.slugTr}` : `/en/collection/${c.slugEn}`;
   const other = locale === "tr" ? (c.slugEn && c.en.title ? { href: `/en/collection/${c.slugEn}`, label: "English", lang: "en" } : null) : { href: `/koleksiyon/${c.slugTr}`, label: "Türkçe", lang: "tr" };
   return (
