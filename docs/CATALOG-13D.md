@@ -70,6 +70,17 @@ Kurallar:
 | Production build, yayında ürün yokken (Preview'daki durum) | PASS: `/urun/glass-500` → 307 `/koleksiyon#seri-glass`; sitemap'te 0 ürün; mağazada 13 önizleme |
 | Görsel kontrol: 375, 390, 768, 1024, 1440 px (ana sayfa, koleksiyon, mağaza) | PASS: 15/15 ekranda yatay taşma yok ve hiç ₺ fiyatı yok |
 
+## CI ve gerçek Preview (`5a14960`)
+
+| Kontrol | Sonuç |
+|---|---|
+| `checks`, `cms-integration`, `postgres-transaction`, `diagnostic` | PASS |
+| `e2e` (tam paket) | PASS |
+| `cross-browser-css` (Chromium, WebKit masaüstü, iPhone, Firefox) | PASS |
+| Gerçek Preview `probe` | PASS — 24/24. 13D testi dört tarayıcıda: mağazada 0 ürün kartı ve 13 önizleme; sepet düğmesi yok; fiyat ve stok yok; koleksiyonda 13/13 önizleme; `/urun/glass-500` → `/koleksiyon#seri-glass` (200); sitemap'te `/urun/` yok; ana sayfa vitrininde 3 önizleme |
+| Clerk `outsider` işi | **SKIPPED** — sahibin GitHub Environment kurulumu bekleniyor (aşağıda) |
+| Yerel tam e2e | 470 geçti. 11 hata yalnızca bu ortamın Wikimedia'ya erişememesinden kaynaklanıyor (`/gunluk` ve navigasyon testleri); CI'da geçiyor. |
+
 ## Güvenlik kontrolleri
 
 - 13 ürün taslak kaldı; yayımlama yapılmadı.
